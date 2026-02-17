@@ -4,17 +4,31 @@
     "rootDir": ".",
     "sourceMap": true,
     "declaration": false,
+    "strict": true,
     "moduleResolution": "node",
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "target": "es2015",
+    "target": "es2022",
     "module": "esnext",
     "lib": ["es2020", "dom"],
     "skipLibCheck": true,
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
-    "paths": {}
+    "paths": {
+      "@nesttrade/backend/*": ["apps/backend/src/*"],
+      "@nesttrade/backend-auth": ["apps/backend/src/modules/auth/index.ts"],
+      "@nesttrade/backend-users": ["apps/backend/src/modules/users/index.ts"],
+      "@nesttrade/backend-rbac": ["apps/backend/src/modules/rbac/index.ts"],
+      "@nesttrade/backend-market": ["apps/backend/src/modules/market/index.ts"],
+      "@nesttrade/backend-accounts": ["apps/backend/src/modules/accounts/index.ts"],
+      "@nesttrade/backend-oms": ["apps/backend/src/modules/oms/index.ts"],
+      "@nesttrade/backend-realtime": ["apps/backend/src/modules/realtime/prana-stream/index.ts"],
+      "@nesttrade/backend-notifications": ["apps/backend/src/modules/notifications/index.ts"],
+      "@nesttrade/backend-admin": ["apps/backend/src/modules/admin/index.ts"],
+      "@nesttrade/backend-shared/*": ["apps/backend/src/shared/*"],
+      "@nesttrade/backend-common/*": ["apps/backend/src/common/*"]
+    }
   },
   "exclude": ["node_modules", "tmp"]
 }
