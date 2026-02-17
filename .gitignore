@@ -2,6 +2,10 @@
 .nx/installation
 .nx/cache
 .nx/workspace-data
+node_modules/
+dist/
+coverage/
+tmp/
 
 
 .cursor/rules/nx-rules.mdc
@@ -10,3 +14,7 @@
 # Next.js
 .next
 out
+
+# Environment files
+apps/backend/.env
+.env.local

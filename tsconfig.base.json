@@ -25,9 +25,7 @@
       "@nesttrade/backend-oms": ["apps/backend/src/modules/oms/index.ts"],
       "@nesttrade/backend-realtime": ["apps/backend/src/modules/realtime/prana-stream/index.ts"],
       "@nesttrade/backend-notifications": ["apps/backend/src/modules/notifications/index.ts"],
-      "@nesttrade/backend-admin": ["apps/backend/src/modules/admin/index.ts"],
-      "@nesttrade/backend-shared/*": ["apps/backend/src/shared/*"],
-      "@nesttrade/backend-common/*": ["apps/backend/src/common/*"]
+      "@nesttrade/backend-admin": ["apps/backend/src/modules/admin/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
