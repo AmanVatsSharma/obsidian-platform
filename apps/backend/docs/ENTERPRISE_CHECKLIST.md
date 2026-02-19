@@ -50,8 +50,18 @@ Legend: `[x] done` `[~] partial` `[ ] pending`
 - [x] Cycle and duplicate checks in scripts
 - [x] CI workflow for affected lint/test/build + quality checks
 
+## Global Broker SaaS Scaffold (Wave-1)
+- [x] Trader web route-group scaffold (`onboarding`, `portfolio`, `orders`, `funds`, `settings`)
+- [x] Broker-admin and platform-owner app shells
+- [x] Tenancy and broker-hierarchy control-plane module scaffolds
+- [x] Execution gateway with five connector families and contract tests
+- [x] Compliance, onboarding, and risk-policy scaffolds
+- [x] Settlement, reconciliation, corporate-actions, limits-and-controls scaffolds
+- [x] SaaS control-plane scaffolds (provisioning, entitlements, billing placeholders, support audit)
+- [~] Production integrations pending (real exchange, payment rails, compliance providers)
+
 ## Next Institutional Milestones
 - [ ] Real exchange routing + lifecycle reconciliation
-- [ ] Compliance automation (KYC/AML/sanctions/audit retention)
+- [~] Compliance automation baseline scaffolded (KYC/AML/sanctions/audit retention providers pending)
 - [ ] Multi-region HA + tested DR
 - [ ] Queue-backed fanout/event bus for extreme-load scaling
