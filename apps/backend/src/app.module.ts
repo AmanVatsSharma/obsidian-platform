@@ -41,6 +41,10 @@ import { LimitsAndControlsModule } from '@nesttrade/backend-limits-controls';
 import { SaasControlPlaneModule } from '@nesttrade/backend-saas-control-plane';
 import { MessagingModule } from './shared/messaging/messaging.module';
 import { OutboxModule } from './shared/outbox/outbox.module';
+import { DealingModule } from '@nesttrade/backend-dealing';
+import { SupportModule } from '@nesttrade/backend-support';
+import { PartnersModule } from '@nesttrade/backend-partners';
+import { DeveloperPlatformModule } from '@nesttrade/backend-developer-platform';
 
 @Module({
   imports: [
@@ -71,6 +75,10 @@ import { OutboxModule } from './shared/outbox/outbox.module';
     CorporateActionsModule,
     LimitsAndControlsModule,
     SaasControlPlaneModule,
+    DealingModule,
+    SupportModule,
+    PartnersModule,
+    DeveloperPlatformModule,
     MessagingModule,
     OutboxModule,
     ObservabilityModule,

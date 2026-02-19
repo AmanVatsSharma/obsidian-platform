@@ -11,3 +11,4 @@ export * from './services/dealing.service';
 export * from './entities/deal.entity';
 export * from './entities/dealing-quote.entity';
 export * from './dtos/create-deal.dto';
+export * from './dtos/deal-override.dto';
