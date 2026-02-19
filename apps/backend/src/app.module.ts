@@ -28,6 +28,17 @@ import { APP_GUARD } from '@nestjs/core';
 import { NotificationsModule } from '@nesttrade/backend-notifications';
 import { AdminModule } from '@nesttrade/backend-admin';
 import { ObservabilityModule } from './shared/observability/observability.module';
+import { TenancyModule } from '@nesttrade/backend-tenancy';
+import { BrokerHierarchyModule } from '@nesttrade/backend-broker-hierarchy';
+import { ExecutionGatewayModule } from '@nesttrade/backend-execution-gateway';
+import { ComplianceModule } from '@nesttrade/backend-compliance';
+import { OnboardingModule } from '@nesttrade/backend-onboarding';
+import { RiskPolicyModule } from '@nesttrade/backend-risk-policy';
+import { SettlementModule } from '@nesttrade/backend-settlement';
+import { ReconciliationModule } from '@nesttrade/backend-reconciliation';
+import { CorporateActionsModule } from '@nesttrade/backend-corporate-actions';
+import { LimitsAndControlsModule } from '@nesttrade/backend-limits-controls';
+import { SaasControlPlaneModule } from '@nesttrade/backend-saas-control-plane';
 
 @Module({
   imports: [
@@ -47,6 +58,17 @@ import { ObservabilityModule } from './shared/observability/observability.module
     PranaStreamModule,
     NotificationsModule,
     AdminModule,
+    TenancyModule,
+    BrokerHierarchyModule,
+    ExecutionGatewayModule,
+    ComplianceModule,
+    OnboardingModule,
+    RiskPolicyModule,
+    SettlementModule,
+    ReconciliationModule,
+    CorporateActionsModule,
+    LimitsAndControlsModule,
+    SaasControlPlaneModule,
     ObservabilityModule,
   ],
   controllers: [AppController],
