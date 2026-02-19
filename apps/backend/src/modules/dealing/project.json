@@ -1,0 +1,1 @@
+{"name":"backend-dealing","$schema":"../../../../../node_modules/nx/schemas/project-schema.json","sourceRoot":"apps/backend/src/modules/dealing","projectType":"library","tags":["type:lib","scope:backend","domain:dealing","layer:domain"],"targets":{"lint":{"executor":"@nx/eslint:lint","options":{"lintFilePatterns":["apps/backend/src/modules/dealing/**/*.ts"]}}}}
