@@ -4,10 +4,10 @@ overview: Scaffold a global-ready, exchange-flexible broker SaaS foundation on t
 todos:
   - id: scaffold-surfaces
     content: Create Wave-1 app scaffolds (trader web enhancement, broker-admin app, platform-owner app) with shared frontend libs.
-    status: completed
+    status: in_progress
   - id: scaffold-tenancy-hierarchy
     content: Scaffold tenancy and broker hierarchy backend modules with entities, DTOs, controllers, module docs, and exports.
-    status: in_progress
+    status: pending
   - id: scaffold-adapter-sdk
     content: Scaffold execution-gateway abstraction and connector pack skeletons for selected asset/exchange families.
     status: pending

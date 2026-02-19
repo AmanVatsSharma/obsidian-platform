@@ -25,7 +25,22 @@
       "@nesttrade/backend-oms": ["apps/backend/src/modules/oms/index.ts"],
       "@nesttrade/backend-realtime": ["apps/backend/src/modules/realtime/prana-stream/index.ts"],
       "@nesttrade/backend-notifications": ["apps/backend/src/modules/notifications/index.ts"],
-      "@nesttrade/backend-admin": ["apps/backend/src/modules/admin/index.ts"]
+      "@nesttrade/backend-admin": ["apps/backend/src/modules/admin/index.ts"],
+      "@nesttrade/backend-tenancy": ["apps/backend/src/modules/tenancy/index.ts"],
+      "@nesttrade/backend-broker-hierarchy": ["apps/backend/src/modules/broker-hierarchy/index.ts"],
+      "@nesttrade/backend-execution-gateway": ["apps/backend/src/modules/execution-gateway/index.ts"],
+      "@nesttrade/backend-compliance": ["apps/backend/src/modules/compliance/index.ts"],
+      "@nesttrade/backend-onboarding": ["apps/backend/src/modules/onboarding/index.ts"],
+      "@nesttrade/backend-risk-policy": ["apps/backend/src/modules/risk-policy/index.ts"],
+      "@nesttrade/backend-settlement": ["apps/backend/src/modules/settlement/index.ts"],
+      "@nesttrade/backend-reconciliation": ["apps/backend/src/modules/reconciliation/index.ts"],
+      "@nesttrade/backend-corporate-actions": ["apps/backend/src/modules/corporate-actions/index.ts"],
+      "@nesttrade/backend-limits-controls": ["apps/backend/src/modules/limits-and-controls/index.ts"],
+      "@nesttrade/backend-saas-control-plane": ["apps/backend/src/modules/saas-control-plane/index.ts"],
+      "@nesttrade/ui-kit": ["libs/ui-kit/src/index.ts"],
+      "@nesttrade/web-auth": ["libs/web-auth/src/index.ts"],
+      "@nesttrade/web-api-client": ["libs/web-api-client/src/index.ts"],
+      "@nesttrade/web-feature-flags": ["libs/web-feature-flags/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
