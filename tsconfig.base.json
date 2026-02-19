@@ -40,7 +40,12 @@
       "@nesttrade/ui-kit": ["libs/ui-kit/src/index.ts"],
       "@nesttrade/web-auth": ["libs/web-auth/src/index.ts"],
       "@nesttrade/web-api-client": ["libs/web-api-client/src/index.ts"],
-      "@nesttrade/web-feature-flags": ["libs/web-feature-flags/src/index.ts"]
+      "@nesttrade/web-feature-flags": ["libs/web-feature-flags/src/index.ts"],
+      "@nesttrade/mobile-ui-kit": ["libs/mobile-ui-kit/src/index.ts"],
+      "@nesttrade/mobile-auth": ["libs/mobile-auth/src/index.ts"],
+      "@nesttrade/mobile-api-client": ["libs/mobile-api-client/src/index.ts"],
+      "@nesttrade/web-shell": ["libs/web-shell/src/index.ts"],
+      "@nesttrade/desktop-shell": ["libs/desktop-shell/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]

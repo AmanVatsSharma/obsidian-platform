@@ -39,6 +39,8 @@ import { ReconciliationModule } from '@nesttrade/backend-reconciliation';
 import { CorporateActionsModule } from '@nesttrade/backend-corporate-actions';
 import { LimitsAndControlsModule } from '@nesttrade/backend-limits-controls';
 import { SaasControlPlaneModule } from '@nesttrade/backend-saas-control-plane';
+import { MessagingModule } from './shared/messaging/messaging.module';
+import { OutboxModule } from './shared/outbox/outbox.module';
 
 @Module({
   imports: [
@@ -69,6 +71,8 @@ import { SaasControlPlaneModule } from '@nesttrade/backend-saas-control-plane';
     CorporateActionsModule,
     LimitsAndControlsModule,
     SaasControlPlaneModule,
+    MessagingModule,
+    OutboxModule,
     ObservabilityModule,
   ],
   controllers: [AppController],
