@@ -60,6 +60,17 @@ Legend: `[x] done` `[~] partial` `[ ] pending`
 - [x] SaaS control-plane scaffolds (provisioning, entitlements, billing placeholders, support audit)
 - [~] Production integrations pending (real exchange, payment rails, compliance providers)
 
+## Global Broker SaaS Scaffold (Wave-2)
+- [x] Added new client surfaces: mobile, dealer workstation, support-ops, IB portal, developer portal, public site, desktop-pro
+- [x] Added shared client libs: mobile-ui-kit/mobile-auth/mobile-api-client/web-shell/desktop-shell
+- [x] Added backend modules: dealing, support, partners, developer-platform
+- [x] Added baseline security guards on new controllers (JWT + Tenant + Permissions)
+- [x] Added audit-hook stubs for dealing overrides, support impersonation, partner payout approvals, and webhook registration
+- [x] Added shared scale scaffolds: messaging, outbox, resilience wrappers, cache contracts, realtime scale coordinator
+- [x] Added AWS baseline scaffolds: Terraform module skeletons and Helm charts
+- [~] Mobile runtime stack is placeholder (Expo-style scaffold only; full native pipeline pending)
+- [~] Desktop runtime stack is placeholder (Electron/Tauri packaging pending)
+
 ## Next Institutional Milestones
 - [ ] Real exchange routing + lifecycle reconciliation
 - [~] Compliance automation baseline scaffolded (KYC/AML/sanctions/audit retention providers pending)
