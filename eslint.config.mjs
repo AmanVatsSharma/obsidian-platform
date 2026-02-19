@@ -69,6 +69,14 @@ export default tseslint.config(
               onlyDependOnLibsWithTags: ['scope:backend'],
             },
             {
+              sourceTag: 'scope:mobile',
+              onlyDependOnLibsWithTags: ['scope:mobile'],
+            },
+            {
+              sourceTag: 'scope:desktop',
+              onlyDependOnLibsWithTags: ['scope:desktop'],
+            },
+            {
               sourceTag: 'layer:entrypoint',
               onlyDependOnLibsWithTags: ['layer:domain', 'layer:infra'],
             },

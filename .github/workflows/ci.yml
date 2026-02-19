@@ -39,5 +39,14 @@ jobs:
       - name: Connector contract tests
         run: npm run test:contracts
 
+      - name: Developer platform contract tests
+        run: npm run test:developer-platform-contracts
+
+      - name: Mobile lint
+        run: npm run lint:mobile
+
+      - name: Desktop smoke
+        run: npm run smoke:desktop
+
       - name: Build affected
         run: npm run affected:build -- --base=origin/main --head=HEAD
