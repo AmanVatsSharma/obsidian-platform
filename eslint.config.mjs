@@ -61,6 +61,14 @@ export default tseslint.config(
           allow: ['^\\./', '^\\.\\./'],
           depConstraints: [
             {
+              sourceTag: 'scope:web',
+              onlyDependOnLibsWithTags: ['scope:web'],
+            },
+            {
+              sourceTag: 'scope:backend',
+              onlyDependOnLibsWithTags: ['scope:backend'],
+            },
+            {
               sourceTag: 'layer:entrypoint',
               onlyDependOnLibsWithTags: ['layer:domain', 'layer:infra'],
             },

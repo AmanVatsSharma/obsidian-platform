@@ -15,9 +15,10 @@
     "affected:build": "nx affected -t build",
     "affected:lint": "nx affected -t lint",
     "affected:test": "nx affected -t test",
+    "test:contracts": "nx test backend-execution-gateway --runInBand",
     "check:cycles": "madge --circular --extensions ts apps/backend/src",
     "check:duplicates": "node tools/scripts/check-duplicate-files.mjs",
-    "quality:verify": "npm run check:cycles && npm run check:duplicates && npm run affected:lint && npm run affected:test && npm run affected:build",
+    "quality:verify": "npm run check:cycles && npm run check:duplicates && npm run test:contracts && npm run affected:lint && npm run affected:test && npm run affected:build",
     "postinstall": "nx connect"
   },
   "keywords": [],
