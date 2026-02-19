@@ -4,7 +4,7 @@ overview: Upgrade the Wave-2 plan to an AWS-first, balanced-enterprise rollout t
 todos:
   - id: lane-a-surfaces
     content: "Parallel lane A: scaffold mobile, dealer/support/ib/developer/public web apps, desktop shell, and shared mobile/web/desktop libs with Nx wiring."
-    status: pending
+    status: in_progress
   - id: lane-b-backend-domains
     content: "Parallel lane B: scaffold backend modules `dealing`, `support`, `partners`, `developer-platform` with entities/DTOs/controllers/services/tests/docs and app.module wiring."
     status: pending
