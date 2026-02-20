@@ -1,0 +1,14 @@
+/**
+ * @file src/modules/tenancy/index.ts
+ * @module tenancy
+ * @description Public exports for tenancy domain scaffold
+ * @author BharatERP
+ * @created 2026-02-17
+ */
+
+export * from './tenancy.module';
+export * from './services/tenancy.service';
+export * from './entities/tenant.entity';
+export * from './entities/legal-entity.entity';
+export * from './dtos/create-tenant.dto';
+export * from './dtos/create-legal-entity.dto';
