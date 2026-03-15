@@ -18,6 +18,7 @@ import {
 @Entity('accounts')
 @Index('idx_accounts_user', ['tenantId', 'userId'])
 @Index('idx_accounts_status', ['status'])
+@Index('idx_accounts_tenant_user_type', ['tenantId', 'userId', 'accountType'])
 export class AccountEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
   id!: string;
@@ -27,6 +28,9 @@ export class AccountEntity {
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string; // references users.id
+
+  @Column({ name: 'account_type', type: 'varchar', length: 16, default: 'LIVE' })
+  accountType!: 'LIVE' | 'DEMO';
 
   @Column({ name: 'status', type: 'varchar', length: 16, default: 'ACTIVE' })
   status!: 'ACTIVE' | 'DISABLED';

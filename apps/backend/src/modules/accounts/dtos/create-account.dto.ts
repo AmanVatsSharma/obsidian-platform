@@ -21,4 +21,9 @@ export class CreateAccountDto {
   @IsString()
   @IsIn(['ACTIVE', 'DISABLED'])
   status?: 'ACTIVE' | 'DISABLED';
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['LIVE', 'DEMO'])
+  accountType?: 'LIVE' | 'DEMO';
 }
