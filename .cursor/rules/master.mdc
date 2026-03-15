@@ -30,14 +30,8 @@ alwaysApply: true
 # =============================
 # 3. FILE HEADERS
 # =============================
-- All files must start with header (see header.template):
-  /**
-   * @file <filename>
-   * @module <module-name>
-   * @description <short description>
-   * @author BharatERP
-   * @created <date>
-   */
+- All files must start with header; see .cursor/rules/header.template.mdc for the exact format.
+- Use @file, @module, @description, @author BharatERP, @created (and optionally @last-updated, Notes).
 
 # =============================
 # 4. LOGGING & ERROR HANDLING

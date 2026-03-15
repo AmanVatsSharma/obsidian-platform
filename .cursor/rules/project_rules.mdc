@@ -8,7 +8,7 @@ alwaysApply: true
 
 # Enforcements
 - Every module directory MUST contain MODULE_DOC.md.
-- Every file MUST include the Top-of-file header template (see templates/header.template).
+- Every file MUST include the Top-of-file header template (see .cursor/rules/header.template.mdc).
 - Use structured logger (Pino) everywhere; console.debug only in non-prod gated blocks.
 - Add requestId/correlation middleware to all HTTP & WebSocket flows.
 - Update changelog in module doc after every edit.

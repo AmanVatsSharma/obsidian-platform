@@ -30,6 +30,7 @@
     "check:duplicates": "node tools/scripts/check-duplicate-files.mjs",
     "quality:verify": "npm run check:cycles && npm run check:duplicates && npm run test:contracts && npm run test:developer-platform-contracts && npm run affected:lint && npm run affected:test && npm run affected:build",
     "quality:wave2": "npm run lint:wave2-surfaces && npm run lint:mobile && npm run smoke:desktop",
+    "docs:api": "typedoc --options apps/backend/typedoc.json",
     "postinstall": "nx connect"
   },
   "keywords": [],
