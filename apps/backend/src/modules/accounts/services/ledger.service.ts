@@ -17,8 +17,10 @@ import { CashHoldDto, CashReleaseDto } from '../dtos/cash-hold-release.dto';
 import { AppLoggerService } from '../../../shared/logger';
 import { getRequestContext } from '../../../shared/request-context';
 import { AppError } from '../../../common/errors/app-error';
+import { DemoAccountOperationError } from '../../../common/errors/domain.errors';
 import { PositionLedgerEntryEntity } from '../entities/position-ledger-entry.entity';
 import { RealtimePublisherService } from '../../realtime/prana-stream/services/realtime-publisher.service';
+import { AccountsService } from './accounts.service';
 
 function lockKey(tenantId: string, accountId: string): number {
   // simple hash, collision risk acceptable within 32-bit advisory locks; avoid crypto for perf
@@ -42,6 +44,7 @@ export class LedgerService {
     private readonly withdrawals: Repository<WithdrawalRequestEntity>,
     private readonly logger: AppLoggerService,
     private readonly realtime: RealtimePublisherService,
+    private readonly accountsService: AccountsService,
   ) {
     this.logger.setContext(LedgerService.name);
   }
@@ -287,6 +290,10 @@ export class LedgerService {
     dto: { amount: string; currency: string; externalRefId?: string | null },
   ) {
     const ctx = getRequestContext();
+    const account = await this.accountsService.getById(accountId);
+    if (account?.accountType === 'DEMO') {
+      throw new DemoAccountOperationError('Withdrawals are not allowed for demo accounts');
+    }
     this.logger.debug('requestWithdrawal()', { accountId, dto, ctx });
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [

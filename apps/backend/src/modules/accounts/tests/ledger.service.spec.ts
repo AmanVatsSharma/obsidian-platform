@@ -19,6 +19,7 @@ import { HoldEntity } from '../entities/hold.entity';
 import { WithdrawalRequestEntity } from '../entities/withdrawal-request.entity';
 import { AppLoggerService } from '../../../shared/logger';
 import { AppError } from '../../../common/errors/app-error';
+import { AccountsService } from '../services/accounts.service';
 
 describe('LedgerService idempotency', () => {
   let service: LedgerService;
@@ -43,6 +44,7 @@ describe('LedgerService idempotency', () => {
         { provide: getRepositoryToken(WithdrawalRequestEntity), useValue: {} as Partial<Repository<WithdrawalRequestEntity>> },
         { provide: AppLoggerService, useValue: { setContext: jest.fn(), debug: jest.fn() } },
         { provide: require('../../realtime/prana-stream/services/realtime-publisher.service').RealtimePublisherService, useValue: { publishAccountUpdate: jest.fn() } },
+        { provide: AccountsService, useValue: { getById: jest.fn().mockResolvedValue({ accountType: 'LIVE' }) } },
       ],
     }).compile();
 

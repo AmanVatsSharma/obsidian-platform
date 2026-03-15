@@ -14,7 +14,9 @@ import { AppLoggerService } from '../../../shared/logger';
 import { getRequestContext } from '../../../shared/request-context';
 import { CreateDepositRequestDto } from '../dtos/create-deposit-request.dto';
 import { AppError } from '../../../common/errors/app-error';
+import { DemoAccountOperationError } from '../../../common/errors/domain.errors';
 import { LedgerService } from './ledger.service';
+import { AccountsService } from './accounts.service';
 import { CashCreditDebitDto } from '../dtos/cash-credit-debit.dto';
 import { NotificationService } from '../../notifications/services/notification.service';
 
@@ -25,6 +27,7 @@ export class DepositsService {
     private readonly deposits: Repository<DepositRequestEntity>,
     private readonly logger: AppLoggerService,
     private readonly ledger: LedgerService,
+    private readonly accountsService: AccountsService,
     private readonly notifications: NotificationService,
   ) {
     this.logger.setContext(DepositsService.name);
@@ -37,6 +40,10 @@ export class DepositsService {
     const ctx = getRequestContext();
     if (!ctx?.tenantId) {
       throw new AppError('VALIDATION_ERROR', 'Tenant context missing');
+    }
+    const account = await this.accountsService.getById(dto.accountId);
+    if (account?.accountType === 'DEMO') {
+      throw new DemoAccountOperationError('Deposits are not allowed for demo accounts');
     }
     this.logger.debug('requestDeposit', { tenantId: ctx.tenantId, userId, externalRefId: dto.externalRefId });
 
