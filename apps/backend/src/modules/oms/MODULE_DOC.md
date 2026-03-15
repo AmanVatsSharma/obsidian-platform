@@ -86,5 +86,6 @@ flowchart TD
 - 2025-01-09: Added exchange adapter token/provider with NseConnectAdapter; order modify endpoint; cancel routed via adapter
 - 2026-02-17: Realtime order publish now routes with request-context userId fallback, and OMS registered under Nx domain boundary project.
 - 2026-02-17: OMS exchange adapter now routes via `ExecutionGatewayService` with connector-family selection scaffolding.
+- 2026-03-15: Order placement, cancel, and modify branch on account type: DEMO accounts use DemoExchangeAdapter (simulated); LIVE accounts use real execution gateway.
 
 
