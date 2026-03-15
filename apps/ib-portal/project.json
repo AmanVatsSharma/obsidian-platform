@@ -1,0 +1,36 @@
+{
+  "name": "ib-portal",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/ib-portal/src",
+  "projectType": "application",
+  "tags": ["type:app", "scope:web", "layer:entrypoint"],
+  "targets": {
+    "dev": {
+      "executor": "@nx/next:server",
+      "options": {
+        "dev": true,
+        "port": 4700
+      }
+    },
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/ib-portal"
+      }
+    },
+    "start": {
+      "executor": "@nx/next:server",
+      "options": {
+        "buildTarget": "ib-portal:build",
+        "port": 4700
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/ib-portal/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  }
+}
