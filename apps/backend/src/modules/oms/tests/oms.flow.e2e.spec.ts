@@ -28,6 +28,8 @@ import { BuyingPowerRuleEntity } from '../entities/buying-power-rule.entity';
 import { UserLeverageOverrideEntity } from '../entities/user-leverage-override.entity';
 import { BrokerageRuleEntity } from '../entities/brokerage-rule.entity';
 import { EXCHANGE_ADAPTER } from '../adapters/exchange-adapter';
+import { DEMO_EXCHANGE_ADAPTER } from '../adapters/demo-exchange.adapter';
+import { AccountsService } from '../../accounts/services/accounts.service';
 import { NotificationService } from '../../notifications/services/notification.service';
 
 jest.mock('../../../shared/request-context', () => ({
@@ -54,6 +56,8 @@ describe('OMS flow', () => {
         { provide: LedgerService, useValue: { createHold: jest.fn(), releaseHold: jest.fn(), postPosition: jest.fn(), postCash: jest.fn() } },
         { provide: RealtimePublisherService, useValue: { publishOrderUpdate: jest.fn(), publishAccountUpdate: jest.fn() } },
         { provide: EXCHANGE_ADAPTER, useValue: { placeOrder: jest.fn().mockResolvedValue({ status: 'ACCEPTED', providerOrderId: 'mock-order' }), modifyOrder: jest.fn().mockResolvedValue({ status: 'ACCEPTED', providerOrderId: 'mock-order' }), cancelOrder: jest.fn().mockResolvedValue({ status: 'CANCELLED', providerOrderId: 'mock-order' }) } },
+        { provide: DEMO_EXCHANGE_ADAPTER, useValue: { placeOrder: jest.fn().mockResolvedValue({ status: 'ACCEPTED', providerOrderId: 'demo-1' }), modifyOrder: jest.fn().mockResolvedValue({ status: 'ACCEPTED' }), cancelOrder: jest.fn().mockResolvedValue({ status: 'CANCELLED' }) } },
+        { provide: AccountsService, useValue: { getById: jest.fn().mockResolvedValue({ id: 'a1', accountType: 'LIVE' }) } },
         { provide: NotificationService, useValue: { send: jest.fn() } },
         { provide: InstrumentsService, useValue: { listByIds: async () => [{ id: 'i1', type: 'EQUITY', exchangeCode: 'NSE', symbol: 'ABC' }] } },
         { provide: PriceFeedService, useValue: { getSnapshot: () => [{ price: 100 }] } },
