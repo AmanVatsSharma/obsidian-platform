@@ -49,6 +49,7 @@ Legend: `[x] done` `[~] partial` `[ ] pending`
 - [x] Domain project boundaries and tags
 - [x] Cycle and duplicate checks in scripts
 - [x] CI workflow for affected lint/test/build + quality checks
+- [x] Rules and docs synced: `.cursor/rules/` (master, security-api, data-persistence, observability-resilience, testing-quality, etc.) and root `docs/` + `README.md` per standards plan
 
 ## Global Broker SaaS Scaffold (Wave-1)
 - [x] Trader web route-group scaffold (`onboarding`, `portfolio`, `orders`, `funds`, `settings`)

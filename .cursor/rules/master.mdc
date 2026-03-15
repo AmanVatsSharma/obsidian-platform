@@ -72,4 +72,12 @@ alwaysApply: true
 # =============================
 - Each module's MODULE_DOC.md synced into docs/
 - Root README.md only points to docs site
-- Use typedoc to auto-generate API docs
+- Use typedoc to auto-generate API docs (npm run docs:api)
+
+# =============================
+# 11. ENTERPRISE RULES (see also)
+# =============================
+- security-api.mdc — auth, versioning, secrets
+- data-persistence.mdc — repository layer, migrations, idempotency
+- observability-resilience.mdc — WebSocket correlation, health, external calls
+- testing-quality.mdc — coverage, contract tests, no unqualified skips
