@@ -1,0 +1,16 @@
+html,
+body {
+  margin: 0;
+  font-family: Inter, Arial, sans-serif;
+  background: #020617;
+  color: #e2e8f0;
+}
+
+a {
+  color: #38bdf8;
+  text-decoration: none;
+}
+
+main {
+  padding: 24px;
+}
