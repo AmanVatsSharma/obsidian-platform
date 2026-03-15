@@ -1,0 +1,36 @@
+{
+  "name": "platform-owner",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/platform-owner/src",
+  "projectType": "application",
+  "tags": ["type:app", "scope:web", "layer:entrypoint"],
+  "targets": {
+    "dev": {
+      "executor": "@nx/next:server",
+      "options": {
+        "dev": true,
+        "port": 4400
+      }
+    },
+    "build": {
+      "executor": "@nx/next:build",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/platform-owner"
+      }
+    },
+    "start": {
+      "executor": "@nx/next:server",
+      "options": {
+        "buildTarget": "platform-owner:build",
+        "port": 4400
+      }
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/platform-owner/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  }
+}
