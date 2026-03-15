@@ -28,9 +28,11 @@ import {
   ModifyOrderRequest,
   PlaceOrderRequest,
 } from '../adapters/exchange-adapter';
+import { DEMO_EXCHANGE_ADAPTER } from '../adapters/demo-exchange.adapter';
 import { AppError } from '../../../common/errors/app-error';
 import { MarginEngineService } from './margin-engine.service';
 import { RealtimePublisherService } from '../../realtime/prana-stream/services/realtime-publisher.service';
+import { AccountsService } from '../../accounts/services/accounts.service';
 
 @Injectable()
 export class OrderService {
@@ -45,6 +47,8 @@ export class OrderService {
     private readonly marginEngine: MarginEngineService,
     private readonly realtime: RealtimePublisherService,
     @Inject(EXCHANGE_ADAPTER) private readonly exchange: ExchangeAdapter,
+    @Inject(DEMO_EXCHANGE_ADAPTER) private readonly demoExchange: ExchangeAdapter,
+    private readonly accountsService: AccountsService,
     private readonly notifications: NotificationService,
   ) {
     this.logger.setContext(OrderService.name);
@@ -137,7 +141,9 @@ export class OrderService {
         clientOrderId: saved.clientOrderId,
         timeInForce: dto.timeInForce,
       };
-      const resp = await this.exchange.placeOrder(placePayload);
+      const account = await this.accountsService.getById(dto.accountId);
+      const adapter = account?.accountType === 'DEMO' ? this.demoExchange : this.exchange;
+      const resp = await adapter.placeOrder(placePayload);
       this.logger.debug('exchange placeOrder resp', resp);
       if (resp.status === 'REJECTED') {
         saved.status = 'REJECTED';
@@ -173,9 +179,11 @@ export class OrderService {
     const ctx = getRequestContext();
     const order = await this.orders.findOne({ where: { id: dto.orderId, tenantId: ctx!.tenantId! } });
     if (!order) return null;
+    const account = await this.accountsService.getById(order.accountId);
+    const adapter = account?.accountType === 'DEMO' ? this.demoExchange : this.exchange;
     const providerOrderId =
       (order.meta as any)?.providerOrderId || order.clientOrderId || order.id;
-    await this.exchange.cancelOrder({ providerOrderId } as CancelOrderRequest);
+    await adapter.cancelOrder({ providerOrderId } as CancelOrderRequest);
     order.status = 'CANCELLED';
     await this.orders.save(order);
     if (order.holdRef) {
@@ -193,6 +201,8 @@ export class OrderService {
       where: { id: dto.orderId, tenantId: ctx!.tenantId! },
     });
     if (!order) return null;
+    const account = await this.accountsService.getById(order.accountId);
+    const adapter = account?.accountType === 'DEMO' ? this.demoExchange : this.exchange;
     const providerOrderId =
       (order.meta as any)?.providerOrderId || order.clientOrderId || order.id;
     const payload: ModifyOrderRequest = {
@@ -201,7 +211,7 @@ export class OrderService {
       quantity: dto.quantity ?? order.quantity,
       timeInForce: dto.timeInForce ?? order.timeInForce,
     };
-    const resp = await this.exchange.modifyOrder(payload);
+    const resp = await adapter.modifyOrder(payload);
     this.logger.debug('exchange modifyOrder resp', resp);
     if (dto.price !== undefined) order.price = dto.price;
     if (dto.quantity !== undefined) order.quantity = dto.quantity;

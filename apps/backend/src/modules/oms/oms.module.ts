@@ -31,6 +31,10 @@ import { RbacModule } from '../rbac/rbac.module';
 import { PranaStreamModule } from '../realtime/prana-stream/prana-stream.module';
 import { MarketModule } from '../market/market.module';
 import { EXCHANGE_ADAPTER, OmsExecutionGatewayAdapter } from './adapters/exchange-adapter';
+import {
+  DEMO_EXCHANGE_ADAPTER,
+  DemoExchangeAdapter,
+} from './adapters/demo-exchange.adapter';
 import { ExecutionGatewayModule } from '@nesttrade/backend-execution-gateway';
 
 @Module({
@@ -58,6 +62,7 @@ import { ExecutionGatewayModule } from '@nesttrade/backend-execution-gateway';
     OrderService,
     MarginEngineService,
     { provide: EXCHANGE_ADAPTER, useClass: OmsExecutionGatewayAdapter },
+    { provide: DEMO_EXCHANGE_ADAPTER, useClass: DemoExchangeAdapter },
   ],
   exports: [RiskConfigService, OrderService, MarginEngineService, TypeOrmModule],
 })
