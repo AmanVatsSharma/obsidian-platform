@@ -1,0 +1,1 @@
+{"name":"desktop-pro","$schema":"../../node_modules/nx/schemas/project-schema.json","sourceRoot":"apps/desktop-pro/src","projectType":"application","tags":["type:app","scope:desktop","layer:entrypoint"],"targets":{"lint":{"executor":"@nx/eslint:lint","options":{"lintFilePatterns":["apps/desktop-pro/**/*.{ts,tsx,js,jsx}"]}}}}
