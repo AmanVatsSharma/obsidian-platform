@@ -1,0 +1,17 @@
+---
+description: Security and API rules for HTTP/WebSocket endpoints
+alwaysApply: false
+---
+# Security and API
+
+## Explicit auth for endpoints
+- Every HTTP and WebSocket endpoint must either use an auth guard (JWT/session) or be explicitly marked as public (e.g. health, login, webhook with HMAC).
+- No unguarded endpoints by default. Document public routes in MODULE_DOC or API contracts.
+
+## API versioning
+- Public or partner-facing REST APIs must be versioned (e.g. `/api/v1/...`).
+- Document versioning policy in API_EDGE_CONTRACTS or equivalent.
+
+## Secrets and env
+- No secrets in code or in MODULE_DOC.md.
+- Env vars for secrets must be documented in a separate env.example or runbook; module docs may list only non-secret env var names.

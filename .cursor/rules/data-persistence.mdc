@@ -1,0 +1,17 @@
+---
+description: Data and persistence rules (repository, migrations, idempotency)
+alwaysApply: false
+---
+# Data and persistence
+
+## Repository layer
+- For any module that performs non-trivial or reusable DB access, introduce a dedicated repository (e.g. `repository/<module>.repository.ts`) and keep services free of raw TypeORM calls.
+- Simple CRUD that is only used in one service may stay in the service.
+
+## Migrations
+- Migrations must be named with a timestamp prefix and a short slug (e.g. `1734123456789-add-user-kyc-fields.ts`).
+- Never edit an already-applied migration; add a new one for fixes.
+
+## Idempotency
+- Order, payment, and ledger writes must be idempotent (idempotency key or unique constraint).
+- Document idempotency in MODULE_DOC and in API contracts.

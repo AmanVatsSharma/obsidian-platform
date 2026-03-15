@@ -1,0 +1,16 @@
+---
+description: Testing and quality (coverage, contracts, no unqualified skips)
+alwaysApply: false
+---
+# Testing and quality
+
+## Test coverage and naming
+- Unit tests: co-located `*.spec.ts`; integration/e2e in `tests/` or `__tests__`.
+- Aim for coverage of service and controller entry points; document coverage targets in MODULE_DOC or in a central quality doc.
+
+## Contract tests
+- Execution gateway, developer platform, and other boundary modules must have contract tests (e.g. runInBand).
+- Keep contract expectations in sync with CONNECTOR_CONTRACTS / API_EDGE_CONTRACTS.
+
+## No skipped tests in main
+- `it.skip` / `test.skip` are allowed only with a ticket reference and a short comment; prefer disabling the test in CI via config rather than committing skips without context.

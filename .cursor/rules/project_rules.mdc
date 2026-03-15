@@ -12,3 +12,13 @@ alwaysApply: true
 - Use structured logger (Pino) everywhere; console.debug only in non-prod gated blocks.
 - Add requestId/correlation middleware to all HTTP & WebSocket flows.
 - Update changelog in module doc after every edit.
+
+# Changelog
+- Every non-trivial change must add an entry to the relevant MODULE_DOC.md Change-log section (date, short description).
+- For cross-cutting changes, add an entry to a root CHANGELOG.md if it exists.
+
+# Dependency cycles
+- PRs must pass `check:cycles` (madge). Modules may not depend on modules that depend back on them; shared code goes in `src/shared/` or `src/common/`.
+
+# Manual actions
+- Manual steps (DB migrate, duplicate check, codemods) are documented in manual_actions.mdc; run only after explicit approval or as part of release runbooks.

@@ -30,7 +30,7 @@
     "check:duplicates": "node tools/scripts/check-duplicate-files.mjs",
     "quality:verify": "npm run check:cycles && npm run check:duplicates && npm run test:contracts && npm run test:developer-platform-contracts && npm run affected:lint && npm run affected:test && npm run affected:build",
     "quality:wave2": "npm run lint:wave2-surfaces && npm run lint:mobile && npm run smoke:desktop",
-    "docs:api": "typedoc --options apps/backend/typedoc.json",
+    "docs:api": "cd apps/backend && npx typedoc --options typedoc.json",
     "postinstall": "nx connect"
   },
   "keywords": [],
@@ -127,6 +127,7 @@
     "tsconfig-paths": "^4.2.0",
     "tslib": "^2.3.0",
     "typescript": "~5.9.2",
-    "typescript-eslint": "^8.20.0"
+    "typescript-eslint": "^8.20.0",
+    "typedoc": "^0.27.0"
   }
 }

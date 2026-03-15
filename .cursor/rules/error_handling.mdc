@@ -4,6 +4,14 @@ globs:
 alwaysApply: true
 ---
 - Centralize all errors in src/common/errors/
-- Create domain errors: OrderValidationError, InsufficientMarginError, ExchangeDownError, DuplicateOrderError
+- Create domain errors: OrderValidationError, InsufficientMarginError, ExchangeDownError, DuplicateOrderError (and others as needed)
 - Map domain errors to HTTP status codes in an ExceptionFilter
 - Always log stack traces and requestId for traceability
+
+## Domain errors
+- New domain errors must be added to `src/common/errors/domain.errors.ts` and mapped in the HTTP exception filter.
+- Use a consistent code (e.g. UPPER_SNAKE_CASE) and include a short doc comment.
+
+## Response shape
+- REST error responses must include at least: `code`, `message`, `requestId`, `timestamp`.
+- Success list responses should be paginated (page, limit, total) where applicable.

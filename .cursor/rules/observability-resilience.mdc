@@ -1,0 +1,15 @@
+---
+description: Observability and resilience (WebSocket correlation, health, external calls)
+alwaysApply: false
+---
+# Observability and resilience
+
+## WebSocket correlation
+- WebSocket handshake and message handlers must propagate requestId/correlationId (e.g. from auth payload or first message) and attach it to logs and to outbound messages where applicable.
+
+## Health and dependencies
+- Health checks must include critical dependencies (DB, Redis, optional: message broker).
+- Use Nest Terminus and document in observability module.
+
+## External calls
+- Calls to external systems (exchange, payment, compliance) must use resilience wrappers (retry with backoff, circuit breaker) and be logged with duration and outcome.
