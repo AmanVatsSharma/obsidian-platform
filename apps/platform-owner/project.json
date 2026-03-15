@@ -9,7 +9,8 @@
       "executor": "@nx/next:server",
       "options": {
         "dev": true,
-        "port": 4400
+        "port": 4400,
+        "buildTarget": "platform-owner:build"
       }
     },
     "build": {
