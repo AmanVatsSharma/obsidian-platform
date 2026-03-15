@@ -18,6 +18,7 @@ import { AuthModule } from '@nesttrade/backend-auth';
 import { RbacModule } from '@nesttrade/backend-rbac';
 import { MarketModule } from '@nesttrade/backend-market';
 import { AccountsModule } from '@nesttrade/backend-accounts';
+import { DemoAccountsModule } from '@nesttrade/backend-demo-accounts';
 import { OmsModule } from '@nesttrade/backend-oms';
 import { RequestContextMiddleware } from './shared/request-id.middleware';
 import { PranaStreamModule } from '@nesttrade/backend-realtime';
@@ -60,6 +61,7 @@ import { DeveloperPlatformModule } from '@nesttrade/backend-developer-platform';
     RbacModule,
     MarketModule,
     AccountsModule,
+    DemoAccountsModule,
     OmsModule,
     PranaStreamModule,
     NotificationsModule,

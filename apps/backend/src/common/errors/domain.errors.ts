@@ -43,3 +43,10 @@ export class DuplicateUserError extends AppError {
     super('DUPLICATE_RESOURCE', message, cause);
   }
 }
+
+/** Operation not allowed for demo accounts (e.g. real deposits/withdrawals). */
+export class DemoAccountOperationError extends AppError {
+  constructor(message = 'This operation is not allowed for demo accounts', cause?: unknown) {
+    super('DEMO_ACCOUNT_OPERATION', message, cause);
+  }
+}
