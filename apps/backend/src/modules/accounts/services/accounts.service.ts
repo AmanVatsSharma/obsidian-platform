@@ -31,6 +31,7 @@ export class AccountsService {
     const entity = this.accounts.create({
       tenantId: ctx?.tenantId!,
       userId: dto.userId,
+      accountType: dto.accountType ?? 'LIVE',
       baseCurrency: dto.baseCurrency,
       status: dto.status ?? 'ACTIVE',
     });
@@ -45,6 +46,17 @@ export class AccountsService {
     this.logger.debug('listMyAccounts()', ctx);
     return this.accounts.find({
       where: { tenantId: ctx?.tenantId!, userId: ctx?.userId! },
+    });
+  }
+
+  async listByUserAndType(
+    tenantId: string,
+    userId: string,
+    accountType: 'LIVE' | 'DEMO',
+  ): Promise<AccountEntity[]> {
+    this.logger.debug('listByUserAndType()', { tenantId, userId, accountType });
+    return this.accounts.find({
+      where: { tenantId, userId, accountType },
     });
   }
 
