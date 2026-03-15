@@ -89,6 +89,8 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         return HttpStatus.SERVICE_UNAVAILABLE;
       case 'DUPLICATE_ORDER':
         return HttpStatus.CONFLICT;
+      case 'DEMO_ACCOUNT_OPERATION':
+        return HttpStatus.FORBIDDEN;
       default:
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }

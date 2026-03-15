@@ -16,7 +16,8 @@ export type ErrorCode =
   | 'ORDER_VALIDATION'
   | 'INSUFFICIENT_MARGIN'
   | 'EXCHANGE_DOWN'
-  | 'DUPLICATE_ORDER';
+  | 'DUPLICATE_ORDER'
+  | 'DEMO_ACCOUNT_OPERATION';
 
 export class AppError extends Error {
   readonly code: ErrorCode;

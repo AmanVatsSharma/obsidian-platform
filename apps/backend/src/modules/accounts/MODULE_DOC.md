@@ -8,7 +8,7 @@ maintainer: BharatERP
 Manages trading accounts, cash/position ledgers, balances, statements, holds, withdrawal approvals, and buying power rules. Multi-tenant, multi-account per user, multi-currency with future FX conversion.
 
 ## Entities
-- AccountEntity
+- AccountEntity (includes accountType: LIVE | DEMO; default LIVE)
 - CashLedgerEntryEntity
 - PositionLedgerEntryEntity
 - HoldEntity
@@ -61,5 +61,6 @@ IST by default; per-account timezone preference to be respected later.
 - 2025-09-24 IST: Added TenantGuard to all controllers; disable/enable endpoints with Swagger
 - 2025-01-09 IST: Added bank accounts linking/listing, deposit requests with admin approval, and entities/migrations; enhanced EOD statements computation (cash flows, MTM)
 - 2026-02-17 IST: Realtime account/position publish now prefers request-context userId routing (fallback to accountId), and module registered as Nx domain library boundary.
+- 2026-03-15: Added accountType (LIVE | DEMO) to AccountEntity and CreateAccountDto; listByUserAndType; reject deposits and withdrawals for DEMO accounts (DemoAccountOperationError).
 
 
