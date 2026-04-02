@@ -1,0 +1,2713 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=1440" />
+<title>OBSIDIAN DESK — FX/CFD Dealing Workstation</title>
+<style>
+/* ═══════════════════════════════════════════════════════════
+   OBSIDIAN DESK — Design System
+   Extended Obsidian Terminal Theme
+   ═══════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+/* ─── ROOT TOKENS ─────────────────────────────────────────── */
+:root {
+  /* Core palette */
+  --bg-base:     #06080A;
+  --bg-surface:  #0C0E12;
+  --bg-panel:    #0F1216;
+  --bg-elevated: #141820;
+  --bg-hover:    #1A1F28;
+  --bg-active:   #1E2430;
+
+  /* Semantic colors */
+  --bull:        #10D996;
+  --bull-dim:    #0A7A56;
+  --bull-glow:   rgba(16, 217, 150, 0.15);
+  --bear:        #FF3B5C;
+  --bear-dim:    #8C1F31;
+  --bear-glow:   rgba(255, 59, 92, 0.15);
+  --accent:      #3B82F6;
+  --accent-dim:  #1E3D7A;
+  --accent-glow: rgba(59, 130, 246, 0.15);
+  --warn:        #F59E0B;
+  --warn-dim:    #7A4E05;
+  --warn-glow:   rgba(245, 158, 11, 0.15);
+  --purple:      #8B5CF6;
+  --purple-dim:  #4C2A8C;
+  --gold:        #EAB308;
+  --gold-dim:    #7A5C04;
+
+  /* Text */
+  --text-primary:   #E8EBF0;
+  --text-secondary: #8B9AB0;
+  --text-muted:     #4A5568;
+  --text-dim:       #2D3748;
+
+  /* Borders */
+  --border:       #1E2430;
+  --border-bright:#2D3748;
+  --border-accent: rgba(59, 130, 246, 0.3);
+
+  /* Fonts */
+  --font-data:    'IBM Plex Mono', 'Courier New', monospace;
+  --font-display: 'Syne', sans-serif;
+  --font-ui:      'DM Sans', system-ui, sans-serif;
+
+  /* Sizes */
+  --bar-top:    52px;
+  --bar-bottom: 24px;
+  --rail-left:  300px;
+  --rail-right: 340px;
+  --radius:     4px;
+  --radius-lg:  8px;
+}
+
+/* ─── RESET ───────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { width: 100%; height: 100%; background: var(--bg-base); color: var(--text-primary); font-family: var(--font-ui); font-size: 13px; line-height: 1.4; overflow: hidden; min-width: 1440px; }
+button { cursor: pointer; font-family: inherit; border: none; background: none; }
+input, select { font-family: var(--font-data); background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-primary); border-radius: var(--radius); outline: none; }
+input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 2px var(--accent-glow); }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-bright); border-radius: 2px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+/* ═══════════════════════════════════════════════════════════
+   LAYOUT SHELL
+   ═══════════════════════════════════════════════════════════ */
+.desk-shell {
+  display: grid;
+  grid-template-rows: var(--bar-top) 1fr var(--bar-bottom);
+  grid-template-columns: 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+.desk-body {
+  display: grid;
+  grid-template-columns: var(--rail-left) 1fr var(--rail-right);
+  overflow: hidden;
+  background: var(--bg-base);
+  gap: 0;
+}
+.desk-center {
+  display: grid;
+  grid-template-rows: 200px 1fr;
+  overflow: hidden;
+  border-left: 1px solid var(--border);
+  border-right: 1px solid var(--border);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TOP COMMAND BAR
+   ═══════════════════════════════════════════════════════════ */
+.cmd-bar {
+  height: var(--bar-top);
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  padding: 0 12px;
+  gap: 0;
+  overflow: hidden;
+  flex-shrink: 0;
+  z-index: 100;
+}
+.cmd-logo {
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--accent);
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  padding-right: 16px;
+  border-right: 1px solid var(--border);
+  margin-right: 12px;
+}
+.cmd-logo span { color: var(--text-muted); font-weight: 400; }
+.cmd-divider { width: 1px; height: 28px; background: var(--border); margin: 0 10px; flex-shrink: 0; }
+.cmd-section { display: flex; align-items: center; gap: 8px; padding: 0 8px; }
+.cmd-item { display: flex; align-items: center; gap: 5px; font-family: var(--font-data); font-size: 11px; color: var(--text-secondary); white-space: nowrap; }
+.cmd-item .label { color: var(--text-muted); font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; }
+.cmd-item .value { color: var(--text-primary); }
+.cmd-clock { font-family: var(--font-data); font-size: 14px; font-weight: 600; color: var(--text-primary); letter-spacing: 0.08em; }
+.cmd-shift { font-family: var(--font-data); font-size: 12px; }
+.cmd-shift.warn { color: var(--warn); }
+.cmd-shift.danger { color: var(--bear); }
+
+/* Session pills */
+.session-pill {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 7px; border-radius: 20px;
+  font-family: var(--font-data); font-size: 10px; font-weight: 600;
+  border: 1px solid var(--border);
+  background: var(--bg-panel);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.session-pill.open { border-color: var(--bull-dim); color: var(--bull); background: var(--bull-glow); }
+.session-pill .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.session-pill.open .dot { animation: pulse-dot 2s infinite; }
+
+/* Latency */
+.latency-badge {
+  display: flex; align-items: center; gap: 4px;
+  padding: 3px 8px; border-radius: 3px;
+  font-family: var(--font-data); font-size: 11px; font-weight: 600;
+  background: var(--bg-panel); border: 1px solid var(--border);
+}
+.latency-badge.green { color: var(--bull); border-color: var(--bull-dim); }
+.latency-badge.amber { color: var(--warn); border-color: var(--warn-dim); }
+.latency-badge.red   { color: var(--bear); border-color: var(--bear-dim); }
+.latency-dot { width: 5px; height: 5px; border-radius: 50%; background: currentColor; animation: pulse-dot 1s infinite; }
+
+/* Toggle badges */
+.cmd-toggle {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 9px; border-radius: 3px;
+  font-family: var(--font-data); font-size: 10px; font-weight: 600;
+  border: 1px solid var(--border); background: var(--bg-panel);
+  color: var(--text-muted); cursor: pointer; white-space: nowrap;
+  text-transform: uppercase; letter-spacing: 0.05em;
+  transition: all 0.15s;
+}
+.cmd-toggle:hover { border-color: var(--border-bright); color: var(--text-secondary); }
+.cmd-toggle.on  { border-color: var(--bull-dim); color: var(--bull); background: var(--bull-glow); }
+.cmd-toggle.on .dot { background: var(--bull); animation: pulse-dot 2s infinite; }
+.cmd-toggle.warn { border-color: var(--warn-dim); color: var(--warn); background: var(--warn-glow); }
+.cmd-toggle.danger { border-color: var(--bear-dim); color: var(--bear); background: var(--bear-glow); }
+.cmd-toggle .dot { width: 5px; height: 5px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
+
+/* Alert badge */
+.alert-badge {
+  display: flex; align-items: center; gap: 5px;
+  padding: 4px 9px; border-radius: 3px;
+  font-family: var(--font-data); font-size: 11px; font-weight: 700;
+  border: 1px solid var(--warn-dim); color: var(--warn); background: var(--warn-glow);
+  cursor: pointer; white-space: nowrap;
+  animation: warn-pulse 3s infinite;
+}
+
+/* Emergency buttons */
+.cmd-emergency { display: flex; align-items: center; gap: 6px; margin-left: auto; flex-shrink: 0; }
+.btn-emergency {
+  padding: 5px 10px; border-radius: 3px;
+  font-family: var(--font-data); font-size: 10px; font-weight: 700;
+  border: 1px solid var(--bear-dim); color: var(--bear); background: rgba(255,59,92,0.08);
+  cursor: pointer; text-transform: uppercase; letter-spacing: 0.08em;
+  transition: all 0.15s; white-space: nowrap;
+}
+.btn-emergency:hover { background: var(--bear-glow); border-color: var(--bear); box-shadow: 0 0 10px rgba(255,59,92,0.3); }
+.btn-emergency.halt { background: rgba(255,59,92,0.15); box-shadow: 0 0 8px rgba(255,59,92,0.2); }
+
+/* Dealer dropdown */
+.dealer-btn {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 10px; border-radius: 3px;
+  font-family: var(--font-ui); font-size: 12px; font-weight: 500;
+  border: 1px solid var(--border); background: var(--bg-panel); color: var(--text-primary);
+  cursor: pointer; white-space: nowrap;
+}
+.dealer-btn:hover { border-color: var(--accent); }
+.dealer-avatar { width: 20px; height: 20px; border-radius: 50%; background: var(--accent-dim); color: var(--accent); font-size: 9px; font-weight: 700; display: flex; align-items: center; justify-content: center; font-family: var(--font-data); flex-shrink: 0; }
+
+/* ═══════════════════════════════════════════════════════════
+   LEFT RAIL
+   ═══════════════════════════════════════════════════════════ */
+.left-rail {
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+
+/* Rail section header */
+.rail-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 10px 6px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-panel);
+  flex-shrink: 0;
+}
+.rail-title {
+  font-family: var(--font-display); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 6px;
+}
+.count-badge {
+  font-family: var(--font-data); font-size: 10px; font-weight: 700;
+  padding: 1px 6px; border-radius: 10px;
+  background: var(--bg-elevated); color: var(--text-secondary);
+  border: 1px solid var(--border);
+}
+.count-badge.urgent { background: var(--bear-glow); color: var(--bear); border-color: var(--bear-dim); animation: warn-pulse 2s infinite; }
+
+/* Bulk actions bar */
+.bulk-actions {
+  display: flex; gap: 4px; padding: 5px 8px;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-base);
+  flex-shrink: 0;
+}
+.btn-bulk {
+  flex: 1; padding: 4px 0; border-radius: 3px;
+  font-family: var(--font-data); font-size: 10px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--text-muted);
+  background: var(--bg-panel); cursor: pointer; text-transform: uppercase;
+  letter-spacing: 0.05em; transition: all 0.15s;
+}
+.btn-bulk.accept:hover { border-color: var(--bull-dim); color: var(--bull); background: var(--bull-glow); }
+.btn-bulk.reject:hover { border-color: var(--bear-dim); color: var(--bear); background: var(--bear-glow); }
+.btn-bulk.requote:hover { border-color: var(--warn-dim); color: var(--warn); background: var(--warn-glow); }
+
+/* Order queue scroll area */
+.order-queue {
+  flex: 1; overflow-y: auto; overflow-x: hidden;
+  min-height: 0;
+}
+
+/* Order card */
+.order-card {
+  position: relative;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-surface);
+  padding: 8px 10px;
+  cursor: pointer;
+  transition: background 0.15s;
+  animation: slideInTop 0.3s cubic-bezier(0.34,1.56,0.64,1);
+}
+.order-card::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  transition: background 0.3s;
+}
+.order-card.age-new::before    { background: var(--bull); }
+.order-card.age-mid::before    { background: var(--warn); }
+.order-card.age-old::before    { background: var(--bear); }
+.order-card.tier-vip::before   { background: var(--purple); }
+.order-card.notional-big::before { background: var(--gold); }
+.order-card:hover { background: var(--bg-elevated); }
+.order-card.focused { background: var(--bg-active); outline: 1px solid var(--accent-dim); }
+.order-card.flashing-accept { animation: flashAccept 0.4s; }
+.order-card.flashing-reject { animation: flashReject 0.4s; }
+
+/* Card rows */
+.oc-row1 { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.oc-client { font-size: 11px; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; gap: 5px; }
+.oc-tier { font-family: var(--font-data); font-size: 9px; font-weight: 700; padding: 1px 5px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.08em; }
+.tier-vip    { background: rgba(139,92,246,0.2); color: var(--purple); border: 1px solid rgba(139,92,246,0.4); }
+.tier-pro    { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.4); }
+.tier-retail { background: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border); }
+.oc-age { font-family: var(--font-data); font-size: 10px; color: var(--text-muted); }
+.oc-age.urgent { color: var(--bear); font-weight: 700; animation: blink 1s infinite; }
+.oc-age.warn   { color: var(--warn); font-weight: 600; }
+
+.oc-row2 { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin: 4px 0; }
+.oc-side { font-family: var(--font-data); font-size: 13px; font-weight: 700; min-width: 32px; }
+.oc-side.buy  { color: var(--bull); }
+.oc-side.sell { color: var(--bear); }
+.oc-symbol { font-family: var(--font-data); font-size: 13px; font-weight: 600; color: var(--text-primary); flex: 1; }
+.oc-lots { font-family: var(--font-data); font-size: 14px; font-weight: 700; color: var(--text-primary); }
+.oc-lots span { font-size: 10px; color: var(--text-muted); }
+.oc-type { font-family: var(--font-data); font-size: 9px; color: var(--text-muted); background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 2px; padding: 1px 4px; }
+
+.oc-notional { font-family: var(--font-data); font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+.oc-notional.large { color: var(--gold); }
+
+.oc-meta { font-family: var(--font-data); font-size: 10px; color: var(--text-muted); line-height: 1.6; margin-bottom: 6px; }
+.oc-meta span { color: var(--text-secondary); }
+.oc-slip.pos { color: var(--bull); }
+.oc-slip.neg { color: var(--bear); }
+.oc-book-impact { font-family: var(--font-data); font-size: 10px; margin-bottom: 5px; }
+.book-long  { color: var(--warn); }
+.book-short { color: var(--bull); }
+
+/* Card action buttons */
+.oc-actions { display: flex; gap: 4px; }
+.oc-btn {
+  flex: 1; padding: 5px 4px; border-radius: 3px;
+  font-family: var(--font-data); font-size: 10px; font-weight: 700;
+  border: 1px solid var(--border); background: var(--bg-elevated);
+  color: var(--text-muted); cursor: pointer; text-align: center;
+  transition: all 0.12s; text-transform: uppercase; letter-spacing: 0.05em;
+}
+.oc-btn.accept { border-color: var(--bull-dim); color: var(--bull); }
+.oc-btn.accept:hover { background: var(--bull-glow); box-shadow: 0 0 8px rgba(16,217,150,0.3); }
+.oc-btn.reject { border-color: var(--bear-dim); color: var(--bear); }
+.oc-btn.reject:hover { background: var(--bear-glow); box-shadow: 0 0 8px rgba(255,59,92,0.3); }
+.oc-btn.requote { border-color: var(--warn-dim); color: var(--warn); }
+.oc-btn.requote:hover { background: var(--warn-glow); }
+.oc-shortcut { font-size: 8px; color: var(--text-dim); display: block; margin-top: 1px; }
+
+/* Requote inline */
+.requote-panel {
+  margin-top: 6px; padding: 8px; background: var(--bg-elevated);
+  border: 1px solid var(--warn-dim); border-radius: var(--radius);
+  animation: slideDown 0.2s;
+}
+.requote-panel input { width: 100%; padding: 4px 8px; font-size: 13px; margin-bottom: 6px; }
+
+/* Recent processed strip */
+.recent-strip {
+  border-top: 1px solid var(--border);
+  background: var(--bg-base);
+  flex-shrink: 0;
+  max-height: 80px;
+  overflow-y: auto;
+}
+.recent-item {
+  display: flex; align-items: center; gap: 6px;
+  padding: 3px 10px; font-family: var(--font-data); font-size: 10px;
+  color: var(--text-muted); border-bottom: 1px solid var(--border);
+}
+.recent-item .check { color: var(--bull); font-weight: 700; }
+.recent-item .cross { color: var(--bear); font-weight: 700; }
+
+/* ─── CLIENT WATCHLIST ─────────────────────────────────────── */
+.watchlist-section {
+  flex-shrink: 0;
+  border-top: 2px solid var(--border-bright);
+  display: flex; flex-direction: column;
+  height: 35%;
+  min-height: 0;
+}
+.watchlist-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+
+.wl-row {
+  display: flex; align-items: center;
+  padding: 5px 10px; border-bottom: 1px solid var(--border);
+  cursor: pointer; position: relative; transition: background 0.1s;
+  font-family: var(--font-data);
+}
+.wl-row::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; }
+.wl-row.status-normal::before  { background: var(--bull); }
+.wl-row.status-warning::before { background: var(--warn); animation: warn-pulse 2s infinite; }
+.wl-row.status-call::before    { background: var(--bear); animation: warn-pulse 1s infinite; }
+.wl-row:hover { background: var(--bg-elevated); }
+
+.wl-row.status-warning { background: rgba(245,158,11,0.04); }
+.wl-row.status-call    { background: rgba(255,59,92,0.06); animation: row-pulse-red 1.5s infinite; }
+
+.wl-name { flex: 1; font-size: 11px; font-weight: 600; color: var(--text-primary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding-left: 4px; }
+.wl-equity { font-size: 11px; color: var(--text-secondary); min-width: 60px; text-align: right; }
+.wl-margin { font-size: 11px; font-weight: 700; min-width: 36px; text-align: right; }
+.wl-margin.good   { color: var(--bull); }
+.wl-margin.warn   { color: var(--warn); }
+.wl-margin.danger { color: var(--bear); }
+.wl-pnl { font-size: 11px; min-width: 50px; text-align: right; }
+.wl-pnl.pos { color: var(--bull); }
+.wl-pnl.neg { color: var(--bear); }
+.wl-status-badge {
+  font-size: 8px; font-weight: 700; padding: 1px 4px;
+  border-radius: 2px; text-transform: uppercase; white-space: nowrap;
+  margin-left: 5px;
+}
+.status-NORMAL    { background: none; color: var(--text-muted); }
+.status-MARGIN_WARNING { background: var(--warn-glow); color: var(--warn); border: 1px solid var(--warn-dim); }
+.status-MARGIN_CALL    { background: var(--bear-glow); color: var(--bear); border: 1px solid var(--bear-dim); }
+.status-SUSPENDED      { background: rgba(139,92,246,0.15); color: var(--purple); border: 1px solid rgba(139,92,246,0.3); }
+
+/* ═══════════════════════════════════════════════════════════
+   PRICE BOARD
+   ═══════════════════════════════════════════════════════════ */
+.price-board {
+  display: flex;
+  overflow-x: auto;
+  background: var(--bg-panel);
+  border-bottom: 2px solid var(--border-bright);
+  height: 200px;
+  flex-shrink: 0;
+  gap: 1px;
+}
+.price-board::-webkit-scrollbar { height: 3px; }
+
+.price-tile {
+  min-width: 220px; flex-shrink: 0;
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  padding: 0;
+  cursor: default;
+  transition: background 0.1s;
+  position: relative;
+  overflow: hidden;
+}
+.price-tile:hover { background: var(--bg-elevated); }
+
+/* Tile header */
+.pt-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 7px 10px 5px; border-bottom: 1px solid var(--border);
+}
+.pt-symbol { font-family: var(--font-display); font-size: 13px; font-weight: 700; color: var(--text-primary); cursor: pointer; }
+.pt-symbol:hover { color: var(--accent); }
+.pt-badges { display: flex; gap: 4px; align-items: center; }
+.pt-badge {
+  font-family: var(--font-data); font-size: 9px; font-weight: 700;
+  padding: 1px 5px; border-radius: 2px; cursor: pointer;
+  text-transform: uppercase; letter-spacing: 0.05em;
+}
+.pt-badge.stp  { background: var(--bull-glow); color: var(--bull); border: 1px solid var(--bull-dim); }
+.pt-badge.bbok { background: var(--accent-dim); color: var(--accent); border: 1px solid rgba(59,130,246,0.3); }
+.pt-badge.off  { background: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* Bid/Ask display */
+.pt-prices {
+  display: grid; grid-template-columns: 1fr 1fr;
+  padding: 4px 6px; gap: 4px; flex: 1;
+}
+.pt-price-side {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  padding: 6px 8px; border-radius: var(--radius); cursor: pointer;
+  background: var(--bg-elevated); border: 1px solid var(--border);
+  transition: all 0.1s;
+}
+.pt-price-side:hover { border-color: var(--accent); }
+.pt-price-side.bid:hover { background: var(--bear-glow); border-color: var(--bear-dim); }
+.pt-price-side.ask:hover { background: var(--bull-glow); border-color: var(--bull-dim); }
+.pt-price-side.flashing-up   { animation: flashBid 0.3s; }
+.pt-price-side.flashing-down { animation: flashAsk 0.3s; }
+
+.pt-label { font-family: var(--font-data); font-size: 9px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 2px; }
+.pt-label.bid { color: var(--bear); }
+.pt-label.ask { color: var(--bull); }
+.pt-num { font-family: var(--font-data); font-size: 18px; font-weight: 700; color: var(--text-primary); line-height: 1; white-space: nowrap; }
+.pt-num .big { font-size: 22px; }
+.pt-num .changed { color: var(--bull); transition: color 0.5s; }
+
+/* Tile footer */
+.pt-footer { padding: 5px 10px; border-top: 1px solid var(--border); background: var(--bg-panel); }
+.pt-row { display: flex; justify-content: space-between; align-items: center; }
+.pt-stat { font-family: var(--font-data); font-size: 10px; color: var(--text-muted); }
+.pt-stat span { color: var(--text-secondary); }
+.pt-change.pos { color: var(--bull); font-family: var(--font-data); font-size: 10px; font-weight: 600; }
+.pt-change.neg { color: var(--bear); font-family: var(--font-data); font-size: 10px; font-weight: 600; }
+.pt-spread { font-family: var(--font-data); font-size: 10px; color: var(--text-secondary); }
+.spread-val { color: var(--warn); font-weight: 600; }
+
+/* Long/short ratio bar */
+.ls-bar-wrap { padding: 4px 10px 5px; }
+.ls-bar { height: 4px; background: var(--bear-dim); border-radius: 2px; overflow: hidden; margin-bottom: 2px; }
+.ls-bar-fill { height: 100%; background: var(--bull); border-radius: 2px; transition: width 0.5s; }
+.ls-info { display: flex; justify-content: space-between; font-family: var(--font-data); font-size: 9px; }
+.ls-long { color: var(--bull); }
+.ls-short { color: var(--bear); }
+
+/* Net exposure */
+.pt-exposure { padding: 0 10px 6px; font-family: var(--font-data); font-size: 10px; color: var(--text-muted); display: flex; align-items: center; gap: 6px; }
+.exp-lots.pos { color: var(--warn); font-weight: 600; }
+.exp-lots.neg { color: var(--accent); font-weight: 600; }
+.exp-usd { color: var(--text-secondary); }
+
+/* ═══════════════════════════════════════════════════════════
+   CENTER BOTTOM — 6-TAB WORKSPACE
+   ═══════════════════════════════════════════════════════════ */
+.workspace {
+  display: flex; flex-direction: column;
+  background: var(--bg-base);
+  overflow: hidden;
+  min-height: 0;
+}
+.ws-tabs {
+  display: flex; align-items: center;
+  background: var(--bg-surface);
+  border-bottom: 1px solid var(--border);
+  padding: 0 8px;
+  flex-shrink: 0;
+  gap: 2px;
+}
+.ws-tab {
+  padding: 9px 14px; font-family: var(--font-display); font-size: 11px; font-weight: 600;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);
+  cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s;
+  white-space: nowrap;
+}
+.ws-tab:hover { color: var(--text-secondary); }
+.ws-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.ws-content { flex: 1; overflow: hidden; min-height: 0; }
+.ws-panel { height: 100%; overflow-y: auto; padding: 12px; display: none; }
+.ws-panel.active { display: block; }
+
+/* ─── DATA TABLES ─────────────────────────────────────────── */
+.data-table { width: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: 11px; }
+.data-table th {
+  text-align: left; padding: 6px 8px; font-size: 9px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted);
+  border-bottom: 1px solid var(--border-bright); white-space: nowrap;
+  background: var(--bg-surface); position: sticky; top: 0; z-index: 2;
+}
+.data-table td { padding: 6px 8px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+.data-table tr:hover td { background: var(--bg-elevated); }
+.data-table tr.flash-new td { animation: rowFlashGreen 2s; }
+.data-table tr.flash-red td { animation: rowFlashRed 0.5s; }
+
+/* Cell types */
+.cell-bull  { color: var(--bull); font-weight: 600; }
+.cell-bear  { color: var(--bear); font-weight: 600; }
+.cell-warn  { color: var(--warn); font-weight: 600; }
+.cell-muted { color: var(--text-muted); }
+.cell-mono  { font-family: var(--font-data); }
+
+/* Route badge */
+.route-badge { font-size: 9px; font-weight: 700; padding: 2px 5px; border-radius: 2px; text-transform: uppercase; }
+.route-auto   { background: var(--accent-dim); color: var(--accent); }
+.route-manual { background: var(--warn-glow); color: var(--warn); }
+.route-stp    { background: var(--bull-glow); color: var(--bull); }
+.route-timeout{ background: var(--bear-glow); color: var(--bear); }
+
+/* Severity badge */
+.sev-badge { font-family: var(--font-data); font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 2px; text-transform: uppercase; letter-spacing: 0.05em; }
+.sev-high   { background: var(--bear-glow); color: var(--bear); border: 1px solid var(--bear-dim); }
+.sev-medium { background: var(--warn-glow); color: var(--warn); border: 1px solid var(--warn-dim); }
+.sev-low    { background: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border); }
+
+/* ─── TAB 1: BOOK ─────────────────────────────────────────── */
+.book-summary {
+  display: flex; gap: 16px; padding: 8px 12px;
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius); margin-bottom: 10px;
+  font-family: var(--font-data); font-size: 11px;
+}
+.book-stat { display: flex; flex-direction: column; gap: 2px; }
+.book-stat .bs-label { font-size: 9px; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
+.book-stat .bs-val { font-size: 13px; font-weight: 700; color: var(--text-primary); }
+
+.bbook-bar { display: flex; height: 6px; border-radius: 3px; overflow: hidden; margin-top: 3px; }
+.bbook-fill { background: var(--accent); }
+.abook-fill { background: var(--bull); flex: 1; }
+
+/* ─── TAB 3: RISK ─────────────────────────────────────────── */
+.risk-gauges { display: grid; grid-template-columns: repeat(6,1fr); gap: 8px; margin-bottom: 12px; }
+.gauge-card {
+  background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px; text-align: center;
+}
+.gauge-symbol { font-family: var(--font-display); font-size: 11px; font-weight: 700; color: var(--text-secondary); margin-bottom: 4px; }
+.gauge-ring { position: relative; width: 60px; height: 60px; margin: 0 auto 4px; }
+.gauge-ring svg { transform: rotate(-90deg); }
+.gauge-ring .track { stroke: var(--bg-elevated); stroke-width: 6; fill: none; }
+.gauge-ring .fill  { stroke-width: 6; fill: none; stroke-linecap: round; transition: stroke-dashoffset 1s; }
+.gauge-ring .fill.green  { stroke: var(--bull); }
+.gauge-ring .fill.amber  { stroke: var(--warn); }
+.gauge-ring .fill.red    { stroke: var(--bear); }
+.gauge-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: var(--font-data); }
+.gauge-pct { font-size: 13px; font-weight: 700; line-height: 1; }
+.gauge-sub { font-size: 8px; color: var(--text-muted); }
+.gauge-vals { font-family: var(--font-data); font-size: 9px; color: var(--text-muted); }
+
+.risk-row2 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.risk-panel { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; overflow: hidden; }
+.risk-panel-title { font-family: var(--font-display); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-secondary); margin-bottom: 8px; }
+
+.stress-table { width: 100%; border-collapse: collapse; font-family: var(--font-data); font-size: 11px; }
+.stress-table th, .stress-table td { padding: 5px 8px; border-bottom: 1px solid var(--border); text-align: center; }
+.stress-table th { font-size: 9px; color: var(--text-muted); text-transform: uppercase; background: var(--bg-elevated); }
+
+/* ─── TAB 5: SURVEILLANCE ─────────────────────────────────── */
+.alert-card {
+  background: var(--bg-surface); border: 1px solid var(--border);
+  border-radius: var(--radius); padding: 10px 12px; margin-bottom: 6px;
+  display: flex; gap: 10px; align-items: flex-start;
+}
+.alert-card.HIGH   { border-left: 3px solid var(--bear); background: rgba(255,59,92,0.03); }
+.alert-card.MEDIUM { border-left: 3px solid var(--warn); }
+.alert-card.LOW    { border-left: 3px solid var(--text-muted); }
+.alert-card.DISMISSED { opacity: 0.4; }
+
+.alert-type { font-family: var(--font-data); font-size: 10px; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 2px; }
+.alert-client { font-size: 11px; font-weight: 600; color: var(--text-primary); }
+.alert-detail { font-size: 11px; color: var(--text-secondary); margin-top: 2px; line-height: 1.4; }
+.alert-time { font-family: var(--font-data); font-size: 10px; color: var(--text-muted); margin-top: 3px; }
+.alert-actions { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.btn-sm {
+  padding: 3px 8px; border-radius: 2px; font-size: 10px; font-weight: 600;
+  border: 1px solid var(--border); color: var(--text-muted); background: var(--bg-elevated);
+  cursor: pointer; white-space: nowrap; text-transform: uppercase; letter-spacing: 0.04em;
+}
+.btn-sm:hover { border-color: var(--accent); color: var(--accent); }
+.btn-sm.danger:hover { border-color: var(--bear); color: var(--bear); }
+
+/* ─── TAB 6: CHAT ─────────────────────────────────────────── */
+.chat-layout { display: grid; grid-template-columns: 160px 1fr 180px; height: 100%; gap: 0; }
+.chat-channels { border-right: 1px solid var(--border); overflow-y: auto; padding: 8px 0; }
+.chat-channel-item {
+  padding: 5px 12px; font-size: 12px; color: var(--text-muted); cursor: pointer;
+  display: flex; align-items: center; gap: 6px; transition: all 0.1s;
+}
+.chat-channel-item:hover { background: var(--bg-elevated); color: var(--text-secondary); }
+.chat-channel-item.active { background: var(--bg-active); color: var(--accent); }
+.chat-channel-item .ch-hash { color: var(--text-dim); }
+.chat-messages { padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.chat-msg { display: flex; gap: 8px; }
+.chat-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-elevated); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-data); font-size: 9px; font-weight: 700; color: var(--accent); flex-shrink: 0; }
+.chat-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.chat-author { font-weight: 600; font-size: 12px; }
+.chat-time { font-family: var(--font-data); font-size: 10px; color: var(--text-muted); }
+.chat-text { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+.chat-sidebar { border-left: 1px solid var(--border); padding: 10px; overflow-y: auto; }
+.chat-sidebar-title { font-family: var(--font-display); font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); margin-bottom: 8px; }
+.team-member { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 12px; }
+.presence-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.presence-online { background: var(--bull); }
+.presence-away   { background: var(--warn); }
+.presence-offline{ background: var(--text-dim); }
+
+/* ═══════════════════════════════════════════════════════════
+   RIGHT RAIL
+   ═══════════════════════════════════════════════════════════ */
+.right-rail {
+  background: var(--bg-surface);
+  border-left: 1px solid var(--border);
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+}
+.right-section {
+  display: flex; flex-direction: column;
+  border-bottom: 2px solid var(--border-bright);
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.right-section-scroll { overflow-y: auto; flex: 1; min-height: 0; padding: 10px; }
+.right-title {
+  font-family: var(--font-display); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary);
+  padding: 7px 10px 5px; border-bottom: 1px solid var(--border);
+  background: var(--bg-panel); flex-shrink: 0;
+}
+
+/* Quote desk */
+.quote-symbol-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.quote-select { padding: 4px 8px; font-size: 12px; font-family: var(--font-data); width: 100%; margin-bottom: 6px; }
+.quote-market { display: grid; grid-template-columns: 1fr auto 1fr; gap: 4px; align-items: center; text-align: center; margin-bottom: 8px; }
+.quote-market-price { font-family: var(--font-data); font-size: 15px; font-weight: 700; padding: 5px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius); }
+.quote-market-price.bid { color: var(--bear); }
+.quote-market-price.ask { color: var(--bull); }
+.quote-market-spread { font-family: var(--font-data); font-size: 10px; color: var(--warn); text-align: center; }
+.quote-input-row { display: flex; align-items: center; gap: 4px; margin-bottom: 4px; }
+.quote-input-row label { font-family: var(--font-data); font-size: 9px; color: var(--text-muted); text-transform: uppercase; width: 24px; flex-shrink: 0; }
+.quote-input-row input { flex: 1; padding: 4px 8px; font-size: 13px; }
+.pip-btn { padding: 3px 6px; font-family: var(--font-data); font-size: 10px; border: 1px solid var(--border); border-radius: 2px; color: var(--text-muted); cursor: pointer; white-space: nowrap; }
+.pip-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+.spread-btns { display: flex; flex-wrap: wrap; gap: 4px; margin: 6px 0; }
+.spread-btn { padding: 3px 8px; border-radius: 2px; font-family: var(--font-data); font-size: 10px; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; }
+.spread-btn.normal { border-color: var(--bull-dim); color: var(--bull); }
+.spread-btn:hover  { border-color: var(--accent); color: var(--accent); }
+.spread-btn.narrow:hover { border-color: var(--bull-dim); color: var(--bull); }
+.spread-btn.widen:hover  { border-color: var(--bear-dim); color: var(--bear); }
+
+.btn-push-quote {
+  width: 100%; padding: 8px; border-radius: var(--radius); margin-top: 6px;
+  font-family: var(--font-data); font-size: 12px; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 0.08em; background: var(--accent); color: white; cursor: pointer;
+  border: none; transition: all 0.15s;
+}
+.btn-push-quote:hover { background: #2563eb; box-shadow: 0 0 12px var(--accent-glow); }
+.btn-revert { width: 100%; padding: 5px; border-radius: var(--radius); margin-top: 4px; font-family: var(--font-data); font-size: 11px; border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; }
+.btn-revert:hover { border-color: var(--text-secondary); color: var(--text-secondary); }
+
+/* LP panel */
+.lp-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 11px; }
+.lp-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.lp-dot.connected { background: var(--bull); box-shadow: 0 0 6px var(--bull); animation: pulse-dot 2s infinite; }
+.lp-dot.disconnected { background: var(--bear); }
+.lp-name { font-family: var(--font-data); font-weight: 600; color: var(--text-primary); flex: 1; font-size: 12px; }
+.lp-stat { font-family: var(--font-data); font-size: 10px; color: var(--text-muted); }
+.btn-reconnect { padding: 2px 7px; font-size: 10px; border: 1px solid var(--warn-dim); color: var(--warn); border-radius: 2px; cursor: pointer; font-family: var(--font-data); }
+
+/* Delta hedge panel */
+.delta-row { display: flex; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid var(--border); font-family: var(--font-data); font-size: 11px; }
+.delta-symbol { color: var(--text-primary); font-weight: 600; min-width: 60px; }
+.delta-val { color: var(--warn); font-weight: 600; }
+.delta-val.flat { color: var(--bull); }
+.btn-hedge-delta { padding: 2px 7px; font-size: 9px; border: 1px solid var(--accent-dim); color: var(--accent); border-radius: 2px; cursor: pointer; font-family: var(--font-data); white-space: nowrap; }
+.btn-hedge-all {
+  width: 100%; padding: 6px; margin-top: 8px; border-radius: var(--radius);
+  font-family: var(--font-data); font-size: 11px; font-weight: 700; text-transform: uppercase;
+  border: 1px solid var(--accent-dim); color: var(--accent); cursor: pointer;
+  background: var(--accent-glow); transition: all 0.15s;
+}
+.btn-hedge-all:hover { background: var(--accent-dim); box-shadow: 0 0 10px var(--accent-glow); }
+
+/* Events */
+.event-card {
+  background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius);
+  padding: 8px 10px; margin-bottom: 6px;
+}
+.event-card.high { border-left: 3px solid var(--bear); }
+.event-card.medium { border-left: 3px solid var(--warn); }
+.event-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.event-name { font-size: 12px; font-weight: 600; color: var(--text-primary); }
+.event-countdown { font-family: var(--font-data); font-size: 12px; font-weight: 700; color: var(--warn); }
+.event-countdown.imminent { color: var(--bear); animation: blink 1s infinite; }
+.event-meta { font-family: var(--font-data); font-size: 10px; color: var(--text-muted); display: flex; gap: 10px; }
+.event-action { margin-top: 5px; }
+.btn-event { padding: 3px 8px; font-size: 10px; border: 1px solid var(--warn-dim); color: var(--warn); border-radius: 2px; cursor: pointer; font-family: var(--font-data); white-space: nowrap; }
+
+.news-item { display: flex; align-items: flex-start; gap: 6px; padding: 5px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.news-item:hover .news-headline { color: var(--accent); }
+.news-dot { width: 6px; height: 6px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+.news-dot.bull { background: var(--bull); }
+.news-dot.bear { background: var(--bear); }
+.news-dot.neutral { background: var(--text-muted); }
+.news-content { flex: 1; }
+.news-source { font-family: var(--font-data); font-size: 9px; color: var(--text-muted); text-transform: uppercase; }
+.news-headline { font-size: 11px; color: var(--text-secondary); line-height: 1.3; transition: color 0.15s; }
+.news-time { font-family: var(--font-data); font-size: 9px; color: var(--text-dim); }
+
+.caution-banner {
+  padding: 6px 10px; background: rgba(245,158,11,0.12); border-bottom: 1px solid var(--warn-dim);
+  font-family: var(--font-data); font-size: 10px; font-weight: 700; color: var(--warn);
+  text-transform: uppercase; letter-spacing: 0.06em; text-align: center;
+  animation: warn-pulse 2s infinite;
+  flex-shrink: 0;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BOTTOM STATUS BAR
+   ═══════════════════════════════════════════════════════════ */
+.status-bar {
+  height: var(--bar-bottom); background: var(--bg-surface);
+  border-top: 1px solid var(--border);
+  display: flex; align-items: center; padding: 0 12px; gap: 0;
+  overflow: hidden; z-index: 100;
+}
+.sb-item { display: flex; align-items: center; gap: 4px; padding: 0 8px; border-right: 1px solid var(--border); font-family: var(--font-data); font-size: 10px; color: var(--text-muted); white-space: nowrap; }
+.sb-item:first-child { padding-left: 0; }
+.sb-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+.sb-dot.ok { background: var(--bull); animation: pulse-dot 3s infinite; }
+.sb-dot.err { background: var(--bear); animation: pulse-dot 1s infinite; }
+.sb-val { color: var(--text-secondary); font-weight: 500; }
+.sb-val.bull { color: var(--bull); }
+.sb-val.bear { color: var(--bear); }
+.sb-event { color: var(--warn); font-weight: 700; }
+
+/* ═══════════════════════════════════════════════════════════
+   OVERLAYS & MODALS
+   ═══════════════════════════════════════════════════════════ */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(6,8,10,0.85); z-index: 1000;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeIn 0.15s;
+}
+.modal-box {
+  background: var(--bg-panel); border: 1px solid var(--border-bright);
+  border-radius: var(--radius-lg); padding: 24px; min-width: 380px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+  animation: scaleIn 0.2s cubic-bezier(0.34,1.56,0.64,1);
+}
+.modal-title { font-family: var(--font-display); font-size: 14px; font-weight: 700; color: var(--bear); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 12px; }
+.modal-body { font-size: 13px; color: var(--text-secondary); margin-bottom: 16px; line-height: 1.5; }
+.modal-input { width: 100%; padding: 8px 12px; font-size: 14px; font-family: var(--font-data); margin-bottom: 12px; border: 2px solid var(--bear-dim); }
+.modal-input:focus { border-color: var(--bear); }
+.modal-actions { display: flex; gap: 8px; }
+.btn-modal-cancel { flex: 1; padding: 8px; border-radius: var(--radius); border: 1px solid var(--border); color: var(--text-muted); cursor: pointer; font-family: var(--font-data); }
+.btn-modal-confirm { flex: 1; padding: 8px; border-radius: var(--radius); background: var(--bear); color: white; cursor: pointer; font-family: var(--font-data); font-weight: 700; text-transform: uppercase; border: none; }
+
+/* Toast notifications */
+.toast-container { position: fixed; top: 60px; right: 16px; z-index: 2000; display: flex; flex-direction: column; gap: 6px; pointer-events: none; }
+.toast {
+  padding: 10px 14px; border-radius: var(--radius-lg);
+  font-family: var(--font-data); font-size: 12px; min-width: 280px; max-width: 380px;
+  display: flex; align-items: flex-start; gap: 10px;
+  animation: toastIn 0.3s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events: auto; border: 1px solid;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+}
+.toast.critical { background: rgba(20,8,8,0.95); border-color: var(--bear-dim); color: var(--bear); }
+.toast.warning  { background: rgba(20,14,6,0.95); border-color: var(--warn-dim); color: var(--warn); }
+.toast.success  { background: rgba(6,20,12,0.95); border-color: var(--bull-dim); color: var(--bull); }
+.toast.info     { background: rgba(8,14,24,0.95); border-color: var(--accent-dim); color: var(--accent); }
+.toast.exit     { animation: toastOut 0.3s forwards; }
+.toast-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+.toast-content { flex: 1; }
+.toast-title { font-weight: 700; margin-bottom: 2px; }
+.toast-msg { color: var(--text-secondary); font-size: 11px; }
+.toast-close { cursor: pointer; color: var(--text-muted); font-size: 14px; flex-shrink: 0; }
+
+/* Keyboard shortcut overlay */
+.kb-overlay { position: fixed; inset: 0; background: rgba(6,8,10,0.9); z-index: 3000; display: flex; align-items: center; justify-content: center; animation: fadeIn 0.2s; }
+.kb-box { background: var(--bg-panel); border: 1px solid var(--border-bright); border-radius: var(--radius-lg); padding: 28px 32px; min-width: 500px; }
+.kb-title { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 20px; }
+.kb-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.kb-row { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border); }
+.kb-key { font-family: var(--font-data); font-size: 11px; font-weight: 700; background: var(--bg-elevated); border: 1px solid var(--border-bright); border-radius: 3px; padding: 2px 8px; color: var(--text-primary); min-width: 36px; text-align: center; flex-shrink: 0; }
+.kb-desc { font-size: 12px; color: var(--text-secondary); }
+
+/* ═══════════════════════════════════════════════════════════
+   ANIMATIONS
+   ═══════════════════════════════════════════════════════════ */
+@keyframes pulse-dot {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+@keyframes warn-pulse {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+@keyframes blink {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes slideInTop {
+  from { transform: translateY(-100%); opacity: 0; }
+  to   { transform: translateY(0);     opacity: 1; }
+}
+@keyframes slideDown {
+  from { transform: scaleY(0); transform-origin: top; opacity: 0; }
+  to   { transform: scaleY(1); opacity: 1; }
+}
+@keyframes flashAccept {
+  0%,100% { background: transparent; }
+  30%  { background: rgba(16,217,150,0.3); }
+}
+@keyframes flashReject {
+  0%,100% { background: transparent; }
+  30%  { background: rgba(255,59,92,0.3); }
+}
+@keyframes flashBid {
+  0%,100% { background: var(--bg-elevated); }
+  50% { background: rgba(16,217,150,0.25); }
+}
+@keyframes flashAsk {
+  0%,100% { background: var(--bg-elevated); }
+  50% { background: rgba(255,59,92,0.25); }
+}
+@keyframes rowFlashGreen {
+  0%   { background: rgba(16,217,150,0.2); }
+  100% { background: transparent; }
+}
+@keyframes rowFlashRed {
+  0%   { background: rgba(255,59,92,0.2); }
+  100% { background: transparent; }
+}
+@keyframes row-pulse-red {
+  0%,100% { background: rgba(255,59,92,0.06); }
+  50% { background: rgba(255,59,92,0.12); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; } to { opacity: 1; }
+}
+@keyframes scaleIn {
+  from { transform: scale(0.9); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+@keyframes toastIn {
+  from { transform: translateX(120%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+@keyframes toastOut {
+  from { transform: translateX(0); opacity: 1; }
+  to   { transform: translateX(120%); opacity: 0; }
+}
+@keyframes priceUp {
+  0%,100% { color: var(--text-primary); }
+  50% { color: var(--bull); text-shadow: 0 0 8px var(--bull); }
+}
+@keyframes priceDown {
+  0%,100% { color: var(--text-primary); }
+  50% { color: var(--bear); text-shadow: 0 0 8px var(--bear); }
+}
+
+/* ═══════════════════════════════════════════════════════════
+   UTILITY
+   ═══════════════════════════════════════════════════════════ */
+.flex { display: flex; }
+.flex-center { display: flex; align-items: center; justify-content: center; }
+.gap-4 { gap: 4px; }
+.gap-8 { gap: 8px; }
+.gap-12 { gap: 12px; }
+.mt-4 { margin-top: 4px; }
+.mt-8 { margin-top: 8px; }
+.mb-8 { margin-bottom: 8px; }
+.mb-12 { margin-bottom: 12px; }
+.text-mono { font-family: var(--font-data); }
+.text-dim { color: var(--text-muted); }
+.text-xs { font-size: 10px; }
+.text-sm { font-size: 11px; }
+.text-right { text-align: right; }
+.divider { height: 1px; background: var(--border); margin: 8px 0; }
+.section-title {
+  font-family: var(--font-display); font-size: 10px; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-muted);
+  margin-bottom: 8px; padding-bottom: 4px; border-bottom: 1px solid var(--border);
+}
+
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.5/babel.min.js"></script>
+<script type="text/babel" data-presets="react">
+/* ── MOCK DATA ─────────────────────────────────────── */
+// ─────────────────────────────────────────────
+//  OBSIDIAN DESK — Mock Data
+// ─────────────────────────────────────────────
+
+const INSTRUMENTS = [
+  { symbol: "EUR/USD", pip: 0.0001, digits: 5, bid: 1.08452, ask: 1.08458, high: 1.09012, low: 1.08012, change: 0.11, volume: 12400, avgVolume: 15000, routing: "STP", bookRouting: "B" },
+  { symbol: "GBP/USD", pip: 0.0001, digits: 5, bid: 1.26812, ask: 1.26821, high: 1.27450, low: 1.26340, change: -0.23, volume: 8700, avgVolume: 9200, routing: "STP", bookRouting: "B" },
+  { symbol: "USD/JPY", pip: 0.01,   digits: 3, bid: 149.842, ask: 149.851, high: 150.234, low: 149.512, change: 0.34, volume: 18200, avgVolume: 16000, routing: "STP", bookRouting: "A" },
+  { symbol: "XAU/USD", pip: 0.01,   digits: 2, bid: 2318.45, ask: 2319.15, high: 2341.20, low: 2298.80, change: 0.87, volume: 4100, avgVolume: 5500, routing: "B",   bookRouting: "B" },
+  { symbol: "BTC/USD", pip: 1,      digits: 1, bid: 67841.0, ask: 67891.0, high: 69200.0, low: 66400.0, change: -1.42, volume: 820, avgVolume: 1100, routing: "STP", bookRouting: "A" },
+  { symbol: "US500",   pip: 0.1,    digits: 1, bid: 5241.8,  ask: 5242.3,  high: 5289.0,  low: 5198.0,  change: 0.52, volume: 3400, avgVolume: 4200, routing: "B",   bookRouting: "B" },
+];
+
+const BOOK_POSITIONS = [
+  { symbol: "EUR/USD", longLots: 68.4, shortLots: 23.2, avgOpen: 1.08210, current: 1.08452, limit: 100, hedged: 0,  lpExposure: 0,  clients: 14, bBook: 60, aBook: 40 },
+  { symbol: "GBP/USD", longLots: 8.1,  shortLots: 20.2, avgOpen: 1.26990, current: 1.26812, limit: 80,  hedged: 5,  lpExposure: 5,  clients: 8,  bBook: 55, aBook: 45 },
+  { symbol: "USD/JPY", longLots: 31.5, shortLots: 29.7, avgOpen: 149.910, current: 149.842, limit: 120, hedged: 0,  lpExposure: 0,  clients: 11, bBook: 70, aBook: 30 },
+  { symbol: "XAU/USD", longLots: 12.3, shortLots: 4.0,  avgOpen: 2301.50, current: 2318.45, limit: 30,  hedged: 3,  lpExposure: 3,  clients: 6,  bBook: 45, aBook: 55 },
+  { symbol: "BTC/USD", longLots: 0.65, shortLots: 0.20, avgOpen: 66200.0, current: 67841.0, limit: 2,   hedged: 0,  lpExposure: 0,  clients: 4,  bBook: 40, aBook: 60 },
+  { symbol: "US500",   longLots: 4.0,  shortLots: 26.0, avgOpen: 5260.0,  current: 5241.8,  limit: 50,  hedged: 10, lpExposure: 10, clients: 7,  bBook: 50, aBook: 50 },
+];
+
+const PENDING_ORDERS = [
+  { id: "ORD-4721", clientId: 4721, clientName: "James Morrison", tier: "VIP",    side: "BUY",  symbol: "EUR/USD", lots: 5.00,  type: "MARKET", time: "14:23:07.441", notional: 543250,  age: 1.2, marketPrice: 1.08456, clientPrice: 1.08458, slippage: 0.2 },
+  { id: "ORD-3891", clientId: 3891, clientName: "Sarah Chen",     tier: "PRO",    side: "SELL", symbol: "GBP/USD", lots: 2.50,  type: "MARKET", time: "14:23:05.112", notional: 317053,  age: 3.4, marketPrice: 1.26818, clientPrice: 1.26812, slippage: -0.6 },
+  { id: "ORD-2241", clientId: 2241, clientName: "Viktor Petrov",  tier: "PRO",    side: "BUY",  symbol: "XAU/USD", lots: 10.00, type: "MARKET", time: "14:23:04.891", notional: 2319150, age: 4.2, marketPrice: 2319.15, clientPrice: 2319.35, slippage: 0.2 },
+  { id: "ORD-6612", clientId: 6612, clientName: "Mei Tanaka",     tier: "RETAIL", side: "BUY",  symbol: "USD/JPY", lots: 0.50,  type: "LIMIT",  time: "14:23:08.003", notional: 74926,   age: 0.8, marketPrice: 149.851, clientPrice: 149.800, slippage: 0 },
+  { id: "ORD-5503", clientId: 5503, clientName: "Omar Al-Rashid", tier: "VIP",    side: "SELL", symbol: "EUR/USD", lots: 20.00, type: "MARKET", time: "14:23:06.220", notional: 2169040, age: 2.1, marketPrice: 1.08452, clientPrice: 1.08448, slippage: -0.4 },
+  { id: "ORD-7841", clientId: 7841, clientName: "Anna Kowalski",  tier: "RETAIL", side: "BUY",  symbol: "BTC/USD", lots: 0.10,  type: "MARKET", time: "14:23:09.112", notional: 6789,    age: 0.5, marketPrice: 67891.0, clientPrice: 67901.0, slippage: 1.0 },
+  { id: "ORD-3312", clientId: 3312, clientName: "David Park",     tier: "PRO",    side: "SELL", symbol: "US500",   lots: 5.00,  type: "MARKET", time: "14:23:07.881", notional: 26212,   age: 1.8, marketPrice: 5242.3,  clientPrice: 5241.8,  slippage: -0.5 },
+  { id: "ORD-9001", clientId: 9001, clientName: "Elena Vasquez",  tier: "RETAIL", side: "BUY",  symbol: "GBP/USD", lots: 1.00,  type: "MARKET", time: "14:23:08.441", notional: 126821,  age: 0.9, marketPrice: 1.26821, clientPrice: 1.26825, slippage: 0.4 },
+  { id: "ORD-4450", clientId: 4450, clientName: "Chen Wei",       tier: "PRO",    side: "BUY",  symbol: "EUR/USD", lots: 8.00,  type: "MARKET", time: "14:23:06.780", notional: 867664,  age: 2.9, marketPrice: 1.08458, clientPrice: 1.08462, slippage: 0.4 },
+  { id: "ORD-1192", clientId: 1192, clientName: "Marcus Webb",    tier: "RETAIL", side: "SELL", symbol: "XAU/USD", lots: 0.50,  type: "STOP",   time: "14:23:09.330", notional: 115958,  age: 0.4, marketPrice: 2318.45, clientPrice: 2318.00, slippage: 0 },
+  { id: "ORD-8823", clientId: 8823, clientName: "Fatima Malik",   tier: "PRO",    side: "BUY",  symbol: "USD/JPY", lots: 3.00,  type: "MARKET", time: "14:23:05.991", notional: 299702,  age: 3.7, marketPrice: 149.851, clientPrice: 149.860, slippage: 0.9 },
+  { id: "ORD-6671", clientId: 6671, clientName: "Thomas Brandt",  tier: "RETAIL", side: "SELL", symbol: "BTC/USD", lots: 0.20,  type: "MARKET", time: "14:23:08.771", notional: 13568,   age: 1.1, marketPrice: 67841.0, clientPrice: 67838.0, slippage: -0.3 },
+  { id: "ORD-2298", clientId: 2298, clientName: "Isabella Russo", tier: "VIP",    side: "BUY",  symbol: "GBP/USD", lots: 15.00, type: "MARKET", time: "14:23:07.002", notional: 1902315, age: 1.6, marketPrice: 1.26821, clientPrice: 1.26828, slippage: 0.7 },
+  { id: "ORD-5577", clientId: 5577, clientName: "Robert Kim",     tier: "PRO",    side: "SELL", symbol: "EUR/USD", lots: 4.00,  type: "LIMIT",  time: "14:23:09.551", notional: 433808,  age: 0.3, marketPrice: 1.08452, clientPrice: 1.08500, slippage: 0 },
+];
+
+const CLIENTS = [
+  { id: 4721, name: "James Morrison",  type: "VIP",    equity: 245000, balance: 250000, margin: 78, floatPnl: +4820,  positions: 7,  volumeToday: 142.5, lastTrade: "2m ago",  status: "NORMAL" },
+  { id: 5503, name: "Omar Al-Rashid",  type: "VIP",    equity: 189000, balance: 195000, margin: 65, floatPnl: -2340,  positions: 4,  volumeToday: 88.0,  lastTrade: "5m ago",  status: "NORMAL" },
+  { id: 2298, name: "Isabella Russo",  type: "VIP",    equity: 312000, balance: 308000, margin: 82, floatPnl: +8400,  positions: 11, volumeToday: 210.0, lastTrade: "1m ago",  status: "NORMAL" },
+  { id: 3891, name: "Sarah Chen",      type: "PRO",    equity: 54200,  balance: 58000,  margin: 44, floatPnl: -1240,  positions: 3,  volumeToday: 32.5,  lastTrade: "3m ago",  status: "NORMAL" },
+  { id: 4450, name: "Chen Wei",        type: "PRO",    equity: 38400,  balance: 42000,  margin: 38, floatPnl: -820,   positions: 5,  volumeToday: 67.0,  lastTrade: "2m ago",  status: "MARGIN_WARNING" },
+  { id: 8823, name: "Fatima Malik",    type: "PRO",    equity: 28100,  balance: 31500,  margin: 35, floatPnl: -1940,  positions: 4,  volumeToday: 45.5,  lastTrade: "4m ago",  status: "MARGIN_WARNING" },
+  { id: 2241, name: "Viktor Petrov",   type: "PRO",    equity: 92000,  balance: 95000,  margin: 68, floatPnl: +3120,  positions: 6,  volumeToday: 156.0, lastTrade: "1m ago",  status: "NORMAL" },
+  { id: 6612, name: "Mei Tanaka",      type: "RETAIL", equity: 12400,  balance: 15000,  margin: 27, floatPnl: -980,   positions: 2,  volumeToday: 8.5,   lastTrade: "8m ago",  status: "MARGIN_CALL" },
+  { id: 7841, name: "Anna Kowalski",   type: "RETAIL", equity: 8900,   balance: 10000,  margin: 22, floatPnl: -440,   positions: 1,  volumeToday: 5.0,   lastTrade: "12m ago", status: "MARGIN_CALL" },
+  { id: 9001, name: "Elena Vasquez",   type: "RETAIL", equity: 18200,  balance: 19500,  margin: 56, floatPnl: +420,   positions: 3,  volumeToday: 14.0,  lastTrade: "1m ago",  status: "NORMAL" },
+  { id: 3312, name: "David Park",      type: "PRO",    equity: 67800,  balance: 70000,  margin: 71, floatPnl: +1840,  positions: 5,  volumeToday: 78.5,  lastTrade: "3m ago",  status: "NORMAL" },
+  { id: 1192, name: "Marcus Webb",     type: "RETAIL", equity: 5600,   balance: 6200,   margin: 48, floatPnl: -210,   positions: 1,  volumeToday: 3.5,   lastTrade: "15m ago", status: "NORMAL" },
+  { id: 6671, name: "Thomas Brandt",   type: "RETAIL", equity: 9800,   balance: 10500,  margin: 42, floatPnl: -310,   positions: 2,  volumeToday: 6.0,   lastTrade: "6m ago",  status: "MARGIN_WARNING" },
+  { id: 5577, name: "Robert Kim",      type: "PRO",    equity: 44100,  balance: 46000,  margin: 62, floatPnl: +890,   positions: 4,  volumeToday: 55.0,  lastTrade: "2m ago",  status: "NORMAL" },
+  { id: 7721, name: "Yuki Nakamura",   type: "RETAIL", equity: 14200,  balance: 15000,  margin: 58, floatPnl: +320,   positions: 2,  volumeToday: 11.0,  lastTrade: "9m ago",  status: "NORMAL" },
+  { id: 2812, name: "Carlos Mendez",   type: "PRO",    equity: 51000,  balance: 54000,  margin: 66, floatPnl: -640,   positions: 3,  volumeToday: 42.5,  lastTrade: "7m ago",  status: "NORMAL" },
+  { id: 4190, name: "Sophie Laurent",  type: "RETAIL", equity: 7200,   balance: 8000,   margin: 39, floatPnl: -580,   positions: 2,  volumeToday: 4.5,   lastTrade: "18m ago", status: "MARGIN_WARNING" },
+  { id: 9312, name: "Ahmed Hassan",    type: "PRO",    equity: 35800,  balance: 38000,  margin: 53, floatPnl: -420,   positions: 3,  volumeToday: 31.0,  lastTrade: "5m ago",  status: "NORMAL" },
+  { id: 3441, name: "Lisa Johansson",  type: "RETAIL", equity: 22000,  balance: 23500,  margin: 61, floatPnl: +720,   positions: 4,  volumeToday: 18.5,  lastTrade: "3m ago",  status: "NORMAL" },
+  { id: 8102, name: "Pavel Novak",     type: "PRO",    equity: 48200,  balance: 51000,  margin: 67, floatPnl: +1120,  positions: 5,  volumeToday: 62.0,  lastTrade: "4m ago",  status: "NORMAL" },
+  { id: 5291, name: "Grace Okonkwo",   type: "RETAIL", equity: 16800,  balance: 18000,  margin: 54, floatPnl: +280,   positions: 2,  volumeToday: 12.5,  lastTrade: "11m ago", status: "NORMAL" },
+  { id: 7033, name: "Henrik Berg",     type: "PRO",    equity: 73400,  balance: 76000,  margin: 73, floatPnl: +2180,  positions: 6,  volumeToday: 94.0,  lastTrade: "2m ago",  status: "NORMAL" },
+  { id: 1841, name: "Priya Sharma",    type: "RETAIL", equity: 11200,  balance: 12500,  margin: 46, floatPnl: -390,   positions: 2,  volumeToday: 7.5,   lastTrade: "14m ago", status: "NORMAL" },
+  { id: 6240, name: "Lucas Dubois",    type: "PRO",    equity: 29800,  balance: 32000,  margin: 51, floatPnl: -620,   positions: 3,  volumeToday: 28.0,  lastTrade: "6m ago",  status: "NORMAL" },
+  { id: 4882, name: "Nina Patel",      type: "RETAIL", equity: 6100,   balance: 7000,   margin: 33, floatPnl: -780,   positions: 2,  volumeToday: 4.0,   lastTrade: "20m ago", status: "MARGIN_WARNING" },
+  { id: 3109, name: "Felix Wagner",    type: "PRO",    equity: 42500,  balance: 45000,  margin: 64, floatPnl: +940,   positions: 4,  volumeToday: 48.5,  lastTrade: "3m ago",  status: "NORMAL" },
+  { id: 9874, name: "Aisha Oduya",     type: "RETAIL", equity: 19400,  balance: 20500,  margin: 57, floatPnl: +340,   positions: 3,  volumeToday: 16.0,  lastTrade: "8m ago",  status: "NORMAL" },
+  { id: 2650, name: "Marco Ricci",     type: "PRO",    equity: 58700,  balance: 61000,  margin: 70, floatPnl: +1560,  positions: 5,  volumeToday: 72.0,  lastTrade: "4m ago",  status: "NORMAL" },
+];
+
+const EXECUTIONS = [
+  { id: "EX-10247", time: "14:23:01.441", clientId: 4721, clientType: "VIP",    symbol: "EUR/USD", side: "BUY",  lots: 3.0,  fillPrice: 1.08462, marketPrice: 1.08460, slippage: 0.2,  pnlImpact: +124,  latency: 12,  route: "MANUAL",  lp: "LP1", dealer: "M.Chen" },
+  { id: "EX-10246", time: "14:22:58.112", clientId: 3312, clientType: "PRO",    symbol: "US500",   side: "SELL", lots: 2.0,  fillPrice: 5241.8,  marketPrice: 5241.9,  slippage: -0.1, pnlImpact: -22,   latency: 8,   route: "AUTO",    lp: "LP2", dealer: "AUTO" },
+  { id: "EX-10245", time: "14:22:55.330", clientId: 8823, clientType: "PRO",    symbol: "USD/JPY", side: "BUY",  lots: 1.5,  fillPrice: 149.862, marketPrice: 149.858, slippage: 0.4,  pnlImpact: +89,   latency: 34,  route: "STP",     lp: "LP1", dealer: "AUTO" },
+  { id: "EX-10244", time: "14:22:52.881", clientId: 5503, clientType: "VIP",    symbol: "EUR/USD", side: "SELL", lots: 10.0, fillPrice: 1.08448, marketPrice: 1.08452, slippage: -0.4, pnlImpact: +482,  latency: 15,  route: "MANUAL",  lp: "LP1", dealer: "M.Chen" },
+  { id: "EX-10243", time: "14:22:49.002", clientId: 7841, clientType: "RETAIL", symbol: "BTC/USD", side: "BUY",  lots: 0.05, fillPrice: 67915.0, marketPrice: 67891.0, slippage: 2.4,  pnlImpact: -12,   latency: 28,  route: "AUTO",    lp: "LP2", dealer: "AUTO" },
+  { id: "EX-10242", time: "14:22:46.771", clientId: 2241, clientType: "PRO",    symbol: "XAU/USD", side: "BUY",  lots: 5.0,  fillPrice: 2319.25, marketPrice: 2319.15, slippage: 0.1,  pnlImpact: +312,  latency: 19,  route: "MANUAL",  lp: "LP1", dealer: "M.Chen" },
+  { id: "EX-10241", time: "14:22:43.991", clientId: 6612, clientType: "RETAIL", symbol: "USD/JPY", side: "SELL", lots: 0.3,  fillPrice: 149.840, marketPrice: 149.842, slippage: -0.2, pnlImpact: +18,   latency: 7,   route: "AUTO",    lp: "LP2", dealer: "AUTO" },
+  { id: "EX-10240", time: "14:22:41.220", clientId: 9001, clientType: "RETAIL", symbol: "GBP/USD", side: "BUY",  lots: 0.5,  fillPrice: 1.26828, marketPrice: 1.26821, slippage: 0.7,  pnlImpact: +44,   latency: 22,  route: "STP",     lp: "LP1", dealer: "AUTO" },
+  { id: "EX-10239", time: "14:22:38.441", clientId: 4450, clientType: "PRO",    symbol: "EUR/USD", side: "BUY",  lots: 4.0,  fillPrice: 1.08465, marketPrice: 1.08458, slippage: 0.7,  pnlImpact: -184,  latency: 340, route: "MANUAL",  lp: "LP1", dealer: "M.Chen" },
+  { id: "EX-10238", time: "14:22:35.112", clientId: 3891, clientType: "PRO",    symbol: "GBP/USD", side: "SELL", lots: 1.0,  fillPrice: 1.26808, marketPrice: 1.26812, slippage: -0.4, pnlImpact: +62,   latency: 11,  route: "AUTO",    lp: "LP2", dealer: "AUTO" },
+  { id: "EX-10237", time: "14:22:32.881", clientId: 7033, clientType: "PRO",    symbol: "EUR/USD", side: "BUY",  lots: 8.0,  fillPrice: 1.08460, marketPrice: 1.08458, slippage: 0.2,  pnlImpact: +218,  latency: 9,   route: "STP",     lp: "LP1", dealer: "AUTO" },
+  { id: "EX-10236", time: "14:22:29.002", clientId: 1192, clientType: "RETAIL", symbol: "XAU/USD", side: "SELL", lots: 0.2,  fillPrice: 2318.20, marketPrice: 2318.45, slippage: -2.5, pnlImpact: -28,   latency: 44,  route: "AUTO",    lp: "LP2", dealer: "AUTO" },
+  { id: "EX-10235", time: "14:22:26.771", clientId: 2298, clientType: "VIP",    symbol: "GBP/USD", side: "BUY",  lots: 8.0,  fillPrice: 1.26830, marketPrice: 1.26821, slippage: 0.9,  pnlImpact: +542,  latency: 16,  route: "MANUAL",  lp: "LP1", dealer: "M.Chen" },
+  { id: "EX-10234", time: "14:22:23.441", clientId: 6671, clientType: "RETAIL", symbol: "BTC/USD", side: "SELL", lots: 0.1,  fillPrice: 67832.0, marketPrice: 67841.0, slippage: -0.9, pnlImpact: +38,   latency: 31,  route: "AUTO",    lp: "LP2", dealer: "AUTO" },
+  { id: "EX-10233", time: "14:22:20.112", clientId: 5577, clientType: "PRO",    symbol: "EUR/USD", side: "SELL", lots: 2.0,  fillPrice: 1.08450, marketPrice: 1.08452, slippage: -0.2, pnlImpact: +124,  latency: 13,  route: "AUTO",    lp: "LP1", dealer: "AUTO" },
+  { id: "EX-10232", time: "14:22:17.881", clientId: 4190, clientType: "RETAIL", symbol: "EUR/USD", side: "BUY",  lots: 0.5,  fillPrice: null,    marketPrice: 1.08458, slippage: null, pnlImpact: 0,     latency: null,route: "TIMEOUT", lp: "-",  dealer: "AUTO" },
+  { id: "EX-10231", time: "14:22:14.002", clientId: 4882, clientType: "RETAIL", symbol: "GBP/USD", side: "BUY",  lots: 0.2,  fillPrice: null,    marketPrice: 1.26821, slippage: null, pnlImpact: 0,     latency: null,route: "TIMEOUT", lp: "-",  dealer: "AUTO" },
+  { id: "EX-10230", time: "14:22:11.220", clientId: 8102, clientType: "PRO",    symbol: "USD/JPY", side: "SELL", lots: 3.0,  fillPrice: 149.839, marketPrice: 149.842, slippage: -0.3, pnlImpact: +89,   latency: 18,  route: "STP",     lp: "LP2", dealer: "AUTO" },
+  { id: "EX-10229", time: "14:22:08.441", clientId: 9312, clientType: "PRO",    symbol: "XAU/USD", side: "SELL", lots: 2.0,  fillPrice: 2317.90, marketPrice: 2318.45, slippage: -0.6, pnlImpact: +156,  latency: 25,  route: "AUTO",    lp: "LP1", dealer: "AUTO" },
+  { id: "EX-10228", time: "14:22:05.112", clientId: 3441, clientType: "RETAIL", symbol: "EUR/USD", side: "BUY",  lots: 1.0,  fillPrice: 1.08461, marketPrice: 1.08458, slippage: 0.3,  pnlImpact: +78,   latency: 21,  route: "AUTO",    lp: "LP2", dealer: "AUTO" },
+  { id: "EX-10227", time: "14:22:02.881", clientId: 2650, clientType: "PRO",    symbol: "US500",   side: "BUY",  lots: 3.0,  fillPrice: 5242.5,  marketPrice: 5242.3,  slippage: 0.2,  pnlImpact: +62,   latency: 14,  route: "STP",     lp: "LP1", dealer: "AUTO" },
+];
+
+const SURVEILLANCE_ALERTS = [
+  { id: "ALT-001", severity: "HIGH",   type: "LATENCY ARBITRAGE",    clientId: 4450, clientName: "Chen Wei",       detail: "Trading at prices 340ms old — fill at 1.08465 vs market 1.08458", time: "14:22:38", status: "ACTIVE" },
+  { id: "ALT-002", severity: "HIGH",   type: "ACCOUNT COORDINATION", clientId: 7841, clientName: "Anna Kowalski",  detail: "2 accounts (7841, 7842) same IP 185.22.41.0, identical trades within 800ms", time: "14:21:12", status: "ACTIVE" },
+  { id: "ALT-003", severity: "MEDIUM", type: "NEWS TRADING",         clientId: 8823, clientName: "Fatima Malik",   detail: "6 trades placed within 45s of FOMC minutes release — 84% profitable", time: "14:20:15", status: "FLAGGED" },
+  { id: "ALT-004", severity: "MEDIUM", type: "VOLUME SPIKE",         clientId: 3891, clientName: "Sarah Chen",     detail: "Volume 7.2x 30-day average today (32.5 vs avg 4.5 lots)", time: "14:19:44", status: "ACTIVE" },
+  { id: "ALT-005", severity: "MEDIUM", type: "VOLUME SPIKE",         clientId: 2241, clientName: "Viktor Petrov",  detail: "Single order $2.3M notional — 8.4x client typical max trade size", time: "14:18:33", status: "ACTIVE" },
+  { id: "ALT-006", severity: "MEDIUM", type: "NEWS TRADING",         clientId: 5503, clientName: "Omar Al-Rashid", detail: "Placed 3 SELL EUR/USD orders 28s before CPI release (14:23:07)", time: "14:23:07", status: "ACTIVE" },
+  { id: "ALT-007", severity: "LOW",    type: "SCALPING PATTERN",     clientId: 9001, clientName: "Elena Vasquez",  detail: "8 round-trips EUR/USD in 4 minutes, avg hold time 22 seconds", time: "14:17:55", status: "DISMISSED" },
+  { id: "ALT-008", severity: "LOW",    type: "SCALPING PATTERN",     clientId: 6671, clientName: "Thomas Brandt",  detail: "5 rapid BTC/USD trades in 3 minutes, all under 30s hold time", time: "14:16:22", status: "ACTIVE" },
+];
+
+const LP_STATUS = [
+  { id: "LP1", name: "LMAX",     status: "CONNECTED",    latency: 8,   uptime: 99.94, executions: 142 },
+  { id: "LP2", name: "Integral", status: "CONNECTED",    latency: 12,  uptime: 99.87, executions: 89 },
+  { id: "LP3", name: "Currenex", status: "DISCONNECTED", latency: null, uptime: 98.12, executions: 0 },
+];
+
+const ECONOMIC_EVENTS = [
+  { id: "EVT-001", country: "US", flag: "🇺🇸", name: "CPI YoY",          time: "14:30", impact: "HIGH",   previous: "3.2%", forecast: "3.1%", actual: null,   minutesAway: 7 },
+  { id: "EVT-002", country: "UK", flag: "🇬🇧", name: "Retail Sales MoM", time: "15:00", impact: "MEDIUM", previous: "0.3%", forecast: "0.5%", actual: null,   minutesAway: 37 },
+  { id: "EVT-003", country: "EU", flag: "🇪🇺", name: "ECB Speech",       time: "16:00", impact: "HIGH",   previous: null,   forecast: null,   actual: null,   minutesAway: 97 },
+  { id: "EVT-004", country: "US", flag: "🇺🇸", name: "PPI MoM",          time: "13:30", impact: "MEDIUM", previous: "0.2%", forecast: "0.3%", actual: "0.4%", minutesAway: -53 },
+  { id: "EVT-005", country: "US", flag: "🇺🇸", name: "Jobless Claims",   time: "13:30", impact: "MEDIUM", previous: "217K", forecast: "215K", actual: "219K", minutesAway: -53 },
+];
+
+const NEWS_ITEMS = [
+  { id: 1, source: "Reuters",   headline: "Fed officials signal caution over rate cuts as inflation data awaited",  time: "3m ago",  sentiment: "neutral" },
+  { id: 2, source: "Bloomberg", headline: "EUR/USD steady ahead of key US CPI print due in 7 minutes",            time: "5m ago",  sentiment: "neutral" },
+  { id: 3, source: "FXStreet",  headline: "Gold rallies on dollar weakness, testing $2320 resistance",            time: "8m ago",  sentiment: "bull" },
+  { id: 4, source: "CNBC",      headline: "Bitcoin faces selling pressure below $68,000 technical level",         time: "12m ago", sentiment: "bear" },
+  { id: 5, source: "Reuters",   headline: "Bank of England Governor signals rate cut possible in summer",         time: "18m ago", sentiment: "bear" },
+];
+
+const CHAT_MESSAGES = [
+  { id: 1, channel: "dealing-desk", author: "Marcus Chen",  avatar: "MC", time: "14:20", text: "EUR/USD getting tight ahead of CPI. Widening spread to 1.2 in 5 mins." },
+  { id: 2, channel: "dealing-desk", author: "Priya Desai",  avatar: "PD", time: "14:21", text: "Agreed. Also flagging Viktor Petrov — large order just came in, running manual review." },
+  { id: 3, channel: "risk-alerts",  author: "Risk Mgmt",    avatar: "RM", time: "14:21", text: "⚠️ B-BOOK EUR/USD exposure approaching 80% limit. Route next 10+ lot orders to LP1." },
+  { id: 4, channel: "dealing-desk", author: "Marcus Chen",  avatar: "MC", time: "14:22", text: "@Risk Mgmt Acknowledged. Running partial hedge now. -20 lots EUR/USD → LP1." },
+  { id: 5, channel: "risk-alerts",  author: "System",       avatar: "SY", time: "14:22", text: "🔴 MARGIN CALL: Client 7841 Anna Kowalski — margin level 22%. Auto-close threshold at 20%." },
+  { id: 6, channel: "dealing-desk", author: "James Walker", avatar: "JW", time: "14:22", text: "Taking over from Marcus at 16:30. Any positions I need to know about going into close?" },
+  { id: 7, channel: "dealing-desk", author: "Marcus Chen",  avatar: "MC", time: "14:23", text: "EUR/USD book heavy long. XAU looking OK. Watch Chen Wei — near margin + latency flag." },
+  { id: 8, channel: "compliance",   author: "Compliance",   avatar: "CO", time: "14:23", text: "Case ALT-002 (Account Coordination 7841/7842) escalated to L2 review. Restrict pending." },
+];
+
+const WATCHLIST_CLIENT_IDS = [4721, 5503, 2298, 8823, 6612, 7841, 4450];
+
+
+/* ── HELPERS ─────────────────────────────────────── */
+const { useState, useEffect, useRef, useCallback } = React;
+
+
+
+// ─── HELPERS ─────────────────────────────────────────────────────────────────
+const fmt = (n, d = 2) => n?.toFixed(d) ?? "-";
+const fmtMoney = (n) => n >= 1e6 ? `$${(n/1e6).toFixed(2)}M` : n >= 1e3 ? `$${(n/1e3).toFixed(1)}K` : `$${n?.toFixed(0)}`;
+const fmtLots = (n) => n?.toFixed(2) ?? "0.00";
+const fmtPnl  = (n) => (n >= 0 ? "+" : "") + `$${Math.abs(n).toLocaleString()}`;
+
+function useInterval(cb, ms) {
+  const ref = useRef(cb);
+  useEffect(() => { ref.current = cb; }, [cb]);
+  useEffect(() => { const t = setInterval(() => ref.current(), ms); return () => clearInterval(t); }, [ms]);
+}
+
+// ─── SPARKLINE ────────────────────────────────────────────────────────────────
+function Sparkline({ ticks, bullish }) {
+  const w = 160, h = 28;
+  if (!ticks || ticks.length < 2) return null;
+  const mn = Math.min(...ticks), mx = Math.max(...ticks), range = mx - mn || 1;
+  const pts = ticks.map((v, i) => {
+    const x = (i / (ticks.length - 1)) * w;
+    const y = h - ((v - mn) / range) * h;
+    return `${x},${y}`;
+  }).join(" ");
+  return (
+    <svg width={w} height={h} style={{ display: "block" }}>
+      <polyline fill="none" stroke={bullish ? "var(--bull)" : "var(--bear)"} strokeWidth="1.5" points={pts} strokeOpacity="0.8" />
+    </svg>
+  );
+}
+
+// ─── GAUGE RING ────────────────────────────────────────────────────────────────
+function GaugeRing({ pct, symbol, used, limit }) {
+  const r = 24, circ = 2 * Math.PI * r;
+  const fill = circ - (pct / 100) * circ;
+  const color = pct < 60 ? "green" : pct < 80 ? "amber" : "red";
+  return (
+    <div className="gauge-card">
+      <div className="gauge-symbol">{symbol}</div>
+      <div className="gauge-ring">
+        <svg width="56" height="56" viewBox="0 0 56 56">
+          <circle className="track" cx="28" cy="28" r={r} />
+          <circle className={`fill ${color}`} cx="28" cy="28" r={r}
+            strokeDasharray={circ} strokeDashoffset={fill} />
+        </svg>
+        <div className="gauge-center">
+          <span className={`gauge-pct cell-${color === "green" ? "bull" : color === "amber" ? "warn" : "bear"}`}>{pct}%</span>
+        </div>
+      </div>
+      <div className="gauge-vals">{fmtMoney(used)} / {fmtMoney(limit)}</div>
+    </div>
+  );
+}
+
+// ─── TOAST SYSTEM ─────────────────────────────────────────────────────────────
+function ToastContainer({ toasts, onDismiss }) {
+  return (
+    <div className="toast-container">
+      {toasts.map(t => (
+        <div key={t.id} className={`toast ${t.type} ${t.exiting ? "exit" : ""}`}>
+          <span className="toast-icon">{t.icon}</span>
+          <div className="toast-content">
+            <div className="toast-title">{t.title}</div>
+            <div className="toast-msg">{t.msg}</div>
+          </div>
+          <span className="toast-close" onClick={() => onDismiss(t.id)}>✕</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ─── CONFIRM MODAL ────────────────────────────────────────────────────────────
+function ConfirmModal({ action, onConfirm, onCancel }) {
+  const [val, setVal] = useState("");
+  const configs = {
+    HALT: { title: "HALT ALL TRADING", msg: "This will immediately freeze all auto-accepts and stop order processing. Type HALT to confirm.", word: "HALT", color: "var(--bear)" },
+    WIDEN: { title: "WIDEN SPREADS GLOBALLY", msg: "Apply emergency spread multiplier of 3× across all instruments for all clients. Type WIDEN to confirm.", word: "WIDEN", color: "var(--warn)" },
+    SUSPEND: { title: "SUSPEND ALL TRADING", msg: "Disable all new order placement across the entire platform. Type SUSPEND to confirm.", word: "SUSPEND", color: "var(--bear)" },
+    FLATTEN: { title: "FLATTEN ENTIRE BOOK", msg: "Emergency full hedge of all net exposures to LP. This will send multiple hedge orders immediately. Type FLATTEN to confirm.", word: "FLATTEN", color: "var(--bear)" },
+  };
+  const cfg = configs[action] || {};
+  const valid = val === cfg.word;
+  return (
+    <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && onCancel()}>
+      <div className="modal-box">
+        <div className="modal-title" style={{ color: cfg.color }}>⚠ {cfg.title}</div>
+        <div className="modal-body">{cfg.msg}</div>
+        <input className="modal-input" placeholder={`Type ${cfg.word}`} value={val} onChange={e => setVal(e.target.value.toUpperCase())} autoFocus />
+        <div className="modal-actions">
+          <button className="btn-modal-cancel" onClick={onCancel}>CANCEL</button>
+          <button className="btn-modal-confirm" disabled={!valid} style={{ opacity: valid ? 1 : 0.4 }} onClick={() => valid && onConfirm()}>CONFIRM {cfg.word}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── KEYBOARD SHORTCUTS OVERLAY ───────────────────────────────────────────────
+function KbOverlay({ onClose }) {
+  const shortcuts = [
+    ["A", "Accept focused order"], ["R", "Reject focused order"],
+    ["Q", "Requote focused order"], ["Tab", "Next order in queue"],
+    ["Space", "Accept + advance"], ["Esc", "Deselect order"],
+    ["1–6", "Focus price tile"], ["H", "Open hedge panel"],
+    ["?", "Show this overlay"],
+  ];
+  return (
+    <div className="kb-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+      <div className="kb-box">
+        <div className="kb-title">⌨ Keyboard Shortcuts</div>
+        <div className="kb-grid">
+          {shortcuts.map(([k, d]) => (
+            <div key={k} className="kb-row">
+              <span className="kb-key">{k}</span>
+              <span className="kb-desc">{d}</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ marginTop: 16, textAlign: "center" }}>
+          <button className="btn-modal-cancel" style={{ width: "50%" }} onClick={onClose}>CLOSE (Esc)</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TOP COMMAND BAR
+// ═══════════════════════════════════════════════════════════
+function CommandBar({ clock, shiftSecs, latency, autoHedge, setAutoHedge, stpMode, setStpMode, alertCount, onEmergency, bbookExposure, marginCalls, onShowAlerts }) {
+  const sessions = [
+    { id: "NY",  tz: "America/New_York",   openH: 13, closeH: 22 },
+    { id: "LON", tz: "Europe/London",       openH: 7,  closeH: 16 },
+    { id: "TKY", tz: "Asia/Tokyo",          openH: 0,  closeH: 9 },
+    { id: "SYD", tz: "Australia/Sydney",    openH: 22, closeH: 7 },
+  ];
+  const nowH = new Date().getUTCHours();
+  const stpStates = ["ON", "MIXED", "OFF"];
+  const shiftH = Math.floor(shiftSecs / 3600);
+  const shiftM = Math.floor((shiftSecs % 3600) / 60);
+  const shiftS = shiftSecs % 60;
+  const shiftStr = `${String(shiftH).padStart(2,"0")}:${String(shiftM).padStart(2,"0")}:${String(shiftS).padStart(2,"0")}`;
+  const shiftClass = shiftH >= 8 ? "danger" : shiftH >= 6 ? "warn" : "";
+  const latencyClass = latency < 10 ? "green" : latency < 50 ? "amber" : "red";
+  const bbookDanger = bbookExposure > 5000000;
+
+  return (
+    <div className="cmd-bar">
+      <div className="cmd-logo">OBSIDIAN <span>DESK</span></div>
+
+      {/* Dealer */}
+      <button className="dealer-btn">
+        <div className="dealer-avatar">MC</div>
+        Marcus Chen ▾
+      </button>
+      <div className="cmd-divider" />
+
+      {/* Shift + Clock */}
+      <div className="cmd-section">
+        <div className="cmd-item">
+          <span className="label">Shift</span>
+          <span className={`cmd-shift ${shiftClass}`}>{shiftStr}</span>
+        </div>
+        <div className="cmd-divider" />
+        <div className="cmd-item">
+          <span className="label">UTC</span>
+          <span className="cmd-clock">{clock}</span>
+        </div>
+      </div>
+      <div className="cmd-divider" />
+
+      {/* Sessions */}
+      <div className="cmd-section" style={{ gap: 4 }}>
+        {sessions.map(s => {
+          const h = new Date().toLocaleString("en", { hour: "2-digit", hour12: false, timeZone: s.tz });
+          const open = nowH >= s.openH && nowH < s.closeH;
+          return (
+            <div key={s.id} className={`session-pill ${open ? "open" : ""}`}>
+              <span className="dot" />
+              {s.id}
+            </div>
+          );
+        })}
+      </div>
+      <div className="cmd-divider" />
+
+      {/* Latency */}
+      <div className={`latency-badge ${latencyClass}`}>
+        <span className="latency-dot" />
+        {latency}ms
+      </div>
+      <div className="cmd-divider" />
+
+      {/* Alert badge */}
+      <div className="alert-badge" onClick={onShowAlerts} style={{ cursor: "pointer" }}>
+        🔔 {alertCount}
+      </div>
+      <div className="cmd-divider" />
+
+      {/* Mode toggles */}
+      <div className="cmd-section" style={{ gap: 6 }}>
+        <button className={`cmd-toggle ${autoHedge ? "on" : ""}`} onClick={() => setAutoHedge(!autoHedge)}>
+          <span className="dot" />
+          AUTO-HEDGE: {autoHedge ? "ON" : "OFF"}
+        </button>
+        <button className="cmd-toggle" onClick={() => setStpMode(stpStates[(stpStates.indexOf(stpMode)+1)%3])}>
+          STP: {stpMode}
+        </button>
+        <div className={`cmd-toggle ${bbookDanger ? "danger" : "warn"}`} style={{ cursor: "default" }}>
+          B-BOOK: {fmtMoney(bbookExposure)}
+        </div>
+        <div className={`cmd-toggle ${marginCalls > 0 ? "danger" : ""}`} style={{ cursor: "pointer" }}>
+          MARGIN CALLS: {marginCalls}
+        </div>
+      </div>
+
+      {/* Server */}
+      <div className="cmd-divider" />
+      <div className="cmd-item">
+        <span className="label">Server</span>
+        <span className="value">OB-LIVE-01</span>
+      </div>
+
+      {/* Emergency buttons */}
+      <div className="cmd-emergency">
+        <button className="btn-emergency halt" onClick={() => onEmergency("HALT")}>⛔ HALT ALL</button>
+        <button className="btn-emergency" onClick={() => onEmergency("WIDEN")}>⚡ WIDEN SPREADS</button>
+        <button className="btn-emergency" onClick={() => onEmergency("SUSPEND")}>🔒 SUSPEND TRADING</button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// ORDER CARD
+// ═══════════════════════════════════════════════════════════
+function OrderCard({ order, focused, onAccept, onReject, onRequote }) {
+  const [showRequote, setShowRequote] = useState(false);
+  const [reqPrice, setReqPrice] = useState(order.clientPrice.toFixed(order.symbol.includes("JPY") ? 3 : order.symbol.includes("BTC") ? 1 : 5));
+  const [flashing, setFlashing] = useState(null);
+
+  const ageClass = order.displayAge > 3 ? "age-old" : order.displayAge > 1 ? "age-mid" : "age-new";
+  const tierClass = order.tier === "VIP" ? "tier-vip" : order.tier === "PRO" ? "tier-vip" : "";
+  const borderClass = order.notional > 1000000 ? "notional-big" : order.tier === "VIP" ? "tier-vip" : ageClass;
+
+  const handleAccept = () => { setFlashing("accept"); setTimeout(() => onAccept(order.id), 400); };
+  const handleReject = () => { setFlashing("reject"); setTimeout(() => onReject(order.id), 400); };
+  const handleRequote = () => setShowRequote(!showRequote);
+
+  const ageDisplay = order.displayAge < 10
+    ? `${order.displayAge.toFixed(1)}s`
+    : `${order.displayAge.toFixed(0)}s`;
+
+  return (
+    <div className={`order-card ${borderClass} ${focused ? "focused" : ""} ${flashing ? `flashing-${flashing}` : ""}`}>
+      <div className="oc-row1">
+        <div className="oc-client">
+          <span className={`oc-tier tier-${order.tier.toLowerCase()}`}>{order.tier}</span>
+          #{order.clientId} {order.clientName}
+        </div>
+        <div className={`oc-age ${order.displayAge > 3 ? "urgent" : order.displayAge > 1 ? "warn" : ""}`}>
+          {ageDisplay} ▲
+        </div>
+      </div>
+      <div className="oc-row2">
+        <span className={`oc-side ${order.side.toLowerCase()}`}>{order.side === "BUY" ? "▲ BUY" : "▼ SELL"}</span>
+        <span className="oc-symbol">{order.symbol}</span>
+        <span className="oc-lots">{order.lots.toFixed(2)} <span>LOTS</span></span>
+        <span className={`oc-type`}>{order.type}</span>
+      </div>
+      <div className="oc-meta">
+        <span style={{ color: "var(--text-muted)" }}>{order.time}</span>
+        {"  "}
+        <span className={`oc-notional ${order.notional > 500000 ? "large" : ""}`}>{fmtMoney(order.notional)}</span>
+        {"  Slip: "}
+        <span className={`oc-slip ${order.slippage >= 0 ? "pos" : "neg"}`}>{order.slippage >= 0 ? "+" : ""}{order.slippage} pip</span>
+      </div>
+      <div className="oc-book-impact" style={{ color: "var(--text-muted)" }}>
+        Book impact: <span className={order.side === "BUY" ? "book-long" : "book-short"}>
+          {order.side === "BUY" ? "INCREASES net LONG" : "INCREASES net SHORT"} by {order.lots.toFixed(2)} lots
+        </span>
+      </div>
+      <div className="oc-actions">
+        <button className="oc-btn accept" onClick={handleAccept}>✓ ACCEPT<span className="oc-shortcut">A</span></button>
+        <button className="oc-btn requote" onClick={handleRequote}>~ REQUOTE<span className="oc-shortcut">Q</span></button>
+        <button className="oc-btn reject" onClick={handleReject}>✗ REJECT<span className="oc-shortcut">R</span></button>
+      </div>
+      {showRequote && (
+        <div className="requote-panel">
+          <div style={{ fontSize: 10, color: "var(--warn)", marginBottom: 4, fontFamily: "var(--font-data)" }}>NEW QUOTE PRICE</div>
+          <input value={reqPrice} onChange={e => setReqPrice(e.target.value)} />
+          <div style={{ display: "flex", gap: 6 }}>
+            <button className="btn-bulk requote" style={{ flex: 1, padding: "5px" }} onClick={() => { onRequote(order.id, parseFloat(reqPrice)); setShowRequote(false); }}>SEND REQUOTE</button>
+            <button className="btn-bulk" style={{ flex: 1, padding: "5px" }} onClick={() => setShowRequote(false)}>CANCEL</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// LEFT RAIL
+// ═══════════════════════════════════════════════════════════
+function LeftRail({ orders, processed, clients, watchlistIds, onAccept, onReject, onRequote, onToast }) {
+  const [focusedIdx, setFocusedIdx] = useState(0);
+  const [autoAccept, setAutoAccept] = useState(false);
+
+  const handleBulkAccept = () => {
+    if (window.confirm(`Accept all ${orders.length} pending orders?`)) {
+      orders.forEach(o => onAccept(o.id));
+      onToast({ type: "success", icon: "✓", title: "BULK ACCEPT", msg: `${orders.length} orders accepted` });
+    }
+  };
+  const handleBulkReject = () => {
+    if (window.confirm(`Reject all ${orders.length} pending orders?`)) {
+      orders.forEach(o => onReject(o.id));
+      onToast({ type: "critical", icon: "✗", title: "BULK REJECT", msg: `${orders.length} orders rejected` });
+    }
+  };
+
+  const watchlistClients = clients.filter(c => watchlistIds.includes(c.id))
+    .sort((a, b) => a.margin - b.margin);
+
+  return (
+    <div className="left-rail">
+      {/* Order Flow Header */}
+      <div className="rail-header">
+        <div className="rail-title">
+          ORDER FLOW
+          <span className={`count-badge ${orders.length > 10 ? "urgent" : ""}`}>{orders.length}</span>
+        </div>
+        <label style={{ display: "flex", alignItems: "center", gap: 5, fontSize: 10, fontFamily: "var(--font-data)", color: "var(--text-muted)", cursor: "pointer" }}>
+          <input type="checkbox" checked={autoAccept} onChange={e => setAutoAccept(e.target.checked)} style={{ width: 12, height: 12 }} />
+          AUTO
+        </label>
+      </div>
+
+      {/* Bulk actions */}
+      <div className="bulk-actions">
+        <button className="btn-bulk accept" onClick={handleBulkAccept}>✓ ACCEPT ALL</button>
+        <button className="btn-bulk reject" onClick={handleBulkReject}>✗ REJECT ALL</button>
+        <button className="btn-bulk requote" onClick={() => onToast({ type: "warning", icon: "~", title: "REQUOTE ALL", msg: "Applying market + spread to all orders" })}>~ REQUOTE ALL</button>
+      </div>
+
+      {/* Order queue */}
+      <div className="order-queue">
+        {orders.length === 0 && (
+          <div style={{ padding: 24, textAlign: "center", color: "var(--text-muted)", fontFamily: "var(--font-data)", fontSize: 12 }}>
+            ✓ No pending orders
+          </div>
+        )}
+        {orders.map((order, idx) => (
+          <OrderCard
+            key={order.id}
+            order={order}
+            focused={focusedIdx === idx}
+            onAccept={onAccept}
+            onReject={onReject}
+            onRequote={onRequote}
+          />
+        ))}
+      </div>
+
+      {/* Recent processed */}
+      <div className="recent-strip">
+        {processed.slice(0, 6).map((p, i) => (
+          <div key={i} className="recent-item">
+            <span className={p.action === "ACCEPT" ? "check" : "cross"}>{p.action === "ACCEPT" ? "✓" : "✗"}</span>
+            <span>#{p.clientId} {p.side} {p.lots} {p.symbol}</span>
+            <span style={{ marginLeft: "auto", color: "var(--text-dim)" }}>{p.ago}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Watchlist */}
+      <div className="watchlist-section">
+        <div className="rail-header">
+          <div className="rail-title">WATCHLIST <span className="count-badge">{watchlistIds.length}</span></div>
+          <button className="btn-sm">+ ADD</button>
+        </div>
+        <div className="watchlist-scroll">
+          {watchlistClients.map(c => {
+            const statusMap = { "NORMAL": "normal", "MARGIN_WARNING": "warning", "MARGIN_CALL": "call", "SUSPENDED": "suspended" };
+            const marginClass = c.margin > 50 ? "good" : c.margin > 30 ? "warn" : "danger";
+            return (
+              <div key={c.id} className={`wl-row status-${statusMap[c.status]}`}>
+                <div className="wl-name" title={c.name}>{c.name}</div>
+                <div className="wl-equity">{fmtMoney(c.equity)}</div>
+                <div className={`wl-margin ${marginClass}`}>{c.margin}%</div>
+                <div className={`wl-pnl ${c.floatPnl >= 0 ? "pos" : "neg"}`}>{fmtPnl(c.floatPnl)}</div>
+                <span className={`wl-status-badge status-${c.status}`}>
+                  {c.status === "MARGIN_CALL" ? "MCL" : c.status === "MARGIN_WARNING" ? "WRN" : ""}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// PRICE BOARD
+// ═══════════════════════════════════════════════════════════
+function PriceBoard({ prices, onTileClick, onToast }) {
+  return (
+    <div className="price-board">
+      {prices.map((inst, idx) => (
+        <PriceTile key={inst.symbol} inst={inst} idx={idx} onTileClick={onTileClick} onToast={onToast} />
+      ))}
+    </div>
+  );
+}
+
+function PriceTile({ inst, idx, onTileClick, onToast }) {
+  const [ticks, setTicks] = useState(() => Array(30).fill(inst.bid + Math.random() * 0.0002));
+  const [bidFlash, setBidFlash] = useState(null);
+  const [askFlash, setAskFlash] = useState(null);
+  const prevBid = useRef(inst.bid);
+
+  useEffect(() => {
+    if (inst.bid !== prevBid.current) {
+      const dir = inst.bid > prevBid.current ? "up" : "down";
+      setBidFlash(dir);
+      setTimeout(() => setBidFlash(null), 350);
+      prevBid.current = inst.bid;
+      setTicks(t => [...t.slice(1), inst.bid]);
+    }
+  }, [inst.bid]);
+
+  const spread = ((inst.ask - inst.bid) * (inst.symbol.includes("JPY") ? 100 : inst.symbol.includes("BTC") ? 1 : 10000)).toFixed(1);
+  const netLots = (inst.longLots || 23.4) - (inst.shortLots || 0);
+  const longPct = Math.round(((inst.longLots || 23.4) / ((inst.longLots || 23.4) + (inst.shortLots || 12.1))) * 100);
+  const isPos = netLots >= 0;
+
+  const formatPrice = (price, symbol) => {
+    if (symbol.includes("JPY")) return price.toFixed(3);
+    if (symbol === "XAU/USD") return price.toFixed(2);
+    if (symbol === "BTC/USD") return price.toFixed(1);
+    if (symbol === "US500")   return price.toFixed(1);
+    return price.toFixed(5);
+  };
+
+  const fmtPriceHighlight = (price, symbol) => {
+    const str = formatPrice(price, symbol);
+    if (symbol.includes("JPY") || symbol === "XAU/USD" || symbol === "BTC/USD" || symbol === "US500") {
+      return <span className="pt-num"><span className="big">{str.slice(0, -1)}</span><span className="big">{str.slice(-1)}</span></span>;
+    }
+    return <span className="pt-num"><span>{str.slice(0, -2)}</span><span className="big">{str.slice(-2)}</span></span>;
+  };
+
+  return (
+    <div className="price-tile" onClick={() => onTileClick && onTileClick(idx)}>
+      <div className="pt-header">
+        <span className="pt-symbol">{inst.symbol}</span>
+        <div className="pt-badges">
+          <span className={`pt-badge ${inst.routing === "STP" ? "stp" : "bbok"}`}>{inst.routing}</span>
+          <span className={`pt-badge ${inst.bookRouting === "B" ? "bbok" : "stp"}`}>{inst.bookRouting}-BK</span>
+        </div>
+      </div>
+
+      <div className="pt-prices">
+        <div className={`pt-price-side bid ${bidFlash === "down" ? "flashing-down" : bidFlash === "up" ? "flashing-up" : ""}`}
+          onClick={(e) => { e.stopPropagation(); onToast({ type: "info", icon: "▼", title: `SELL ${inst.symbol}`, msg: `Quick sell ticket opened at ${formatPrice(inst.bid, inst.symbol)}` }); }}>
+          <span className="pt-label bid">BID · SELL</span>
+          {fmtPriceHighlight(inst.bid, inst.symbol)}
+        </div>
+        <div className={`pt-price-side ask ${bidFlash === "up" ? "flashing-up" : ""}`}
+          onClick={(e) => { e.stopPropagation(); onToast({ type: "info", icon: "▲", title: `BUY ${inst.symbol}`, msg: `Quick buy ticket opened at ${formatPrice(inst.ask, inst.symbol)}` }); }}>
+          <span className="pt-label ask">ASK · BUY</span>
+          {fmtPriceHighlight(inst.ask, inst.symbol)}
+        </div>
+      </div>
+
+      <div className="pt-footer">
+        <div className="pt-row">
+          <span className="pt-stat">H: <span>{formatPrice(inst.high, inst.symbol)}</span> L: <span>{formatPrice(inst.low, inst.symbol)}</span></span>
+          <span className={`pt-change ${inst.change >= 0 ? "pos" : "neg"}`}>{inst.change >= 0 ? "+" : ""}{inst.change}%</span>
+        </div>
+        <div className="pt-row" style={{ marginTop: 3 }}>
+          <span className="pt-spread">Spd: <span className="spread-val">{spread}pts</span></span>
+          <span className="pt-stat">Vol: <span>{(inst.volume / 1000).toFixed(1)}K</span></span>
+        </div>
+      </div>
+
+      <div className="ls-bar-wrap">
+        <div className="ls-bar"><div className="ls-bar-fill" style={{ width: `${longPct}%` }} /></div>
+        <div className="ls-info">
+          <span className="ls-long">▲ {longPct}% LONG</span>
+          <span className="ls-short">▼ {100 - longPct}% SHORT</span>
+        </div>
+      </div>
+
+      <div style={{ padding: "0 10px 8px" }}>
+        <Sparkline ticks={ticks} bullish={inst.change >= 0} />
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB 1: AGGREGATED BOOK
+// ═══════════════════════════════════════════════════════════
+function BookTab({ book, onToast }) {
+  const [expanded, setExpanded] = useState(null);
+  const totalLong  = book.reduce((s, b) => s + b.longLots  * 100000, 0);
+  const totalShort = book.reduce((s, b) => s + b.shortLots * 100000, 0);
+  const totalPnl   = 12847;
+
+  return (
+    <div>
+      {/* Summary header */}
+      <div className="book-summary">
+        <div className="book-stat"><span className="bs-label">Total Book Size</span><span className="bs-val">{fmtMoney(totalLong + totalShort)}</span></div>
+        <div className="book-stat"><span className="bs-label">Net Long</span><span className="bs-val cell-bull">{fmtMoney(totalLong)}</span></div>
+        <div className="book-stat"><span className="bs-label">Net Short</span><span className="bs-val cell-bear">{fmtMoney(totalShort)}</span></div>
+        <div className="book-stat"><span className="bs-label">Book P&L</span><span className="bs-val cell-bull">+${totalPnl.toLocaleString()}</span></div>
+        <div className="book-stat"><span className="bs-label">Hedge Ratio</span><span className="bs-val">34%</span></div>
+        <div className="book-stat"><span className="bs-label">Open Positions</span><span className="bs-val">89</span></div>
+      </div>
+
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Symbol</th><th>Long (lots)</th><th>Short (lots)</th>
+            <th>Net</th><th>Net $</th><th>Avg Open</th><th>Current</th>
+            <th>Book P&L</th><th>Clients</th><th>Hedge %</th>
+            <th>B-Book / A-Book</th><th>Risk %</th>
+          </tr>
+        </thead>
+        <tbody>
+          {book.map(b => {
+            const net = b.longLots - b.shortLots;
+            const netUsd = net * (b.symbol === "XAU/USD" ? b.current * 100 : b.symbol === "US500" ? b.current * 10 : b.symbol === "BTC/USD" ? b.current : 100000);
+            const pnl = net * (b.current - b.avgOpen) * (b.symbol.includes("JPY") ? 100 : b.symbol === "XAU/USD" ? 100 : b.symbol === "BTC/USD" ? 1 : 100000);
+            const riskPct = Math.round(Math.max(b.longLots, b.shortLots) / b.limit * 100);
+            const riskColor = riskPct > 80 ? "cell-bear" : riskPct > 60 ? "cell-warn" : "cell-bull";
+            return (
+              <tr key={b.symbol} onClick={() => setExpanded(expanded === b.symbol ? null : b.symbol)} style={{ cursor: "pointer" }}>
+                <td style={{ fontFamily: "var(--font-display)", fontWeight: 700 }}>{b.symbol}</td>
+                <td className="cell-bull">{fmtLots(b.longLots)}</td>
+                <td className="cell-bear">{fmtLots(b.shortLots)}</td>
+                <td className={net >= 0 ? "cell-bull" : "cell-bear"} style={{ fontWeight: 700 }}>{net >= 0 ? "+" : ""}{fmtLots(net)}</td>
+                <td className={net >= 0 ? "cell-warn" : "cell-bull"}>{fmtMoney(Math.abs(netUsd))}</td>
+                <td className="cell-mono cell-muted">{b.avgOpen.toFixed(b.symbol.includes("JPY") ? 3 : b.symbol === "XAU/USD" ? 2 : b.symbol === "BTC/USD" ? 1 : 5)}</td>
+                <td className="cell-mono">{b.current.toFixed(b.symbol.includes("JPY") ? 3 : b.symbol === "XAU/USD" ? 2 : b.symbol === "BTC/USD" ? 1 : 5)}</td>
+                <td className={pnl >= 0 ? "cell-bull" : "cell-bear"} style={{ fontWeight: 600 }}>{fmtPnl(Math.round(pnl))}</td>
+                <td className="cell-muted">{b.clients}</td>
+                <td className="cell-muted">{b.hedged}%</td>
+                <td>
+                  <div style={{ display: "flex", height: 8, width: 100, borderRadius: 2, overflow: "hidden" }}>
+                    <div className="bbook-fill" style={{ width: `${b.bBook}%` }} />
+                    <div className="abook-fill" style={{ width: `${b.aBook}%` }} />
+                  </div>
+                  <div style={{ fontSize: 9, fontFamily: "var(--font-data)", color: "var(--text-muted)", marginTop: 2 }}>{b.bBook}% / {b.aBook}%</div>
+                </td>
+                <td>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ height: 4, width: 50, background: "var(--bg-elevated)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: `${riskPct}%`, background: riskPct > 80 ? "var(--bear)" : riskPct > 60 ? "var(--warn)" : "var(--bull)" }} />
+                    </div>
+                    <span className={riskColor}>{riskPct}%</span>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+
+      <div className="divider" style={{ margin: "12px 0" }} />
+      <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+        <button className="btn-hedge-all" style={{ flex: 1 }} onClick={() => onToast({ type: "info", icon: "⚡", title: "DELTA HEDGE APPLIED", msg: "Sending hedge orders for all net exposures to LP1" })}>⚡ APPLY DELTA HEDGE</button>
+        <button className="btn-hedge-all" style={{ flex: 1, borderColor: "var(--bear-dim)", color: "var(--bear)", background: "var(--bear-glow)" }}
+          onClick={() => onToast({ type: "warning", icon: "⚠", title: "FLATTEN BOOK", msg: "Use the FLATTEN BOOK emergency function in the toolbar" })}>⚠ FLATTEN BOOK</button>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB 2: EXECUTIONS
+// ═══════════════════════════════════════════════════════════
+function ExecutionsTab({ executions }) {
+  const [filter, setFilter] = useState({ route: "ALL", symbol: "ALL" });
+
+  const filtered = executions.filter(e =>
+    (filter.route === "ALL" || e.route === filter.route) &&
+    (filter.symbol === "ALL" || e.symbol === filter.symbol)
+  );
+
+  const symbols = ["ALL", ...new Set(executions.map(e => e.symbol))];
+  const routes  = ["ALL", "AUTO", "MANUAL", "STP", "TIMEOUT"];
+
+  const totalLots = filtered.filter(e => e.fillPrice).reduce((s, e) => s + e.lots, 0);
+  const avgSlip = filtered.filter(e => e.slippage != null).reduce((s,e,_,a) => s + e.slippage/a.length, 0);
+  const avgLat  = filtered.filter(e => e.latency).reduce((s,e,_,a) => s + e.latency/a.length, 0);
+  const stpCount = filtered.filter(e => e.route === "STP").length;
+
+  return (
+    <div>
+      {/* Filters */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+        <span style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "var(--font-data)" }}>ROUTE:</span>
+        {routes.map(r => (
+          <button key={r} onClick={() => setFilter(f => ({...f, route: r}))}
+            className="btn-sm" style={{ borderColor: filter.route === r ? "var(--accent)" : undefined, color: filter.route === r ? "var(--accent)" : undefined }}>
+            {r}
+          </button>
+        ))}
+        <span style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "var(--font-data)", marginLeft: 8 }}>SYMBOL:</span>
+        <select value={filter.symbol} onChange={e => setFilter(f => ({...f, symbol: e.target.value}))} style={{ padding: "3px 8px", fontSize: 11 }}>
+          {symbols.map(s => <option key={s}>{s}</option>)}
+        </select>
+        <button className="btn-sm" style={{ marginLeft: "auto" }}>↓ EXPORT CSV</button>
+      </div>
+
+      {/* Aggregation row */}
+      <div style={{ display: "flex", gap: 16, padding: "6px 10px", background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", marginBottom: 10, fontFamily: "var(--font-data)", fontSize: 11, color: "var(--text-secondary)" }}>
+        <span>Showing: <strong style={{ color: "var(--text-primary)" }}>{filtered.length}</strong> trades</span>
+        <span>Lots: <strong style={{ color: "var(--text-primary)" }}>{totalLots.toFixed(1)}</strong></span>
+        <span>Avg slip: <strong style={{ color: avgSlip >= 0 ? "var(--bull)" : "var(--bear)" }}>{avgSlip >= 0 ? "+" : ""}{avgSlip.toFixed(1)} pips</strong></span>
+        <span>Avg latency: <strong style={{ color: "var(--text-primary)" }}>{avgLat.toFixed(0)}ms</strong></span>
+        <span>STP ratio: <strong style={{ color: "var(--bull)" }}>{filtered.length ? Math.round(stpCount / filtered.length * 100) : 0}%</strong></span>
+      </div>
+
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>Time</th><th>Client</th><th>Type</th><th>Symbol</th>
+            <th>Side</th><th>Lots</th><th>Fill Price</th><th>Market</th>
+            <th>Slippage</th><th>P&L Impact</th><th>Latency</th>
+            <th>Route</th><th>LP</th><th>Dealer</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map(e => (
+            <tr key={e.id} className={e.route === "TIMEOUT" ? "flash-red" : ""}>
+              <td className="cell-mono cell-muted" style={{ fontSize: 10 }}>{e.time}</td>
+              <td className="cell-mono">{e.clientId}</td>
+              <td><span className={`oc-tier tier-${e.clientType.toLowerCase()}`}>{e.clientType}</span></td>
+              <td style={{ fontWeight: 700 }}>{e.symbol}</td>
+              <td className={e.side === "BUY" ? "cell-bull" : "cell-bear"} style={{ fontWeight: 700 }}>{e.side}</td>
+              <td className="cell-mono">{e.lots.toFixed(2)}</td>
+              <td className="cell-mono">{e.fillPrice ? e.fillPrice.toFixed(e.symbol.includes("JPY") || e.symbol === "XAU/USD" ? 3 : 5) : <span className="cell-bear">TIMEOUT</span>}</td>
+              <td className="cell-mono cell-muted">{e.marketPrice.toFixed(e.symbol.includes("JPY") || e.symbol === "XAU/USD" ? 3 : 5)}</td>
+              <td className={e.slippage == null ? "cell-muted" : e.slippage >= 0 ? "cell-bull" : "cell-bear"} style={{ fontWeight: 600 }}>
+                {e.slippage == null ? "-" : `${e.slippage >= 0 ? "+" : ""}${e.slippage}`}
+              </td>
+              <td className={e.pnlImpact > 0 ? "cell-bull" : e.pnlImpact < 0 ? "cell-bear" : "cell-muted"} style={{ fontWeight: 600 }}>
+                {e.pnlImpact !== 0 ? fmtPnl(e.pnlImpact) : "-"}
+              </td>
+              <td className={!e.latency ? "cell-muted" : e.latency < 50 ? "cell-bull" : e.latency < 200 ? "cell-warn" : "cell-bear"}>
+                {e.latency ? `${e.latency}ms` : "-"}
+              </td>
+              <td><span className={`route-badge route-${e.route.toLowerCase()}`}>{e.route}</span></td>
+              <td className="cell-muted">{e.lp}</td>
+              <td className="cell-muted">{e.dealer}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB 3: RISK DASHBOARD
+// ═══════════════════════════════════════════════════════════
+function RiskTab({ book, clients }) {
+  const marginCallClients = clients.filter(c => c.margin < 50).sort((a,b) => a.margin - b.margin);
+  const topPositions = clients.flatMap(c =>
+    Array(c.positions).fill(0).map((_, i) => ({
+      client: c.name, clientId: c.id,
+      symbol: ["EUR/USD","GBP/USD","USD/JPY","XAU/USD","BTC/USD"][i % 5],
+      side: Math.random() > 0.5 ? "BUY" : "SELL",
+      lots: +(Math.random() * 8 + 0.1).toFixed(2),
+      pnl: +(c.floatPnl * (Math.random() * 0.4 + 0.1)).toFixed(0)
+    }))
+  ).sort((a,b) => Math.abs(b.lots) - Math.abs(a.lots)).slice(0, 10);
+
+  const scenarios = [
+    { label: "±50 pip",  multiplier: 0.5 },
+    { label: "±100 pip", multiplier: 1   },
+    { label: "±200 pip", multiplier: 2   },
+    { label: "±500 pip", multiplier: 5   },
+  ];
+
+  return (
+    <div>
+      {/* Exposure gauges */}
+      <div className="section-title">NET EXPOSURE vs LIMITS</div>
+      <div className="risk-gauges">
+        {book.map(b => {
+          const netLots = Math.max(b.longLots, b.shortLots);
+          const pct = Math.round(netLots / b.limit * 100);
+          const usedUsd = netLots * (b.symbol === "XAU/USD" ? b.current * 100 : b.symbol === "US500" ? b.current * 10 : b.symbol === "BTC/USD" ? b.current : 100000);
+          const limitUsd = b.limit * (b.symbol === "XAU/USD" ? b.current * 100 : b.symbol === "US500" ? b.current * 10 : b.symbol === "BTC/USD" ? b.current : 100000);
+          return <GaugeRing key={b.symbol} pct={pct} symbol={b.symbol} used={usedUsd} limit={limitUsd} />;
+        })}
+      </div>
+
+      {/* Three panels */}
+      <div className="risk-row2">
+        <div className="risk-panel">
+          <div className="risk-panel-title">⚠ Margin Watch ({marginCallClients.length})</div>
+          <table className="data-table" style={{ fontSize: 10 }}>
+            <thead><tr><th>Client</th><th>Equity</th><th>Margin%</th><th>P&L</th><th>Status</th></tr></thead>
+            <tbody>
+              {marginCallClients.map(c => (
+                <tr key={c.id} className={c.margin < 30 ? "flash-red" : ""}>
+                  <td style={{ fontWeight: 600, fontSize: 10 }}>{c.name.split(" ")[0]}</td>
+                  <td className="cell-mono">{fmtMoney(c.equity)}</td>
+                  <td className={c.margin < 30 ? "cell-bear" : "cell-warn"} style={{ fontWeight: 700 }}>{c.margin}%</td>
+                  <td className={c.floatPnl >= 0 ? "cell-bull" : "cell-bear"}>{fmtPnl(c.floatPnl)}</td>
+                  <td><span className={`wl-status-badge status-${c.status}`}>{c.status === "MARGIN_CALL" ? "CALL" : "WARN"}</span></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="risk-panel">
+          <div className="risk-panel-title">📊 Top Positions</div>
+          <table className="data-table" style={{ fontSize: 10 }}>
+            <thead><tr><th>Client</th><th>Symbol</th><th>Side</th><th>Lots</th><th>P&L</th></tr></thead>
+            <tbody>
+              {topPositions.map((p, i) => (
+                <tr key={i}>
+                  <td style={{ fontSize: 10 }}>{p.client.split(" ")[0]}</td>
+                  <td style={{ fontWeight: 700, fontSize: 10 }}>{p.symbol}</td>
+                  <td className={p.side === "BUY" ? "cell-bull" : "cell-bear"}>{p.side}</td>
+                  <td className="cell-mono">{p.lots.toFixed(2)}</td>
+                  <td className={p.pnl >= 0 ? "cell-bull" : "cell-bear"}>{fmtPnl(p.pnl)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <div className="risk-panel">
+          <div className="risk-panel-title">⚙ Risk Config</div>
+          {book.slice(0, 4).map(b => (
+            <div key={b.symbol} style={{ display: "flex", alignItems: "center", gap: 8, padding: "4px 0", borderBottom: "1px solid var(--border)", fontFamily: "var(--font-data)", fontSize: 11 }}>
+              <span style={{ minWidth: 70, fontWeight: 600 }}>{b.symbol}</span>
+              <span style={{ color: "var(--text-muted)", fontSize: 10 }}>Max:</span>
+              <input defaultValue={b.limit} style={{ width: 50, padding: "2px 6px", fontSize: 11 }} />
+              <span style={{ color: "var(--text-muted)", fontSize: 10 }}>lots</span>
+            </div>
+          ))}
+          <div style={{ marginTop: 8, display: "flex", gap: 6 }}>
+            <div style={{ fontFamily: "var(--font-data)", fontSize: 10, color: "var(--text-muted)" }}>Margin call: </div>
+            <input defaultValue="30" style={{ width: 40, padding: "2px 6px", fontSize: 11 }} />
+            <div style={{ fontFamily: "var(--font-data)", fontSize: 10, color: "var(--text-muted)" }}>% Stop-out:</div>
+            <input defaultValue="20" style={{ width: 40, padding: "2px 6px", fontSize: 11 }} />
+          </div>
+          <button className="btn-hedge-all" style={{ marginTop: 8 }}>APPLY CHANGES</button>
+        </div>
+      </div>
+
+      {/* P&L attribution */}
+      <div className="section-title">P&L ATTRIBUTION TODAY</div>
+      <div style={{ display: "flex", gap: 4, height: 32, marginBottom: 8, borderRadius: "var(--radius)", overflow: "hidden" }}>
+        {[
+          { label: "Spread", val: 8420, color: "var(--bull)" },
+          { label: "Commission", val: 2180, color: "var(--accent)" },
+          { label: "Swap", val: 620, color: "var(--warn)" },
+          { label: "B-Book P&L", val: 4890, color: "#8B5CF6" },
+          { label: "LP Costs", val: -3263, color: "var(--bear)" },
+        ].map((item, i, arr) => {
+          const total = arr.reduce((s, x) => s + Math.abs(x.val), 0);
+          return (
+            <div key={item.label} title={`${item.label}: ${fmtPnl(item.val)}`}
+              style={{ flex: Math.abs(item.val) / total, background: item.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 9, fontFamily: "var(--font-data)", fontWeight: 700, color: "white", minWidth: 30 }}>
+              {Math.abs(item.val) > 500 ? item.label.split(" ")[0] : ""}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Stress test */}
+      <div className="section-title">TAIL RISK — STRESS SCENARIOS</div>
+      <table className="stress-table">
+        <thead>
+          <tr>
+            <th>Symbol</th>
+            {scenarios.map(s => <th key={s.label}>{s.label} Bull</th>)}
+            {scenarios.map(s => <th key={s.label + "b"}>{s.label} Bear</th>)}
+          </tr>
+        </thead>
+        <tbody>
+          {book.map(b => {
+            const net = b.longLots - b.shortLots;
+            const pipVal = b.symbol.includes("JPY") ? 100 : b.symbol === "XAU/USD" ? 1 : b.symbol === "BTC/USD" ? 0.0001 : 100000;
+            return (
+              <tr key={b.symbol}>
+                <td style={{ fontWeight: 700 }}>{b.symbol}</td>
+                {scenarios.map(s => {
+                  const impact = net * s.multiplier * pipVal;
+                  return <td key={s.label} className={impact >= 0 ? "cell-bull" : "cell-bear"}>{fmtPnl(Math.round(impact))}</td>;
+                })}
+                {scenarios.map(s => {
+                  const impact = -net * s.multiplier * pipVal;
+                  return <td key={s.label + "b"} className={impact >= 0 ? "cell-bull" : "cell-bear"}>{fmtPnl(Math.round(impact))}</td>;
+                })}
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB 4: CLIENTS
+// ═══════════════════════════════════════════════════════════
+function ClientsTab({ clients, onToast }) {
+  const [expanded, setExpanded] = useState(null);
+  const [filter, setFilter] = useState({ status: "ALL", type: "ALL" });
+
+  const filtered = clients.filter(c =>
+    (filter.status === "ALL" || c.status === filter.status) &&
+    (filter.type === "ALL" || c.type === filter.type)
+  );
+
+  const statusMap = { "NORMAL": "normal", "MARGIN_WARNING": "warning", "MARGIN_CALL": "call", "SUSPENDED": "suspended" };
+  const marginClass = (m) => m > 50 ? "cell-bull" : m > 30 ? "cell-warn" : "cell-bear";
+
+  return (
+    <div>
+      <div style={{ display: "flex", gap: 8, marginBottom: 10, alignItems: "center" }}>
+        <span style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "var(--font-data)" }}>STATUS:</span>
+        {["ALL","NORMAL","MARGIN_WARNING","MARGIN_CALL"].map(s => (
+          <button key={s} onClick={() => setFilter(f => ({...f, status: s}))} className="btn-sm"
+            style={{ borderColor: filter.status === s ? "var(--accent)" : undefined, color: filter.status === s ? "var(--accent)" : undefined }}>
+            {s}
+          </button>
+        ))}
+        <span style={{ fontSize: 10, color: "var(--text-muted)", fontFamily: "var(--font-data)", marginLeft: 8 }}>TYPE:</span>
+        {["ALL","VIP","PRO","RETAIL"].map(t => (
+          <button key={t} onClick={() => setFilter(f => ({...f, type: t}))} className="btn-sm"
+            style={{ borderColor: filter.type === t ? "var(--accent)" : undefined, color: filter.type === t ? "var(--accent)" : undefined }}>
+            {t}
+          </button>
+        ))}
+        <span style={{ marginLeft: "auto", fontFamily: "var(--font-data)", fontSize: 11, color: "var(--text-muted)" }}>{filtered.length} clients</span>
+      </div>
+
+      <table className="data-table">
+        <thead>
+          <tr>
+            <th>ID</th><th>Name</th><th>Type</th><th>Equity</th><th>Balance</th>
+            <th>Margin%</th><th>Float P&L</th><th>Positions</th><th>Vol Today</th>
+            <th>Last Trade</th><th>Status</th><th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {filtered.map(c => (
+            <>
+              <tr key={c.id} onClick={() => setExpanded(expanded === c.id ? null : c.id)} style={{ cursor: "pointer" }}>
+                <td className="cell-mono cell-muted">{c.id}</td>
+                <td style={{ fontWeight: 600 }}>{c.name}</td>
+                <td><span className={`oc-tier tier-${c.type.toLowerCase()}`}>{c.type}</span></td>
+                <td className="cell-mono">{fmtMoney(c.equity)}</td>
+                <td className="cell-mono cell-muted">{fmtMoney(c.balance)}</td>
+                <td className={marginClass(c.margin)} style={{ fontWeight: 700 }}>{c.margin}%</td>
+                <td className={c.floatPnl >= 0 ? "cell-bull" : "cell-bear"} style={{ fontWeight: 600 }}>{fmtPnl(c.floatPnl)}</td>
+                <td className="cell-mono">{c.positions}</td>
+                <td className="cell-mono">{c.volumeToday.toFixed(1)}</td>
+                <td className="cell-muted">{c.lastTrade}</td>
+                <td><span className={`wl-status-badge status-${c.status}`}>{c.status.replace("_", " ")}</span></td>
+                <td>
+                  <div style={{ display: "flex", gap: 4 }}>
+                    <button className="btn-sm">VIEW</button>
+                    <button className="btn-sm" onClick={e => { e.stopPropagation(); onToast({ type: "info", icon: "📞", title: `CALLING ${c.name}`, msg: `Initiating call to client #${c.id}` }); }}>CALL</button>
+                  </div>
+                </td>
+              </tr>
+              {expanded === c.id && (
+                <tr key={`${c.id}-exp`}>
+                  <td colSpan={12} style={{ background: "var(--bg-elevated)", padding: "12px 16px" }}>
+                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, fontFamily: "var(--font-data)", fontSize: 11 }}>
+                      <div>
+                        <div style={{ color: "var(--text-muted)", fontSize: 10, marginBottom: 6, fontFamily: "var(--font-display)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Account Details</div>
+                        <div style={{ color: "var(--text-secondary)" }}>Equity: <strong style={{ color: "var(--text-primary)" }}>{fmtMoney(c.equity)}</strong></div>
+                        <div style={{ color: "var(--text-secondary)" }}>Balance: <strong style={{ color: "var(--text-primary)" }}>{fmtMoney(c.balance)}</strong></div>
+                        <div style={{ color: "var(--text-secondary)" }}>Used Margin: <strong style={{ color: c.margin < 30 ? "var(--bear)" : c.margin < 50 ? "var(--warn)" : "var(--bull)" }}>{c.margin}%</strong></div>
+                        <div style={{ color: "var(--text-secondary)" }}>Float P&L: <strong style={{ color: c.floatPnl >= 0 ? "var(--bull)" : "var(--bear)" }}>{fmtPnl(c.floatPnl)}</strong></div>
+                      </div>
+                      <div>
+                        <div style={{ color: "var(--text-muted)", fontSize: 10, marginBottom: 6, fontFamily: "var(--font-display)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Open Positions ({c.positions})</div>
+                        {Array(Math.min(c.positions, 4)).fill(0).map((_, i) => (
+                          <div key={i} style={{ color: "var(--text-secondary)", marginBottom: 2 }}>
+                            {["EUR/USD","GBP/USD","USD/JPY","XAU/USD"][i % 4]} · {["BUY","SELL"][i % 2]} · {(Math.random() * 3 + 0.1).toFixed(2)} lots
+                          </div>
+                        ))}
+                      </div>
+                      <div>
+                        <div style={{ color: "var(--text-muted)", fontSize: 10, marginBottom: 6, fontFamily: "var(--font-display)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em" }}>Quick Actions</div>
+                        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                          <button className="btn-sm danger" style={{ textAlign: "left" }}>🔴 CLOSE ALL POSITIONS</button>
+                          <button className="btn-sm" style={{ textAlign: "left" }}>📊 ADJUST MARGIN</button>
+                          <button className="btn-sm" style={{ textAlign: "left" }}>💰 ADD BONUS</button>
+                          <button className="btn-sm danger" style={{ textAlign: "left" }}>🔒 SUSPEND ACCOUNT</button>
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB 5: SURVEILLANCE
+// ═══════════════════════════════════════════════════════════
+function SurveillanceTab({ alerts, onToast }) {
+  const [localAlerts, setLocalAlerts] = useState(alerts);
+
+  const dismiss = (id) => setLocalAlerts(a => a.map(x => x.id === id ? {...x, status: "DISMISSED"} : x));
+  const flag    = (id) => setLocalAlerts(a => a.map(x => x.id === id ? {...x, status: "FLAGGED"} : x));
+
+  const activeAlerts  = localAlerts.filter(a => a.status === "ACTIVE" || a.status === "FLAGGED");
+  const highCount     = activeAlerts.filter(a => a.severity === "HIGH").length;
+  const restrictions  = [
+    { client: "Chen Wei (#4450)", type: "SLOW EXECUTION", by: "M.Chen", since: "14:22", reason: "Latency arbitrage suspected" },
+    { client: "Anna Kowalski (#7841)", type: "REQUIRE MANUAL", by: "System", since: "14:21", reason: "Account coordination pattern" },
+  ];
+
+  return (
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 320px", gap: 12, height: "100%" }}>
+      <div>
+        <div className="section-title">
+          LIVE ALERT FEED — {activeAlerts.length} ACTIVE
+          {highCount > 0 && <span style={{ marginLeft: 8, color: "var(--bear)", fontWeight: 700 }}>({highCount} HIGH SEVERITY)</span>}
+        </div>
+        {localAlerts.map(a => (
+          <div key={a.id} className={`alert-card ${a.severity} ${a.status === "DISMISSED" ? "DISMISSED" : ""}`}>
+            <div style={{ flex: 1 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                <span className={`sev-badge sev-${a.severity.toLowerCase()}`}>{a.severity}</span>
+                <span className="alert-type">{a.type}</span>
+                <span style={{ marginLeft: "auto", fontFamily: "var(--font-data)", fontSize: 10, color: "var(--text-muted)" }}>{a.time}</span>
+              </div>
+              <div className="alert-client">Client #{a.clientId} — {a.clientName}</div>
+              <div className="alert-detail">{a.detail}</div>
+            </div>
+            {a.status !== "DISMISSED" && (
+              <div className="alert-actions">
+                <button className="btn-sm" onClick={() => onToast({ type: "info", icon: "🔍", title: "INVESTIGATING", msg: `Opening investigation for ${a.clientName}` })}>INVESTIGATE</button>
+                <button className="btn-sm" onClick={() => flag(a.id)}>FLAG</button>
+                <button className="btn-sm" onClick={() => dismiss(a.id)}>DISMISS</button>
+                <button className="btn-sm danger" onClick={() => onToast({ type: "warning", icon: "🔒", title: "TRADING RESTRICTED", msg: `Restrictions applied to ${a.clientName}` })}>RESTRICT</button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+
+      <div>
+        <div className="section-title">ACTIVE RESTRICTIONS</div>
+        {restrictions.map((r, i) => (
+          <div key={i} style={{ background: "var(--bg-surface)", border: "1px solid var(--border)", borderRadius: "var(--radius)", padding: "8px 10px", marginBottom: 6 }}>
+            <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 3 }}>{r.client}</div>
+            <div style={{ fontFamily: "var(--font-data)", fontSize: 10, color: "var(--warn)", marginBottom: 2 }}>{r.type}</div>
+            <div style={{ fontSize: 11, color: "var(--text-muted)", marginBottom: 4 }}>{r.reason}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontFamily: "var(--font-data)", fontSize: 10, color: "var(--text-dim)" }}>Since {r.since} · by {r.by}</span>
+              <button className="btn-sm" onClick={() => onToast({ type: "success", icon: "✓", title: "RESTRICTION LIFTED", msg: `Trading restored for ${r.client}` })}>LIFT</button>
+            </div>
+          </div>
+        ))}
+
+        <div className="section-title" style={{ marginTop: 12 }}>PATTERN ANALYSIS</div>
+        <table className="data-table" style={{ fontSize: 10 }}>
+          <thead><tr><th>Client</th><th>Type</th><th>24h</th><th>Risk Score</th></tr></thead>
+          <tbody>
+            {localAlerts.filter(a => a.status !== "DISMISSED").map(a => (
+              <tr key={a.id}>
+                <td style={{ fontSize: 10 }}>{a.clientName.split(" ")[0]}</td>
+                <td style={{ fontSize: 9 }}>{a.type.split(" ")[0]}</td>
+                <td>{a.severity === "HIGH" ? 12 : a.severity === "MEDIUM" ? 6 : 2}</td>
+                <td>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <div style={{ height: 4, width: 60, background: "var(--bg-elevated)", borderRadius: 2, overflow: "hidden" }}>
+                      <div style={{ height: "100%", width: a.severity === "HIGH" ? "82%" : a.severity === "MEDIUM" ? "55%" : "28%", background: a.severity === "HIGH" ? "var(--bear)" : a.severity === "MEDIUM" ? "var(--warn)" : "var(--bull)" }} />
+                    </div>
+                    <span className={a.severity === "HIGH" ? "cell-bear" : a.severity === "MEDIUM" ? "cell-warn" : "cell-bull"}>
+                      {a.severity === "HIGH" ? 82 : a.severity === "MEDIUM" ? 55 : 28}
+                    </span>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB 6: CHAT
+// ═══════════════════════════════════════════════════════════
+function ChatTab({ messages }) {
+  const [activeChannel, setActiveChannel] = useState("dealing-desk");
+  const [newMsg, setNewMsg] = useState("");
+  const [chatMsgs, setChatMsgs] = useState(messages);
+  const endRef = useRef(null);
+
+  const channels = [
+    { id: "dealing-desk", label: "dealing-desk", unread: 0 },
+    { id: "risk-alerts",  label: "risk-alerts",  unread: 2 },
+    { id: "compliance",   label: "compliance",   unread: 1 },
+    { id: "general",      label: "general",      unread: 0 },
+    { id: "breaks",       label: "breaks",       unread: 0 },
+  ];
+  const team = [
+    { name: "Marcus Chen (You)", status: "online" },
+    { name: "Priya Desai",       status: "online" },
+    { name: "James Walker",      status: "online" },
+    { name: "Risk Mgmt",         status: "away" },
+    { name: "Compliance",        status: "online" },
+    { name: "Tom Richards",      status: "offline" },
+  ];
+
+  const filtered = chatMsgs.filter(m => m.channel === activeChannel);
+
+  const sendMessage = () => {
+    if (!newMsg.trim()) return;
+    setChatMsgs(prev => [...prev, {
+      id: prev.length + 1, channel: activeChannel,
+      author: "Marcus Chen", avatar: "MC",
+      time: new Date().toLocaleTimeString("en", { hour: "2-digit", minute: "2-digit", hour12: false }),
+      text: newMsg
+    }]);
+    setNewMsg("");
+  };
+
+  return (
+    <div className="chat-layout">
+      <div className="chat-channels">
+        <div style={{ padding: "4px 12px 8px", fontSize: 9, fontFamily: "var(--font-display)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-dim)" }}>CHANNELS</div>
+        {channels.map(c => (
+          <div key={c.id} className={`chat-channel-item ${activeChannel === c.id ? "active" : ""}`} onClick={() => setActiveChannel(c.id)}>
+            <span className="ch-hash">#</span> {c.label}
+            {c.unread > 0 && <span style={{ marginLeft: "auto", background: "var(--bear)", color: "white", borderRadius: 10, padding: "1px 5px", fontSize: 9, fontWeight: 700 }}>{c.unread}</span>}
+          </div>
+        ))}
+        <div style={{ padding: "8px 12px 4px", fontSize: 9, fontFamily: "var(--font-display)", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-dim)", marginTop: 8 }}>DIRECT</div>
+        {team.slice(1, 4).map(m => (
+          <div key={m.name} className="chat-channel-item">
+            <div className={`presence-dot presence-${m.status}`} />
+            <span style={{ fontSize: 11 }}>{m.name.split(" ")[0]}</span>
+          </div>
+        ))}
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", borderRight: "1px solid var(--border)", minHeight: 0 }}>
+        <div style={{ padding: "6px 12px", borderBottom: "1px solid var(--border)", background: "var(--bg-surface)", fontFamily: "var(--font-display)", fontSize: 11, fontWeight: 700, color: "var(--text-secondary)" }}>
+          # {activeChannel}
+        </div>
+        <div className="chat-messages" style={{ flex: 1, overflowY: "auto" }}>
+          {filtered.length === 0 && <div style={{ color: "var(--text-muted)", fontSize: 12, textAlign: "center", marginTop: 20 }}>No messages in this channel</div>}
+          {filtered.map(m => (
+            <div key={m.id} className="chat-msg">
+              <div className="chat-avatar">{m.avatar}</div>
+              <div>
+                <div className="chat-meta">
+                  <span className="chat-author">{m.author}</span>
+                  <span className="chat-time">{m.time}</span>
+                </div>
+                <div className="chat-text">{m.text}</div>
+              </div>
+            </div>
+          ))}
+          <div ref={endRef} />
+        </div>
+        <div style={{ padding: "8px 10px", borderTop: "1px solid var(--border)", background: "var(--bg-surface)", display: "flex", gap: 6 }}>
+          <input
+            value={newMsg} onChange={e => setNewMsg(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && sendMessage()}
+            placeholder={`Message #${activeChannel}...`}
+            style={{ flex: 1, padding: "6px 10px", fontSize: 12, fontFamily: "var(--font-ui)" }}
+          />
+          <button className="btn-push-quote" style={{ width: "auto", padding: "6px 14px", marginTop: 0, fontSize: 11 }} onClick={sendMessage}>SEND</button>
+        </div>
+      </div>
+
+      <div className="chat-sidebar">
+        <div className="chat-sidebar-title">TEAM ONLINE</div>
+        {team.map(m => (
+          <div key={m.name} className="team-member">
+            <div className={`presence-dot presence-${m.status}`} />
+            <span style={{ fontSize: 11, color: "var(--text-secondary)" }}>{m.name}</span>
+          </div>
+        ))}
+        <div className="divider" />
+        <div className="chat-sidebar-title">TODAY'S EVENTS</div>
+        {[
+          { t: "13:30", n: "PPI / Jobless", done: true },
+          { t: "14:30", n: "CPI YoY 🔴", done: false },
+          { t: "15:00", n: "UK Retail Sales", done: false },
+          { t: "16:00", n: "ECB Speech 🔴", done: false },
+        ].map(e => (
+          <div key={e.t} style={{ display: "flex", gap: 8, padding: "3px 0", fontFamily: "var(--font-data)", fontSize: 10, opacity: e.done ? 0.5 : 1, textDecoration: e.done ? "line-through" : "none" }}>
+            <span style={{ color: "var(--text-muted)" }}>{e.t}</span>
+            <span style={{ color: e.done ? "var(--text-muted)" : "var(--text-primary)" }}>{e.n}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// RIGHT RAIL
+// ═══════════════════════════════════════════════════════════
+function RightRail({ lpStatus, events, news, cautionMode, onToast }) {
+  const [selectedSymbol, setSelectedSymbol] = useState("EUR/USD");
+  const inst = INSTRUMENTS.find(i => i.symbol === selectedSymbol) || INSTRUMENTS[0];
+
+  const upcomingEvents = events.filter(e => e.minutesAway > 0).sort((a,b) => a.minutesAway - b.minutesAway);
+
+  const bookPos = BOOK_POSITIONS.find(b => b.symbol === selectedSymbol);
+
+  return (
+    <div className="right-rail">
+      {cautionMode && (
+        <div className="caution-banner">⚡ CAUTION MODE: CPI RELEASE IN {events[0]?.minutesAway}m — SPREADS WIDENED</div>
+      )}
+
+      {/* Quote Desk */}
+      <div className="right-section" style={{ height: "35%" }}>
+        <div className="right-title">MANUAL QUOTE DESK</div>
+        <div className="right-section-scroll">
+          <select className="quote-select" value={selectedSymbol} onChange={e => setSelectedSymbol(e.target.value)}>
+            {INSTRUMENTS.map(i => <option key={i.symbol}>{i.symbol}</option>)}
+          </select>
+
+          <div className="quote-market">
+            <div>
+              <div className="quote-market-price bid">{inst.bid.toFixed(inst.symbol.includes("JPY") ? 3 : inst.symbol === "XAU/USD" ? 2 : 5)}</div>
+              <div style={{ fontSize: 9, textAlign: "center", color: "var(--bear)", fontFamily: "var(--font-data)", marginTop: 2 }}>BID</div>
+            </div>
+            <div style={{ textAlign: "center" }}>
+              <div className="quote-market-spread">SPREAD</div>
+              <div style={{ fontFamily: "var(--font-data)", fontSize: 11, color: "var(--warn)", fontWeight: 700 }}>
+                {(( inst.ask - inst.bid) * (inst.symbol.includes("JPY") ? 100 : 10000)).toFixed(1)}pts
+              </div>
+            </div>
+            <div>
+              <div className="quote-market-price ask">{inst.ask.toFixed(inst.symbol.includes("JPY") ? 3 : inst.symbol === "XAU/USD" ? 2 : 5)}</div>
+              <div style={{ fontSize: 9, textAlign: "center", color: "var(--bull)", fontFamily: "var(--font-data)", marginTop: 2 }}>ASK</div>
+            </div>
+          </div>
+
+          <div className="spread-btns">
+            {["-0.5 pips", "NORMAL", "+0.5 pips", "+2 pips", "+5 pips"].map((s, i) => (
+              <button key={s} className={`spread-btn ${i === 1 ? "normal" : i < 1 ? "narrow" : "widen"}`}
+                onClick={() => onToast({ type: i > 2 ? "warning" : "info", icon: "⚡", title: "SPREAD ADJUSTED", msg: `${selectedSymbol} spread: ${s}` })}>
+                {s}
+              </button>
+            ))}
+          </div>
+
+          <div style={{ fontFamily: "var(--font-data)", fontSize: 10, color: "var(--text-muted)", margin: "4px 0 2px" }}>AFFECT:</div>
+          <select style={{ width: "100%", padding: "3px 8px", fontSize: 11, marginBottom: 6 }}>
+            <option>ALL CLIENTS</option><option>Retail only</option><option>Pro only</option><option>VIP only</option>
+          </select>
+
+          <button className="btn-push-quote" onClick={() => onToast({ type: "success", icon: "✓", title: "QUOTE PUSHED", msg: `Manual prices pushed for ${selectedSymbol} to all clients` })}>
+            ▲ PUSH QUOTE TO CLIENTS
+          </button>
+          <button className="btn-revert" onClick={() => onToast({ type: "info", icon: "↩", title: "REVERTED", msg: `${selectedSymbol} reverted to market feed` })}>
+            ↩ REVERT TO MARKET
+          </button>
+        </div>
+      </div>
+
+      {/* Hedge Panel */}
+      <div className="right-section" style={{ height: "35%" }}>
+        <div className="right-title">LP STATUS & HEDGING</div>
+        <div className="right-section-scroll">
+          {lpStatus.map(lp => (
+            <div key={lp.id} className="lp-row">
+              <div className={`lp-dot ${lp.status.toLowerCase()}`} />
+              <span className="lp-name">{lp.id} — {lp.name}</span>
+              {lp.latency && <span className="lp-stat">{lp.latency}ms</span>}
+              {lp.status === "DISCONNECTED"
+                ? <button className="btn-reconnect" onClick={() => onToast({ type: "info", icon: "🔄", title: "RECONNECTING", msg: `Attempting to reconnect to ${lp.name}...` })}>RECONNECT</button>
+                : <span className="lp-stat" style={{ color: "var(--bull)" }}>↑{lp.uptime}%</span>
+              }
+            </div>
+          ))}
+
+          <div className="divider" />
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 6 }}>DELTA EXPOSURE</div>
+
+          {BOOK_POSITIONS.map(b => {
+            const net = b.longLots - b.shortLots;
+            const isFlat = Math.abs(net) < 2;
+            return (
+              <div key={b.symbol} className="delta-row">
+                <span className="delta-symbol">{b.symbol}</span>
+                <span className={`delta-val ${isFlat ? "flat" : ""}`}>
+                  {isFlat ? "~FLAT" : `${net >= 0 ? "▲" : "▼"} ${Math.abs(net).toFixed(1)} lots`}
+                </span>
+                {!isFlat && (
+                  <button className="btn-hedge-delta" onClick={() => onToast({ type: "success", icon: "⚡", title: "HEDGE SENT", msg: `${b.symbol}: ${Math.abs(net).toFixed(1)} lots → LP1` })}>
+                    HEDGE {b.id}
+                  </button>
+                )}
+              </div>
+            );
+          })}
+
+          <button className="btn-hedge-all" onClick={() => onToast({ type: "success", icon: "⚡", title: "ALL DELTAS HEDGED", msg: "Hedge orders submitted for all net exposures" })}>
+            ⚡ HEDGE ALL DELTAS
+          </button>
+        </div>
+      </div>
+
+      {/* Events & News */}
+      <div className="right-section" style={{ flex: 1, borderBottom: "none" }}>
+        <div className="right-title">EVENTS & NEWS</div>
+        <div className="right-section-scroll">
+          {upcomingEvents.slice(0, 3).map(e => (
+            <div key={e.id} className={`event-card ${e.impact.toLowerCase()}`}>
+              <div className="event-top">
+                <span className="event-name">{e.flag} {e.name}</span>
+                <span className={`event-countdown ${e.minutesAway < 10 ? "imminent" : ""}`}>
+                  {e.minutesAway}m
+                </span>
+              </div>
+              <div className="event-meta">
+                <span>Prev: {e.previous || "—"}</span>
+                <span>Fcst: {e.forecast || "—"}</span>
+                <span>{e.impact}</span>
+              </div>
+              {e.impact === "HIGH" && (
+                <div className="event-action">
+                  <button className="btn-event" onClick={() => onToast({ type: "warning", icon: "⚡", title: "CAUTION MODE ON", msg: `EUR/USD spread widened for ${e.name}` })}>
+                    ⚡ WIDEN {e.name.split(" ")[0]}
+                  </button>
+                </div>
+              )}
+            </div>
+          ))}
+
+          <div className="divider" />
+          <div style={{ fontFamily: "var(--font-display)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "var(--text-muted)", marginBottom: 6 }}>NEWS FEED</div>
+
+          {news.map(n => (
+            <div key={n.id} className="news-item">
+              <div className={`news-dot ${n.sentiment}`} />
+              <div className="news-content">
+                <div className="news-source">{n.source} · {n.time}</div>
+                <div className="news-headline">{n.headline}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// BOTTOM STATUS BAR
+// ═══════════════════════════════════════════════════════════
+function StatusBar({ bookPnl, lpStatus, shiftSecs }) {
+  const shiftH = Math.floor(shiftSecs / 3600);
+  const shiftM = Math.floor((shiftSecs % 3600) / 60);
+  const nextEvent = ECONOMIC_EVENTS.find(e => e.minutesAway > 0);
+  return (
+    <div className="status-bar">
+      <div className="sb-item"><span className="sb-dot ok" /><span className="sb-val">OB-LIVE-01</span></div>
+      {lpStatus.map(lp => (
+        <div key={lp.id} className="sb-item">
+          <span className={`sb-dot ${lp.status === "CONNECTED" ? "ok" : "err"}`} />
+          <span className="sb-val">{lp.id}: {lp.name}</span>
+        </div>
+      ))}
+      <div className="sb-item"><span className="sb-dot ok" /><span className="sb-val">FIX: ACTIVE</span></div>
+      <div className="sb-item">Orders: <span className="sb-val">247 today</span></div>
+      <div className="sb-item">Positions: <span className="sb-val">89</span></div>
+      <div className="sb-item">Book P&L: <span className={`sb-val ${bookPnl >= 0 ? "bull" : "bear"}`}>{fmtPnl(bookPnl)}</span></div>
+      <div className="sb-item">STP Ratio: <span className="sb-val">67%</span></div>
+      {nextEvent && (
+        <div className="sb-item">Next: <span className="sb-event">{nextEvent.name} {nextEvent.time} — {nextEvent.minutesAway}m</span></div>
+      )}
+      <div className="sb-item" style={{ marginLeft: "auto", borderRight: "none" }}>
+        Dealer: <span className="sb-val">Marcus Chen</span> · Shift: <span className="sb-val">{String(shiftH).padStart(2,"0")}:{String(shiftM).padStart(2,"0")}</span> · Break: <span className="sb-val">16:30</span>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// MAIN WORKSPACE TABS
+// ═══════════════════════════════════════════════════════════
+function WorkspaceTabs({ book, executions, clients, alerts, onToast }) {
+  const [activeTab, setActiveTab] = useState("book");
+  const tabs = [
+    { id: "book",         label: "BOOK" },
+    { id: "executions",   label: "EXECUTIONS" },
+    { id: "risk",         label: "RISK" },
+    { id: "clients",      label: "CLIENTS" },
+    { id: "surveillance", label: "SURVEILLANCE" },
+    { id: "chat",         label: "CHAT" },
+  ];
+  return (
+    <div className="workspace">
+      <div className="ws-tabs">
+        {tabs.map(t => (
+          <button key={t.id} className={`ws-tab ${activeTab === t.id ? "active" : ""}`} onClick={() => setActiveTab(t.id)}>
+            {t.label}
+            {t.id === "surveillance" && alerts.filter(a => a.severity === "HIGH").length > 0 && (
+              <span style={{ marginLeft: 6, background: "var(--bear)", color: "white", borderRadius: 10, padding: "0 5px", fontSize: 9 }}>
+                {alerts.filter(a => a.severity === "HIGH").length}
+              </span>
+            )}
+          </button>
+        ))}
+      </div>
+      <div className="ws-content">
+        <div className={`ws-panel ${activeTab === "book" ? "active" : ""}`}>
+          <BookTab book={book} onToast={onToast} />
+        </div>
+        <div className={`ws-panel ${activeTab === "executions" ? "active" : ""}`}>
+          <ExecutionsTab executions={executions} />
+        </div>
+        <div className={`ws-panel ${activeTab === "risk" ? "active" : ""}`}>
+          <RiskTab book={book} clients={clients} />
+        </div>
+        <div className={`ws-panel ${activeTab === "clients" ? "active" : ""}`}>
+          <ClientsTab clients={clients} onToast={onToast} />
+        </div>
+        <div className={`ws-panel ${activeTab === "surveillance" ? "active" : ""}`}>
+          <SurveillanceTab alerts={alerts} onToast={onToast} />
+        </div>
+        <div className={`ws-panel ${activeTab === "chat" ? "active" : ""}`} style={{ padding: 0 }}>
+          <ChatTab messages={CHAT_MESSAGES} />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// ROOT APP
+// ═══════════════════════════════════════════════════════════
+const App = function DealerDesk() {
+  // ── Clock & shift ───────────────────────────────────────
+  const [clock, setClock]         = useState("");
+  const [shiftSecs, setShiftSecs] = useState(13320); // 3h 42m
+
+  useInterval(() => {
+    const now = new Date();
+    setClock(now.toUTCString().split(" ")[4]);
+    setShiftSecs(s => s + 1);
+  }, 1000);
+
+  // ── Price ticking ───────────────────────────────────────
+  const [prices, setPrices] = useState(
+    INSTRUMENTS.map(i => ({ ...i }))
+  );
+
+  useInterval(() => {
+    setPrices(prev =>
+      prev.map(inst => {
+        const move  = (Math.random() - 0.499) * inst.pip * 3;
+        const newBid = +(inst.bid + move).toFixed(inst.digits);
+        const newAsk = +(newBid + (inst.ask - inst.bid)).toFixed(inst.digits);
+        return { ...inst, bid: newBid, ask: newAsk };
+      })
+    );
+  }, 700);
+
+  // ── Pending orders with live age ────────────────────────
+  const [orders, setOrders] = useState(
+    PENDING_ORDERS.map(o => ({ ...o, displayAge: o.age }))
+  );
+  const [processed, setProcessed] = useState([]);
+
+  useInterval(() => {
+    setOrders(prev => prev.map(o => ({ ...o, displayAge: +(o.displayAge + 0.1).toFixed(1) })));
+  }, 100);
+
+  // ── Book (live float) ───────────────────────────────────
+  const [book, setBook] = useState(BOOK_POSITIONS.map(b => ({ ...b })));
+
+  useInterval(() => {
+    setBook(prev =>
+      prev.map((b, i) => ({
+        ...b,
+        current: +(b.current + (Math.random() - 0.499) * b.current * 0.00005).toFixed(
+          b.symbol.includes("JPY") ? 3 : b.symbol === "XAU/USD" || b.symbol === "US500" ? 1 : 5
+        ),
+      }))
+    );
+  }, 900);
+
+  // ── Book P&L ────────────────────────────────────────────
+  const [bookPnl, setBookPnl] = useState(12847);
+  useInterval(() => {
+    setBookPnl(p => p + Math.round((Math.random() - 0.45) * 120));
+  }, 1800);
+
+  // ── Latency simulation ──────────────────────────────────
+  const [latency, setLatency] = useState(4);
+  useInterval(() => {
+    setLatency(Math.max(3, Math.min(18, latency + Math.round((Math.random() - 0.5) * 3))));
+  }, 2000);
+
+  // ── Global state ────────────────────────────────────────
+  const [autoHedge,   setAutoHedge]   = useState(false);
+  const [stpMode,     setStpMode]     = useState("MIXED");
+  const [modal,       setModal]       = useState(null);
+  const [showKb,      setShowKb]      = useState(false);
+  const [toasts,      setToasts]      = useState([]);
+  const [cautionMode, setCautionMode] = useState(true); // CPI in 7 min
+
+  const marginCalls = CLIENTS.filter(c => c.status === "MARGIN_CALL").length;
+  const alertCount  = SURVEILLANCE_ALERTS.filter(a => a.status !== "DISMISSED").length;
+
+  // ── Toast helpers ────────────────────────────────────────
+  const addToast = useCallback((t) => {
+    const id = Date.now() + Math.random();
+    setToasts(prev => [...prev.slice(-4), { ...t, id }]);
+    setTimeout(() => {
+      setToasts(prev => prev.map(x => x.id === id ? { ...x, exiting: true } : x));
+      setTimeout(() => setToasts(prev => prev.filter(x => x.id !== id)), 350);
+    }, 5000);
+  }, []);
+
+  const dismissToast = (id) => {
+    setToasts(prev => prev.map(x => x.id === id ? { ...x, exiting: true } : x));
+    setTimeout(() => setToasts(prev => prev.filter(x => x.id !== id)), 350);
+  };
+
+  // ── Order actions ────────────────────────────────────────
+  const acceptOrder = useCallback((id) => {
+    const o = orders.find(x => x.id === id);
+    if (!o) return;
+    setOrders(prev => prev.filter(x => x.id !== id));
+    setProcessed(prev => [{
+      action: "ACCEPT", clientId: o.clientId, side: o.side,
+      lots: o.lots.toFixed(2), symbol: o.symbol, ago: "just now"
+    }, ...prev.slice(0, 5)]);
+    addToast({ type: "success", icon: "✓", title: `ORDER ACCEPTED`, msg: `${o.side} ${o.lots} ${o.symbol} @ ${o.clientPrice} — #${o.clientId}` });
+  }, [orders, addToast]);
+
+  const rejectOrder = useCallback((id) => {
+    const o = orders.find(x => x.id === id);
+    if (!o) return;
+    setOrders(prev => prev.filter(x => x.id !== id));
+    setProcessed(prev => [{
+      action: "REJECT", clientId: o.clientId, side: o.side,
+      lots: o.lots.toFixed(2), symbol: o.symbol, ago: "just now"
+    }, ...prev.slice(0, 5)]);
+    addToast({ type: "critical", icon: "✗", title: `ORDER REJECTED`, msg: `${o.side} ${o.lots} ${o.symbol} — #${o.clientId}` });
+  }, [orders, addToast]);
+
+  const requoteOrder = useCallback((id, newPrice) => {
+    const o = orders.find(x => x.id === id);
+    if (!o) return;
+    setOrders(prev => prev.filter(x => x.id !== id));
+    addToast({ type: "warning", icon: "~", title: `REQUOTE SENT`, msg: `${o.symbol} new price ${newPrice} → #${o.clientId} (10s validity)` });
+  }, [orders, addToast]);
+
+  // ── Emergency modal actions ──────────────────────────────
+  const handleEmergency = (action) => setModal(action);
+  const confirmEmergency = () => {
+    const msgs = {
+      HALT:    { title: "HALT ACTIVATED",      msg: "All auto-accepts frozen. Manual only mode." },
+      WIDEN:   { title: "SPREADS WIDENED",      msg: "Emergency 3× spread multiplier applied globally." },
+      SUSPEND: { title: "TRADING SUSPENDED",    msg: "All new orders disabled across platform." },
+      FLATTEN: { title: "BOOK BEING FLATTENED", msg: "Hedge orders submitted for all net exposures." },
+    };
+    const cfg = msgs[modal];
+    addToast({ type: "critical", icon: "⚠", title: cfg.title, msg: cfg.msg });
+    setModal(null);
+  };
+
+  // ── Simulate incoming orders ─────────────────────────────
+  useInterval(() => {
+    if (orders.length < 6 && Math.random() > 0.6) {
+      const templates = [
+        { clientId: 9999, clientName: "Alex Rivera",   tier: "PRO",    side: "BUY",  symbol: "EUR/USD", lots: 2.0,  type: "MARKET", notional: 216912 },
+        { clientId: 8888, clientName: "Hana Yoshida",  tier: "RETAIL", side: "SELL", symbol: "GBP/USD", lots: 0.5,  type: "MARKET", notional: 63406  },
+        { clientId: 7777, clientName: "Luca Ferrari",  tier: "VIP",    side: "BUY",  symbol: "XAU/USD", lots: 3.0,  type: "MARKET", notional: 695745 },
+      ];
+      const t = templates[Math.floor(Math.random() * templates.length)];
+      const newOrder = {
+        ...t,
+        id: `ORD-${Date.now()}`,
+        time: new Date().toISOString().substr(11, 12),
+        age: 0,
+        displayAge: 0,
+        marketPrice: prices.find(p => p.symbol === t.symbol)?.bid || 1.08452,
+        clientPrice: (prices.find(p => p.symbol === t.symbol)?.ask || 1.08458),
+        slippage: +(Math.random() * 0.6 - 0.2).toFixed(1),
+      };
+      setOrders(prev => [newOrder, ...prev]);
+      addToast({ type: "warning", icon: "📥", title: "NEW ORDER", msg: `${t.side} ${t.lots} ${t.symbol} — ${t.clientName} (${t.tier})` });
+    }
+  }, 8000);
+
+  // ── Keyboard shortcuts ───────────────────────────────────
+  useEffect(() => {
+    const handler = (e) => {
+      if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT" || e.target.tagName === "TEXTAREA") return;
+      if (e.key === "?" || e.key === "/") { e.preventDefault(); setShowKb(true); }
+      if (e.key === "Escape") { setShowKb(false); setModal(null); }
+      if (e.key === "a" || e.key === "A") { if (orders[0]) acceptOrder(orders[0].id); }
+      if (e.key === "r" || e.key === "R") { if (orders[0]) rejectOrder(orders[0].id); }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [orders, acceptOrder, rejectOrder]);
+
+  // ── Startup toasts ───────────────────────────────────────
+  useEffect(() => {
+    setTimeout(() => addToast({ type: "critical",  icon: "🔴", title: "MARGIN CALL",  msg: "Anna Kowalski #7841 — margin at 22%. Auto-close threshold: 20%" }), 1200);
+    setTimeout(() => addToast({ type: "critical",  icon: "⚠",  title: "HIGH ALERT",   msg: "Latency arbitrage detected — Chen Wei #4450. Review required." }), 2400);
+    setTimeout(() => addToast({ type: "warning",   icon: "📅", title: "EVENT ALERT",  msg: "US CPI YoY in 7 minutes. Consider widening EUR/USD spreads." }), 3600);
+    setTimeout(() => addToast({ type: "critical",  icon: "🔌", title: "LP DISCONNECTED", msg: "LP3 Currenex connection lost. Failover to LP1/LP2 active." }), 4800);
+  }, []);
+
+  // ── Render ───────────────────────────────────────────────
+  return (
+    <div className="desk-shell">
+      {/* Top command bar */}
+      <CommandBar
+        clock={clock}
+        shiftSecs={shiftSecs}
+        latency={latency}
+        autoHedge={autoHedge}
+        setAutoHedge={setAutoHedge}
+        stpMode={stpMode}
+        setStpMode={setStpMode}
+        alertCount={alertCount}
+        bbookExposure={2400000}
+        marginCalls={marginCalls}
+        onEmergency={handleEmergency}
+        onShowAlerts={() => addToast({ type: "warning", icon: "🔔", title: "ALERTS", msg: `${alertCount} active alerts — check Surveillance tab` })}
+      />
+
+      {/* Main body */}
+      <div className="desk-body">
+        {/* Left rail */}
+        <LeftRail
+          orders={orders}
+          processed={processed}
+          clients={CLIENTS}
+          watchlistIds={WATCHLIST_CLIENT_IDS}
+          onAccept={acceptOrder}
+          onReject={rejectOrder}
+          onRequote={requoteOrder}
+          onToast={addToast}
+        />
+
+        {/* Center */}
+        <div className="desk-center">
+          <PriceBoard prices={prices} onToast={addToast} />
+          <WorkspaceTabs
+            book={book}
+            executions={EXECUTIONS}
+            clients={CLIENTS}
+            alerts={SURVEILLANCE_ALERTS}
+            onToast={addToast}
+          />
+        </div>
+
+        {/* Right rail */}
+        <RightRail
+          lpStatus={LP_STATUS}
+          events={ECONOMIC_EVENTS}
+          news={NEWS_ITEMS}
+          cautionMode={cautionMode}
+          onToast={addToast}
+        />
+      </div>
+
+      {/* Bottom status bar */}
+      <StatusBar bookPnl={bookPnl} lpStatus={LP_STATUS} shiftSecs={shiftSecs} />
+
+      {/* Overlays */}
+      {modal && (
+        <ConfirmModal
+          action={modal}
+          onConfirm={confirmEmergency}
+          onCancel={() => setModal(null)}
+        />
+      )}
+      {showKb && <KbOverlay onClose={() => setShowKb(false)} />}
+
+      {/* Toast stack */}
+      <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+    </div>
+  );
+}
+
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+</script>
+</body>
+</html>
