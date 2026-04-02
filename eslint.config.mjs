@@ -62,7 +62,7 @@ export default tseslint.config(
           depConstraints: [
             {
               sourceTag: 'scope:web',
-              onlyDependOnLibsWithTags: ['scope:web'],
+              onlyDependOnLibsWithTags: ['scope:web', 'scope:design-system'],
             },
             {
               sourceTag: 'scope:backend',
@@ -70,11 +70,15 @@ export default tseslint.config(
             },
             {
               sourceTag: 'scope:mobile',
-              onlyDependOnLibsWithTags: ['scope:mobile'],
+              onlyDependOnLibsWithTags: ['scope:mobile', 'scope:design-system'],
             },
             {
               sourceTag: 'scope:desktop',
-              onlyDependOnLibsWithTags: ['scope:desktop'],
+              onlyDependOnLibsWithTags: ['scope:desktop', 'scope:design-system'],
+            },
+            {
+              sourceTag: 'scope:design-system',
+              onlyDependOnLibsWithTags: ['scope:design-system'],
             },
             {
               sourceTag: 'layer:entrypoint',
