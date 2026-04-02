@@ -1,0 +1,1610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Obsidian — The Trading Platform Brokers Deserve</title>
+<meta name="description" content="White-label the full-stack trading infrastructure. From matching engine to mobile app — launch your branded broker in weeks, not years."/>
+<meta name="theme-color" content="#06080A"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<style>
+/* ── TOKENS ─────────────────────────────────────────────────── */
+:root {
+  --bg:#06080A;--bg1:#0C0E12;--bg2:#0F1216;--bg3:#141820;
+  --tx:#E2E8F0;--tx2:#8B95A3;--tx3:#4A5568;
+  --ac:#3B82F6;--bull:#10D996;--bear:#FF3B5C;--gold:#F59E0B;--purple:#8B5CF6;
+  --br:#1C2028;--br2:#252C38;
+  --fd:'Syne',sans-serif;--fm:'IBM Plex Mono',monospace;--fb:'DM Sans',sans-serif;
+  --ease:cubic-bezier(0.16,1,0.3,1);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}
+body{background:var(--bg);color:var(--tx);font-family:var(--fb);line-height:1.65;overflow-x:hidden;cursor:none}
+@media(hover:none){body{cursor:auto}}
+a{color:inherit;text-decoration:none}button{font-family:inherit}
+::selection{background:rgba(59,130,246,.25);color:var(--tx)}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:var(--bg1)}::-webkit-scrollbar-thumb{background:var(--br2);border-radius:2px}
+section[id]{scroll-margin-top:80px}
+.fd{font-family:var(--fd)}.fm{font-family:var(--fm);font-feature-settings:"tnum"}.fb{font-family:var(--fb)}
+
+/* ── CURSOR ─────────────────────────────────────────────────── */
+#obs-cursor{position:fixed;top:0;left:0;width:8px;height:8px;border:1.5px solid var(--ac);border-radius:50%;pointer-events:none;z-index:99999;transform:translate(-50%,-50%);transition:width 180ms var(--ease),height 180ms var(--ease),background 180ms ease,border-radius 150ms ease,border-color 180ms ease}
+#obs-cursor.xl{width:36px;height:36px;background:rgba(59,130,246,.12)}
+#obs-cursor.cross{width:22px;height:22px;border-radius:3px}
+#obs-dot{position:fixed;top:0;left:0;width:3px;height:3px;background:var(--ac);border-radius:50%;pointer-events:none;z-index:100000;transform:translate(-50%,-50%)}
+
+/* ── NOISE ──────────────────────────────────────────────────── */
+#noise{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.032;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E") repeat;background-size:128px}
+
+/* ── GRID ────────────────────────────────────────────────────── */
+.grid-bg{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.grid-bg::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to right,var(--br) 0,transparent 1px,transparent 60px);opacity:.35}
+.grid-bg::after{content:'';position:absolute;inset:0;background:repeating-linear-gradient(to bottom,var(--br) 0,transparent 1px,transparent 60px);opacity:.18}
+
+/* ── REVEAL ──────────────────────────────────────────────────── */
+.rev{opacity:0;transform:translateY(28px) scale(.97);transition:opacity 620ms var(--ease),transform 620ms var(--ease);will-change:opacity,transform}
+.rev.on{opacity:1;transform:none}
+.stagger>*:nth-child(1){transition-delay:0ms}.stagger>*:nth-child(2){transition-delay:80ms}.stagger>*:nth-child(3){transition-delay:160ms}.stagger>*:nth-child(4){transition-delay:240ms}.stagger>*:nth-child(5){transition-delay:320ms}.stagger>*:nth-child(6){transition-delay:400ms}.stagger>*:nth-child(7){transition-delay:480ms}.stagger>*:nth-child(8){transition-delay:560ms}.stagger>*:nth-child(9){transition-delay:640ms}
+
+/* ── KEYFRAMES ──────────────────────────────────────────────── */
+@keyframes pulse-dot{0%,100%{box-shadow:0 0 0 0 rgba(59,130,246,.5),0 0 10px var(--ac)}50%{box-shadow:0 0 0 5px rgba(59,130,246,0),0 0 18px var(--ac)}}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@keyframes ticker-run{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes caret{0%,100%{opacity:1}50%{opacity:0}}
+@keyframes flash-bull{0%,100%{color:var(--tx)}25%{color:var(--bull)}}
+@keyframes flash-bear{0%,100%{color:var(--tx)}25%{color:var(--bear)}}
+@keyframes lat-travel{0%{left:0;opacity:0}5%{opacity:1}95%{opacity:1}100%{left:100%;opacity:0}}
+@keyframes dash-flow{from{stroke-dashoffset:200}to{stroke-dashoffset:0}}
+
+/* ── 3D SPECIFIC ─────────────────────────────────────────────── */
+
+/* CSS Particle fallback (Tier 3 devices) */
+@keyframes float-up{
+  0%   { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+  10%  { opacity: 1; }
+  90%  { opacity: .4; }
+  100% { transform: translateY(-120vh) translateX(var(--dx, 0px)) scale(.3); opacity: 0; }
+}
+.css-particle {
+  position: absolute;
+  width: 2px; height: 2px;
+  border-radius: 50%;
+  background: var(--ac);
+  animation: float-up var(--dur, 8s) linear var(--delay, 0s) infinite;
+  pointer-events: none;
+}
+.css-particle.green { background: var(--bull); }
+.css-particle.gold  { background: var(--gold); }
+
+/* Three.js canvas wrapper */
+.three-canvas-wrap {
+  position: absolute; inset: 0;
+  pointer-events: none; z-index: 0;
+  overflow: hidden;
+}
+.three-canvas-wrap canvas {
+  display: block; width: 100% !important; height: 100% !important;
+}
+
+/* Globe section */
+.globe-section {
+  position: relative;
+  background: var(--bg);
+  padding: 120px 0;
+  overflow: hidden;
+  border-top: 1px solid var(--br);
+}
+.globe-canvas-container {
+  position: relative;
+  width: 100%;
+  max-width: 600px;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+}
+.globe-canvas-container canvas {
+  display: block;
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 1px rgba(59,130,246,.08),
+    0 0 60px rgba(59,130,246,.06),
+    0 0 120px rgba(59,130,246,.03);
+}
+
+/* SVG globe fallback */
+.svg-globe-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 560px;
+  margin: 0 auto;
+}
+@keyframes globe-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+.globe-ring-anim { animation: globe-spin 24s linear infinite; transform-origin: center; }
+
+/* Broker location dots */
+@keyframes broker-pulse {
+  0%,100% { r: 3; opacity: 1; }
+  50%      { r: 6; opacity: .5; }
+}
+.broker-dot { animation: broker-pulse 2.4s ease-in-out infinite; }
+.broker-dot:nth-child(2) { animation-delay: .4s; }
+.broker-dot:nth-child(3) { animation-delay: .8s; }
+.broker-dot:nth-child(4) { animation-delay: 1.2s; }
+.broker-dot:nth-child(5) { animation-delay: 1.6s; }
+.broker-dot:nth-child(6) { animation-delay: 2.0s; }
+
+/* Arc lines on SVG globe */
+@keyframes arc-draw {
+  from { stroke-dashoffset: 300; opacity: 0; }
+  10%  { opacity: .6; }
+  80%  { opacity: .6; }
+  to   { stroke-dashoffset: 0; opacity: 0; }
+}
+.globe-arc {
+  stroke-dasharray: 300;
+  stroke-dashoffset: 300;
+  animation: arc-draw 3s ease-in-out infinite;
+  fill: none;
+}
+.globe-arc:nth-child(1) { animation-delay: 0s; }
+.globe-arc:nth-child(2) { animation-delay: 1s; }
+.globe-arc:nth-child(3) { animation-delay: 2s; }
+
+/* Order book 3D section */
+.orderbook-section {
+  position: relative;
+  background: var(--bg1);
+  border-top: 1px solid var(--br);
+  border-bottom: 1px solid var(--br);
+  padding: 100px 0;
+  overflow: hidden;
+}
+.ob-canvas-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  aspect-ratio: 16 / 9;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--br);
+  background: var(--bg2);
+}
+.ob-canvas-wrap canvas { display: block; width: 100% !important; height: 100% !important; }
+
+/* SVG order book fallback */
+.ob-bar {
+  transition: height .4s ease, y .4s ease, fill .3s ease;
+}
+@keyframes ob-pulse {
+  0%,100% { opacity: 1; }
+  50%      { opacity: .7; }
+}
+.ob-bid { fill: var(--bull); }
+.ob-ask { fill: var(--bear); }
+
+/* Mouse glow (CSS-only, works on all tiers) */
+#hero-mouse-glow {
+  position: absolute;
+  width: 600px; height: 600px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(59,130,246,.07) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 1;
+  transform: translate(-50%, -50%);
+  transition: left .12s ease, top .12s ease;
+  will-change: left, top;
+}
+
+/* Tier badge (dev indicator, hidden in prod) */
+#tier-badge{display:none}
+
+/* ── EXISTING STYLES (carried over) ─────────────────────────── */
+.logo-dot{display:inline-block;width:8px;height:8px;background:var(--ac);border-radius:50%;flex-shrink:0;animation:pulse-dot 2.2s ease-in-out infinite}
+.live-dot{display:inline-block;width:6px;height:6px;background:var(--bull);border-radius:50%;animation:blink 1.4s ease-in-out infinite;flex-shrink:0}
+.ticker-wrap{position:relative;overflow:hidden;height:40px;border-top:1px solid var(--br);border-bottom:1px solid var(--br);background:rgba(12,14,18,.82);backdrop-filter:blur(10px)}
+.ticker-track{display:flex;align-items:center;white-space:nowrap;height:40px;animation:ticker-run 42s linear infinite}
+.ticker-track:hover{animation-play-state:paused}
+.ticker-item{display:inline-flex;align-items:center;gap:8px;padding:0 22px;height:40px;border-right:1px solid var(--br);font-family:var(--fm);font-size:11.5px;letter-spacing:.02em}
+.t-sym{color:var(--tx2)}.t-price{color:var(--tx);font-variant-numeric:tabular-nums;transition:color .3s}.t-ch.up{color:var(--bull)}.t-ch.dn{color:var(--bear)}
+.fb-bull{animation:flash-bull 450ms ease-out}.fb-bear{animation:flash-bear 450ms ease-out}
+.ticker-fade-l{position:absolute;left:0;top:0;bottom:0;width:70px;z-index:2;background:linear-gradient(to right,var(--bg),transparent);pointer-events:none}
+.ticker-fade-r{position:absolute;right:0;top:0;bottom:0;width:70px;z-index:2;background:linear-gradient(to left,var(--bg),transparent);pointer-events:none}
+nav.main-nav{position:fixed;top:0;left:0;right:0;z-index:500;height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;transition:background .3s ease,border-color .3s ease,backdrop-filter .3s ease}
+nav.main-nav.scrolled{background:rgba(6,8,10,.88);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-bottom:1px solid var(--br)}
+.nav-link{position:relative;font-family:var(--fb);font-size:14px;font-weight:500;color:var(--tx2);background:none;border:none;cursor:none;transition:color .15s ease;padding:2px 0}
+.nav-link:hover{color:var(--tx)}
+.nav-link::after{content:'';position:absolute;bottom:-3px;left:0;width:100%;height:2px;background:var(--ac);transform:scaleX(0);transform-origin:left;transition:transform .2s var(--ease)}
+.nav-link:hover::after{transform:scaleX(1)}
+.mob-menu{position:fixed;inset:0;background:var(--bg);z-index:490;transform:translateX(100%);transition:transform .4s var(--ease);overflow-y:auto;display:flex;flex-direction:column}
+.mob-menu.open{transform:translateX(0)}
+.ham{display:flex;flex-direction:column;gap:5px;background:none;border:none;cursor:none;padding:6px}
+.ham span{display:block;width:22px;height:1.5px;background:var(--tx);transition:all .3s var(--ease);transform-origin:center}
+.ham.open span:nth-child(1){transform:translateY(6.5px) rotate(45deg)}
+.ham.open span:nth-child(2){opacity:0;transform:scaleX(0)}
+.ham.open span:nth-child(3){transform:translateY(-6.5px) rotate(-45deg)}
+.btn-p{display:inline-flex;align-items:center;gap:8px;background:var(--ac);color:#fff;font-family:var(--fd);font-weight:600;font-size:14px;letter-spacing:.04em;border:none;border-radius:8px;cursor:none;transition:filter .15s,transform .15s,box-shadow .15s}
+.btn-p:hover{filter:brightness(1.1);transform:translateY(-2px);box-shadow:0 10px 32px rgba(59,130,246,.38)}
+.btn-p .arr{transition:transform .15s}.btn-p:hover .arr{transform:translateX(4px)}
+.btn-g{display:inline-flex;align-items:center;gap:8px;background:transparent;color:var(--tx);font-family:var(--fb);font-weight:500;font-size:14px;border:1px solid var(--br2);border-radius:8px;cursor:none;transition:border-color .15s,background .15s,transform .15s}
+.btn-g:hover{border-color:var(--ac);background:rgba(59,130,246,.06);transform:translateY(-1px)}
+.btn-gr{border-color:rgba(16,217,150,.4);color:var(--bull)}.btn-gr:hover{border-color:var(--bull);background:rgba(16,217,150,.06)}
+.eyebrow-pill{display:inline-flex;align-items:center;gap:8px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.25);border-radius:20px;padding:6px 16px;font-family:var(--fm);font-size:11px;letter-spacing:.08em;color:var(--tx2)}
+.sec-eye{display:inline-flex;align-items:center;gap:6px;font-family:var(--fm);font-size:11px;letter-spacing:.12em;color:var(--ac);text-transform:uppercase;padding:5px 12px;background:rgba(59,130,246,.06);border:1px solid rgba(59,130,246,.18);border-radius:4px}
+.tag-g{color:var(--bull);background:rgba(16,217,150,.09);border:1px solid rgba(16,217,150,.22)}.tag-b{color:var(--ac);background:rgba(59,130,246,.09);border:1px solid rgba(59,130,246,.22)}.tag-go{color:var(--gold);background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.22)}.tag-p{color:var(--purple);background:rgba(139,92,246,.09);border:1px solid rgba(139,92,246,.22)}
+.hero-h1{font-family:var(--fd);font-weight:800;font-size:clamp(48px,7.5vw,96px);line-height:1.02;letter-spacing:-.03em;color:var(--tx)}
+.tw-caret{display:inline-block;width:3px;height:.85em;background:var(--ac);margin-left:4px;vertical-align:text-bottom;animation:caret .82s step-end infinite}
+.stat-num{font-family:var(--fm);font-feature-settings:"tnum";font-variant-numeric:tabular-nums;line-height:1}
+.card{transition:transform .2s var(--ease),border-color .2s ease,box-shadow .2s ease}.card:hover{transform:translateY(-5px) scale(1.01)}
+.pro-card{border:2px solid var(--ac)!important;background:rgba(59,130,246,.04)!important;box-shadow:0 0 48px rgba(59,130,246,.13),0 0 90px rgba(59,130,246,.05)!important}
+.faq-body{max-height:0;overflow:hidden;transition:max-height .38s var(--ease)}.faq-body.open{max-height:320px}
+.laptop-screen{background:var(--bg1);border:8px solid #191c24;border-radius:12px 12px 0 0;overflow:hidden;box-shadow:0 0 0 1px var(--br),0 40px 80px rgba(0,0,0,.65),inset 0 0 0 1px rgba(255,255,255,.02)}
+.laptop-base{height:18px;background:linear-gradient(to bottom,#191c24,#14161e);border-radius:0 0 5px 5px}.laptop-base::after{content:'';display:block;width:64px;height:5px;background:#0d0f14;border-radius:0 0 5px 5px;margin:0 auto}
+.phone-frame{border:8px solid #191c24;border-radius:30px;overflow:hidden;box-shadow:0 0 0 1px var(--br),0 24px 60px rgba(0,0,0,.55)}
+.mt-hdr{background:var(--bg2);border-bottom:1px solid var(--br);padding:7px 12px;display:flex;align-items:center;gap:6px}
+.ck-bull{fill:var(--bull)}.ck-bear{fill:var(--bear)}.wk-bull{stroke:var(--bull);stroke-width:1}.wk-bear{stroke:var(--bear);stroke-width:1}
+.lat-dot{position:absolute;width:6px;height:6px;border-radius:50%;background:var(--ac);top:50%;transform:translateY(-50%);animation:lat-travel 2.2s ease-in-out infinite;box-shadow:0 0 8px var(--ac)}
+.glow-blue{background:radial-gradient(ellipse 600px 400px at 50% 50%,rgba(59,130,246,.062) 0%,transparent 70%)}.glow-green{background:radial-gradient(ellipse 600px 400px at 50% 50%,rgba(16,217,150,.062) 0%,transparent 70%)}.glow-purple{background:radial-gradient(ellipse 600px 400px at 50% 50%,rgba(139,92,246,.062) 0%,transparent 70%)}
+.tl-track{position:absolute;top:20px;left:20px;right:20px;height:2px;background:var(--br)}.tl-fill{position:absolute;top:0;left:0;height:100%;width:0;background:linear-gradient(to right,var(--ac),rgba(59,130,246,.3));box-shadow:0 0 10px rgba(59,130,246,.5);transition:width 2.2s var(--ease)}.tl-fill.on{width:100%}
+.tl-dot{width:40px;height:40px;border-radius:50%;border:1.5px solid var(--br2);background:var(--bg1);display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:12px;font-weight:600;color:var(--tx3);transition:all .42s var(--ease);position:relative;z-index:2;flex-shrink:0}.tl-dot.on{border-color:var(--ac);color:var(--ac);box-shadow:0 0 22px rgba(59,130,246,.32)}
+.tes-dot{width:6px;height:6px;border-radius:50%;background:var(--br2);border:none;cursor:pointer;transition:all .3s ease}.tes-dot.on{background:var(--ac);width:22px;border-radius:3px}
+.tl-logo{height:28px;background:var(--br);border-radius:4px;opacity:.22;display:flex;align-items:center;justify-content:center;font-family:var(--fm);font-size:10px;color:var(--tx3);letter-spacing:.05em;padding:0 12px;transition:opacity .2s}.tl-logo:hover{opacity:.45}
+.j-tag{display:inline-flex;align-items:center;gap:6px;padding:5px 12px;background:var(--bg2);border:1px solid var(--br);border-radius:6px;font-size:12px;color:var(--tx2);margin:4px;transition:border-color .15s,color .15s}.j-tag:hover{border-color:var(--br2);color:var(--tx)}
+.j-reg{font-family:var(--fm);font-size:10px;color:var(--ac);letter-spacing:.05em}
+.c-icon{width:48px;height:48px;border:1px solid var(--br2);border-radius:12px;background:var(--bg2);display:flex;align-items:center;justify-content:center;color:var(--ac)}
+.f-link{color:var(--tx2);font-size:14px;line-height:2;display:flex;align-items:center;gap:6px;transition:color .15s}.f-link:hover{color:var(--tx)}
+.f-social{width:32px;height:32px;border:1px solid var(--br);border-radius:6px;background:transparent;cursor:none;display:flex;align-items:center;justify-content:center;color:var(--tx2);transition:border-color .15s,background .15s,color .15s}.f-social:hover{border-color:var(--br2);background:var(--bg2);color:var(--tx)}
+.wm{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;overflow:hidden;user-select:none}
+.wm span{font-family:var(--fd);font-weight:800;font-size:clamp(80px,18vw,240px);color:var(--tx);opacity:.018;white-space:nowrap;letter-spacing:-.04em}
+.divv{width:1px;background:linear-gradient(to bottom,transparent,var(--br2),transparent);align-self:stretch}
+.h-div{height:1px;background:linear-gradient(to right,transparent,var(--br2),transparent)}
+.no-scroll{overflow:hidden}
+
+/* ── RESPONSIVE ─────────────────────────────────────────────── */
+@media(max-width:640px){
+  .hero-h1{font-size:clamp(40px,11vw,60px)!important}
+  .ticker-track{animation-duration:65s}
+  .mob-hide{display:none!important}
+  .mob-col{flex-direction:column!important}
+  .mob-full{width:100%!important;max-width:100%!important}
+  .mob-stack{display:flex!important;flex-direction:column!important}
+  .mob-grid1{grid-template-columns:1fr!important}
+  .mob-grid2{grid-template-columns:1fr 1fr!important}
+  .mob-pad{padding:60px 20px!important}
+  nav.main-nav{padding:0 20px}
+  .globe-section{padding:60px 0}
+  .orderbook-section{padding:60px 0}
+  .ob-canvas-wrap{aspect-ratio:4/3}
+}
+@media(min-width:641px){.desk-hide{display:none!important}}
+@media(max-width:1024px){.tab-grid1{grid-template-columns:1fr!important}.tab-grid2{grid-template-columns:1fr 1fr!important}.tab-col{flex-direction:column!important}}
+</style>
+</head>
+<body>
+<div id="noise"></div>
+<div id="obs-cursor"></div>
+<div id="obs-dot"></div>
+<div id="root"></div>
+<script type="text/babel" data-presets="react">
+const {useState,useEffect,useRef,useCallback,useMemo}=React;
+
+/* ══════════════════════════════════════════════════════════════
+   DEVICE TIER DETECTION
+   Runs once on load — determines which visual tier to render
+   Tier 1 = High-end  (full Three.js, 2000 particles, globe + arcs)
+   Tier 2 = Mid-range (Three.js lite, 400 particles, globe no arcs)
+   Tier 3 = Low-end   (CSS only, SVG fallbacks, zero WebGL)
+══════════════════════════════════════════════════════════════ */
+const DeviceTier = (() => {
+  let tier = null;
+  const detect = () => {
+    if (tier !== null) return tier;
+    // Reduced motion → always CSS
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { tier = 3; return tier; }
+    // Save data → always CSS
+    if (navigator.connection?.saveData) { tier = 3; return tier; }
+    // Check WebGL support
+    try {
+      const canvas = document.createElement('canvas');
+      const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+      if (!gl) { tier = 3; return tier; }
+    } catch(e) { tier = 3; return tier; }
+    // Memory & CPU check
+    const mem = navigator.deviceMemory || 4; // GB, defaults to 4 if unsupported
+    const cpu = navigator.hardwareConcurrency || 4;
+    const slow = navigator.connection?.effectiveType === '2g' || navigator.connection?.effectiveType === 'slow-2g';
+    if (slow || mem < 2 || cpu < 2) { tier = 3; return tier; }
+    if (mem >= 4 && cpu >= 4) { tier = 1; return tier; }
+    tier = 2; return tier;
+  };
+  return { get: detect, isHigh: () => detect() === 1, isMid: () => detect() === 2, isLow: () => detect() === 3 };
+})();
+
+/* ══════════════════════════════════════════════════════════════
+   THREE.JS LAZY LOADER
+   Only loads the library when a 3D component actually needs it.
+   Returns a promise that resolves to true when THREE is ready.
+══════════════════════════════════════════════════════════════ */
+let threePromise = null;
+const loadThree = () => {
+  if (DeviceTier.isLow()) return Promise.resolve(false);
+  if (window.THREE) return Promise.resolve(true);
+  if (threePromise) return threePromise;
+  threePromise = new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.head.appendChild(script);
+  });
+  return threePromise;
+};
+
+/* ══════════════════════════════════════════════════════════════
+   DATA CONSTANTS
+══════════════════════════════════════════════════════════════ */
+const INST=[
+  {id:'EURUSD',lbl:'EUR/USD',bid:1.08452,dg:5,pip:.0001,ch:+.11,up:true,cat:'FX'},
+  {id:'BTCUSD',lbl:'BTC/USD',bid:67834,  dg:2,pip:10,   ch:+1.85,up:true,cat:'CRYPTO'},
+  {id:'XAUUSD',lbl:'XAU/USD',bid:2345.67,dg:2,pip:.1,   ch:+.44,up:true,cat:'CMDTY'},
+  {id:'GBPUSD',lbl:'GBP/USD',bid:1.27234,dg:5,pip:.0001,ch:-.27,up:false,cat:'FX'},
+  {id:'US500', lbl:'US500',  bid:5234.5, dg:1,pip:.25,  ch:+.63,up:true,cat:'INDEX'},
+  {id:'USOIL', lbl:'WTI/USD',bid:78.23,  dg:2,pip:.01,  ch:+.89,up:true,cat:'CMDTY'},
+  {id:'NAS100',lbl:'NAS100', bid:18234,  dg:1,pip:1,    ch:+1.12,up:true,cat:'INDEX'},
+  {id:'USDJPY',lbl:'USD/JPY',bid:149.832,dg:3,pip:.01,  ch:-.15,up:false,cat:'FX'},
+  {id:'ETHUSD',lbl:'ETH/USD',bid:3412.5, dg:1,pip:1,    ch:+2.34,up:true,cat:'CRYPTO'},
+  {id:'GBPJPY',lbl:'GBP/JPY',bid:190.124,dg:3,pip:.01,  ch:-.09,up:false,cat:'FX'},
+];
+
+const HERO_STATS=[
+  {val:890,   pre:'$',suf:'M', lbl:'Daily Volume',   sub:'processed',    dec:0},
+  {val:124847,pre:'', suf:'',  lbl:'Trades Today',   sub:'on platform',  dec:0,comma:true},
+  {val:99.97, pre:'', suf:'%', lbl:'Uptime (30d)',   sub:'guaranteed',   dec:2},
+  {val:12,    pre:'<',suf:'ms',lbl:'Order Latency',  sub:'avg execution',dec:0},
+];
+const PROOF_STATS=[
+  {val:890,   pre:'$',suf:'M', lbl:'Daily Volume',   sub:'Processed',    dec:0},
+  {val:124847,pre:'', suf:'',  lbl:'Trades Today',   sub:'On Platform',  dec:0,comma:true},
+  {val:99.97, pre:'', suf:'%', lbl:'Uptime 30-day',  sub:'Guaranteed',   dec:2},
+  {val:12,    pre:'<',suf:'ms',lbl:'Order Latency',  sub:'Avg Execution',dec:0},
+  {val:18,    pre:'', suf:'+', lbl:'Asset Classes',  sub:'Supported',    dec:0},
+  {val:47,    pre:'', suf:'',  lbl:'Countries',      sub:'Supported',    dec:0},
+];
+const PRODUCTS=[
+  {id:'web',nm:'Web Terminal',brand:'Obsidian',tag:'FOR TRADERS',tc:'b',desc:'The full trading experience in a browser tab. No install required.',feats:['TradingView Charts','Full DOM','18 asset classes'],ac:'#10D996',ic:'chart'},
+  {id:'mob',nm:'Mobile App',brand:'Obsidian Mobile',tag:'FOR TRADERS',tc:'b',desc:'Full feature parity. Built for thumbs, not tolerance.',feats:['8 screens','Swipe gestures','PWA installable'],ac:'#10D996',ic:'phone'},
+  {id:'dsk',nm:'Desktop Pro',brand:'Obsidian Pro',tag:'FOR TRADERS',tc:'b',desc:'Multi-monitor. Native notifications. No throttling.',feats:['Workspace builder','Tray P&L','Offline charts'],ac:'#10D996',ic:'monitor'},
+  {id:'dlr',nm:'Dealer Workstation',brand:'Obsidian Desk',tag:'FOR BROKERS',tc:'bl',desc:'The nerve center for your dealing desk team.',feats:['Live order flow','B/A-Book routing','Risk gauges'],ac:'#3B82F6',ic:'bolt'},
+  {id:'adm',nm:'Broker Admin',brand:'Obsidian Command',tag:'FOR BROKERS',tc:'bl',desc:'Every operational tool to run your broker from one screen.',feats:['CRM','KYC','Finance','Reports'],ac:'#3B82F6',ic:'grid'},
+  {id:'ib', nm:'IB Portal',brand:'Obsidian Partners',tag:'FOR BROKERS',tc:'bl',desc:'Turn your affiliates into a distribution machine.',feats:['Commission tracking','Sub-IB trees','Mktg kit'],ac:'#3B82F6',ic:'nodes'},
+  {id:'hub',nm:'Platform Hub',brand:'Obsidian Hub',tag:'PLATFORM OWNER',tc:'go',desc:'Manage every tenant from one command center.',feats:['Tenant billing','LP routing','Platform health'],ac:'#F59E0B',ic:'hex'},
+  {id:'mir',nm:'Copy Trading',brand:'Obsidian Mirror',tag:'TRADERS + BROKERS',tc:'p',desc:'Let your clients trade the best traders. Automatically.',feats:['Signal marketplace','Risk controls','Perf fees'],ac:'#8B5CF6',ic:'mirror'},
+  {id:'wgt',nm:'Browser Extension',brand:'Obsidian Widget',tag:'FOR TRADERS',tc:'b',desc:'Live prices and quick trades while you browse the web.',feats:['Price alerts','Quick trade','Portfolio glance'],ac:'#10D996',ic:'puzzle'},
+];
+const PRICING=[
+  {id:'str',nm:'Starter',mo:500,yr:400,cl:'Up to 100 clients',hi:false,badge:null,feats:['Basic instruments','Web terminal','Broker admin','Email support','1 LP integration','Standard KYC'],cta:'Get Started',ghost:true},
+  {id:'gro',nm:'Growth',mo:1200,yr:960,cl:'Up to 500 clients',hi:false,badge:null,feats:['All instruments','Web terminal','+ Mobile app','+ IB Portal','Chat support','3 LP integrations'],cta:'Get Started',ghost:true},
+  {id:'pro',nm:'Pro',mo:2500,yr:2000,cl:'Up to 2,000 clients',hi:true,badge:'MOST POPULAR',feats:['All instruments','All 9 products','+ Desktop Pro','+ Copy Trading','Dedicated AM','Priority 24/7'],cta:'Get Started',ghost:false},
+  {id:'ent',nm:'Enterprise',mo:null,yr:null,cl:'Unlimited clients',hi:false,badge:null,feats:['Everything in Pro','Custom infrastructure','SLA 99.99%','White-glove setup','Custom integrations','Dedicated engineers'],cta:'Contact Sales',ghost:true},
+];
+const FAQS=[
+  {q:'Is the entire platform truly white-labeled?',a:"Yes. Your domain, your logo, your colors, your brand name. Clients never see the word 'Obsidian'. Every email, every PDF statement, every push notification — your brand."},
+  {q:'What payment methods do you accept?',a:'All major cards, wire transfer, SEPA, and USDT. Annual subscriptions can be invoiced with net-30 terms for Enterprise clients.'},
+  {q:'How long does onboarding take?',a:'Our record is 6 days. Average is 3 weeks. A dedicated onboarding manager is included on all plans — not a ticketing system, a person.'},
+  {q:'Do you provide liquidity?',a:'We integrate with LMAX, Integral, Currenex, and 8 other LPs. You bring your LP relationship; we handle the technical bridge. FIX 4.4 connectivity included.'},
+  {q:'Is the platform FCA/CySEC/ASIC compliant?',a:'The platform is built for compliance, not around it. KYC, AML, leverage caps, negative balance protection, and MiFID II reporting are all built in and configurable per jurisdiction.'},
+];
+const TESTI=[
+  {q:"We launched our regulated FX broker in 6 weeks. Our previous vendor took 18 months and still couldn't give us a mobile app. Obsidian gave us 9 products on day one.",nm:'Marcus Webb',ti:'CEO, GlobalFX Pro',lo:'Dubai, UAE',in:'MW'},
+  {q:'The dealer workstation alone replaced three separate tools we were paying for. Risk management, execution blotter, client monitoring — all in one screen.',nm:'Sarah Kim',ti:'Head of Operations, ArcaFX Markets',lo:'London, UK',in:'SK'},
+  {q:'The IB portal is why our partners stay with us. Commission is paid automatically, statements are professional, and the multi-tier tracking is flawless. We went from 12 IBs to 89 in one year.',nm:'Ahmed Al-Mansouri',ti:'Founder, NovaTrade',lo:'Riyadh, SA',in:'AA'},
+];
+const TECHS=['Next.js','Node.js','PostgreSQL','Redis','Kafka','Kubernetes','AWS','TradingView','FIX 4.4','WebSocket','Docker','Terraform'];
+const PERFS=[
+  {l:'Order processing latency',v:'< 12ms average, < 50ms P99'},
+  {l:'WebSocket message delivery',v:'< 8ms to client after fill'},
+  {l:'Price feed update frequency',v:'100ms (10× per second)'},
+  {l:'System throughput capacity',v:'50,000 trades per second'},
+  {l:'Trade history retention',v:'7 years — immutable audit log'},
+  {l:'Backup frequency',v:'Every 6 hours, 3 geographic regions'},
+];
+const JURISDICTIONS=[
+  {f:'🇬🇧',c:'UK',r:'FCA'},{f:'🇨🇾',c:'Cyprus',r:'CySEC'},{f:'🇦🇺',c:'Australia',r:'ASIC'},
+  {f:'🇦🇪',c:'UAE',r:'DFSA'},{f:'🇸🇨',c:'Seychelles',r:'FSA'},{f:'🇻🇬',c:'BVI',r:'FSC'},
+  {f:'🇰🇾',c:'Cayman',r:'CIMA'},{f:'🇿🇦',c:'S.Africa',r:'FSCA'},{f:'🇸🇬',c:'Singapore',r:'MAS'},
+  {f:'🇨🇭',c:'Switzerland',r:'FINMA'},{f:'🇲🇺',c:'Mauritius',r:'FSC'},{f:'🇧🇸',c:'Bahamas',r:'SCB'},
+];
+const STEPS=[
+  {n:1,t:'Day 1',h:'Discovery Call',d:'30 minutes. We learn your market, target clients, jurisdiction, and LP relationships. No sales pitch — just architecture planning.'},
+  {n:2,t:'Day 2–3',h:'Demo + Contract',d:'See the full platform live. Sign contracts. Your dedicated onboarding manager is assigned immediately.'},
+  {n:3,t:'Days 4–10',h:'Technical Setup',d:'Domain configuration, branding, instruments, pricing rules, LP integration. We do the heavy lifting. You review and approve.'},
+  {n:4,t:'Days 11–17',h:'UAT & Compliance',d:'User acceptance testing. Compliance sign-off. Team training sessions. Marketing materials prepared and reviewed.'},
+  {n:5,t:'Day 18–21',h:'Go Live',d:'Your branded platform is live. Clients can register, verify, deposit, and trade. Obsidian infrastructure handles everything else.'},
+];
+const PHRASES=[
+  {txt:'brokers deserve.',col:'#E2E8F0'},
+  {txt:'traders demand.',col:'#3B82F6'},
+  {txt:'institutions trust.',col:'#10D996'},
+  {txt:'the world runs on.',col:'#F59E0B'},
+];
+const BROKER_BEN=['Full white-label — your brand, your domain, your colors','All 9 platform products included under one subscription','Built-in KYC, AML, and regulatory compliance tooling','Dealer workstation + admin panel + IB portal — day one','Multi-tier IB and affiliate management system','24/7 infrastructure. 99.97% uptime SLA.'];
+const TRADER_BEN=['Sub-12ms order execution from any device','18+ asset classes: FX, crypto, indices, commodities','Desktop Pro app — multi-monitor, native alerts, tray P&L','Mobile app with full feature parity — not a stripped version','TradingView charts with all timeframes and indicators','Copy the best traders with one click — Obsidian Mirror'];
+const IB_STATS=[{v:'47%',l:'of client volume',s:'via IBs avg'},{v:'$0',l:'commission delay',s:'guaranteed'},{v:'3-tier',l:'network depth',s:'supported'}];
+const MIR_STATS=[{v:'847',l:'avg copiers',s:'per top strategy'},{v:'+28.4%',l:'avg top trader',s:'return 12-month'},{v:'20%',l:'perf fee model',s:'built in'}];
+const TRUST_LOGOS=[{l:'FT',w:48},{l:'Bloomberg',w:96},{l:'Reuters',w:80},{l:'LMAX',w:64},{l:'Integral',w:72},{l:'FSA',w:52},{l:'CySEC',w:68},{l:'ASIC',w:56},{l:'FCA',w:48}];
+const STORIES=[
+  {id:'charts',ti:'Charts & Analysis',frames:[
+    {h:'See everything.',b:"TradingView Lightweight Charts — the same engine used by Bloomberg, TradingView.com, and the world's largest brokers. Every timeframe from 1 minute to monthly.",v:'chart'},
+    {h:'Indicators that traders actually use.',b:'MA, EMA, MACD, RSI, Bollinger Bands, VWAP, Ichimoku, ATR, Stochastic — all built in. Stacked. Customizable.',v:'indicators'},
+    {h:'Draw. Annotate. Strategize.',b:'Trendlines, Fibonacci, rectangles, text notes. Saved per symbol, synced across every device you own.',v:'drawings'},
+    {h:'Multi-timeframe. Multi-symbol.',b:'Split your screen. Compare timeframes. The professional workflow, finally on the web.',v:'multi'},
+  ]},
+  {id:'exec',ti:'Order Execution',frames:[
+    {h:'Fast is a feature.',b:'Sub-12ms order processing. Not as a benchmark — as a guarantee written into your SLA. Measured. Monitored. Contractual.',v:'latency'},
+    {h:'Every order type, handled.',b:'Market. Limit. Stop. Stop Limit. Trailing Stop. OCO. Fill or Kill. Professional-grade execution logic.',v:'ordertypes'},
+    {h:'One click. Confirmed.',b:'Hold-to-confirm on mobile. One-click mode on desktop. Configurable per account type. Never an accidental trade.',v:'oneclick'},
+    {h:'Requote. Reject. Route. Automated.',b:'Define your execution policy per instrument and per client group. Auto-accept, auto-STP, auto-hedge.',v:'routing'},
+  ]},
+  {id:'risk',ti:'Risk & Infrastructure',frames:[
+    {h:'Know your exposure before it knows you.',b:"Real-time book aggregation. Live exposure gauges. Automated hedge triggers. The risk you don't know about is the risk that ends brokers.",v:'gauges'},
+    {h:'A-Book. B-Book. The choice is yours.',b:'Route per symbol, per client group, per trade size. Smart Order Routing across multiple LPs.',v:'abook'},
+    {h:'99.97% uptime. A contractual SLA.',b:'Redundant infrastructure. Automatic failover. Real-time health monitoring.',v:'status'},
+    {h:'Scale from 50 clients to 50,000.',b:'The same infrastructure that handles 50 clients handles 50,000. Auto-scaling. No re-platforming. Ever.',v:'scale'},
+  ]},
+];
+
+/* ══════════════════════════════════════════════════════════════
+   UTILITY HOOKS
+══════════════════════════════════════════════════════════════ */
+function useReveal(delay=0,threshold=0.13){
+  const ref=useRef(null);
+  useEffect(()=>{
+    const el=ref.current;if(!el)return;
+    const obs=new IntersectionObserver(entries=>{
+      if(entries[0].isIntersecting){setTimeout(()=>el.classList.add('on'),delay);obs.unobserve(el);}
+    },{threshold,rootMargin:'0px 0px -50px 0px'});
+    el.classList.add('rev');obs.observe(el);
+    return()=>obs.disconnect();
+  },[delay,threshold]);
+  return ref;
+}
+function useVisibility(threshold=0.2){
+  const ref=useRef(null);const[vis,setVis]=useState(false);
+  useEffect(()=>{
+    const obs=new IntersectionObserver(e=>{if(e[0].isIntersecting){setVis(true);obs.disconnect();}},{threshold});
+    if(ref.current)obs.observe(ref.current);return()=>obs.disconnect();
+  },[threshold]);
+  return[ref,vis];
+}
+
+/* ══════════════════════════════════════════════════════════════
+   COUNTER
+══════════════════════════════════════════════════════════════ */
+function easeOutExpo(t){return t>=1?1:1-Math.pow(2,-10*t);}
+function Counter({val,pre='',suf='',dec=0,comma=false,dur=2200,sz='48px',cls=''}){
+  const[disp,setDisp]=useState(pre+(comma?'0':dec>0?'0.00':'0')+suf);
+  const ref=useRef(null);
+  const fmt=n=>{let s=comma?Math.round(n).toLocaleString('en-US'):dec>0?n.toFixed(dec):String(Math.round(n));return pre+s+suf;};
+  useEffect(()=>{
+    const el=ref.current;if(!el)return;
+    const obs=new IntersectionObserver(entries=>{
+      if(!entries[0].isIntersecting)return;obs.unobserve(el);
+      const t0=performance.now();
+      const tick=now=>{const p=Math.min((now-t0)/dur,1);setDisp(fmt(easeOutExpo(p)*val));if(p<1)requestAnimationFrame(tick);else setDisp(fmt(val));};
+      requestAnimationFrame(tick);
+    },{threshold:.3});
+    obs.observe(el);return()=>obs.disconnect();
+  },[val]);
+  return<span ref={ref} className={`stat-num fm ${cls}`} style={{fontSize:sz,fontVariantNumeric:'tabular-nums'}} data-price>{disp}</span>;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   LIVE PRICE ATOM
+══════════════════════════════════════════════════════════════ */
+function LP({inst,label=true,change=true,sz='sm'}){
+  const[s,setS]=useState({bid:inst.bid,ch:inst.ch,up:inst.up,flash:null});
+  const alive=useRef(true);
+  useEffect(()=>{
+    alive.current=true;
+    const iv=setInterval(()=>{
+      if(!alive.current)return;
+      setS(p=>{const dir=Math.random()>.5?1:-1;const nb=+(p.bid+dir*inst.pip*(1+Math.random()*3)).toFixed(inst.dg);const nc=+(p.ch+(Math.random()-.5)*.022).toFixed(2);return{bid:nb,ch:nc,up:nc>=0,flash:dir>0?'bull':'bear'};});
+      setTimeout(()=>{if(alive.current)setS(p=>({...p,flash:null}));},480);
+    },1200);
+    return()=>{alive.current=false;clearInterval(iv);};
+  },[inst]);
+  const sz2={xs:{p:'11px',c:'10px'},sm:{p:'13px',c:'11px'},md:{p:'16px',c:'12px'},lg:{p:'20px',c:'13px'}}[sz]||{p:'13px',c:'11px'};
+  const fc=s.flash==='bull'?'fb-bull':s.flash==='bear'?'fb-bear':'';
+  return(
+    <span style={{display:'inline-flex',alignItems:'center',gap:6}} data-price>
+      {label&&<span className="fm t-sym" style={{fontSize:sz2.c}}>{inst.lbl}</span>}
+      <span className={`fm t-price ${fc}`} style={{fontSize:sz2.p,fontVariantNumeric:'tabular-nums'}}>{s.bid.toFixed(inst.dg)}</span>
+      {change&&<span className={`fm t-ch ${s.up?'up':'dn'}`} style={{fontSize:sz2.c}}>{s.up?'▲ +':'▼ '}{Math.abs(s.ch).toFixed(2)}%</span>}
+    </span>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   TICKER
+══════════════════════════════════════════════════════════════ */
+function Ticker(){
+  const[prices,setPrices]=useState(()=>INST.reduce((a,i)=>({...a,[i.id]:{bid:i.bid,ch:i.ch,up:i.up,flash:null}}),{}));
+  const alive=useRef(true);
+  useEffect(()=>{
+    alive.current=true;
+    const iv=setInterval(()=>{
+      if(!alive.current)return;
+      setPrices(prev=>{const next={...prev};INST.forEach(inst=>{const dir=Math.random()>.5?1:-1;const nb=+(prev[inst.id].bid+dir*inst.pip*(1+Math.random()*4)).toFixed(inst.dg);const nc=+(prev[inst.id].ch+(Math.random()-.5)*.03).toFixed(2);next[inst.id]={bid:nb,ch:nc,up:nc>=0,flash:dir>0?'bull':'bear'};});return next;});
+      setTimeout(()=>{if(alive.current)setPrices(p=>{const n={...p};INST.forEach(i=>{n[i.id]={...p[i.id],flash:null}});return n;});},480);
+    },1200);
+    return()=>{alive.current=false;clearInterval(iv);};
+  },[]);
+  const Item=({inst})=>{const pr=prices[inst.id];const fc=pr.flash==='bull'?'fb-bull':pr.flash==='bear'?'fb-bear':'';return(<div className="ticker-item" data-price><span className="t-sym">{inst.lbl}</span><span className={`t-price fm ${fc}`} style={{fontVariantNumeric:'tabular-nums'}}>{pr.bid.toFixed(inst.dg)}</span><span className={`fm t-ch ${pr.up?'up':'dn'}`} style={{fontSize:10}}>{pr.up?'▲ +':'▼ '}{Math.abs(pr.ch).toFixed(2)}%</span></div>);};
+  return(<div className="ticker-wrap"><div className="ticker-fade-l"/><div className="ticker-fade-r"/><div className="ticker-track">{[0,1].flatMap(c=>INST.map(i=><Item key={`${c}-${i.id}`} inst={i}/>))}</div></div>);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   CURSOR CONTROLLER
+══════════════════════════════════════════════════════════════ */
+function CursorController(){
+  useEffect(()=>{
+    const cur=document.getElementById('obs-cursor');const dot=document.getElementById('obs-dot');
+    if(!cur||!dot)return;
+    if(!window.matchMedia('(hover:hover)').matches){cur.style.display='none';dot.style.display='none';return;}
+    let tx=-100,ty=-100,cx=-100,cy=-100,raf=null;
+    const onMove=e=>{tx=e.clientX;ty=e.clientY;dot.style.left=tx+'px';dot.style.top=ty+'px';};
+    const loop=()=>{cx+=(tx-cx)*.12;cy+=(ty-cy)*.12;cur.style.left=cx+'px';cur.style.top=cy+'px';raf=requestAnimationFrame(loop);};
+    document.addEventListener('mousemove',onMove);raf=requestAnimationFrame(loop);
+    const ov=e=>{const t=e.target;if(t.closest('[data-price]')){cur.classList.add('cross');cur.classList.remove('xl');}else if(t.closest('a,button,input,select,[role=button]')){cur.classList.add('xl');cur.classList.remove('cross');}};
+    const ou=()=>{cur.classList.remove('xl','cross');};
+    document.addEventListener('mouseover',ov);document.addEventListener('mouseout',ou);
+    return()=>{document.removeEventListener('mousemove',onMove);document.removeEventListener('mouseover',ov);document.removeEventListener('mouseout',ou);cancelAnimationFrame(raf);};
+  },[]);
+  return null;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   NAV
+══════════════════════════════════════════════════════════════ */
+const NAV_LINKS=[{l:'Platform',h:'#ecosystem'},{l:'Pricing',h:'#pricing'},{l:'Brokers',h:'#brokers'},{l:'Traders',h:'#traders'},{l:'Globe',h:'#globe'},{l:'Blog',h:'#'}];
+function Nav(){
+  const[scrolled,setScrolled]=useState(false);const[open,setOpen]=useState(false);const[isMob,setIsMob]=useState(window.innerWidth<1024);
+  useEffect(()=>{const onS=()=>setScrolled(window.scrollY>80);const onR=()=>setIsMob(window.innerWidth<1024);window.addEventListener('scroll',onS,{passive:true});window.addEventListener('resize',onR);return()=>{window.removeEventListener('scroll',onS);window.removeEventListener('resize',onR);};},[]);
+  useEffect(()=>{document.body.classList.toggle('no-scroll',open);},[open]);
+  const go=h=>{setOpen(false);if(h.startsWith('#')){setTimeout(()=>{const el=document.querySelector(h);if(el)el.scrollIntoView({behavior:'smooth'});},open?400:0);}};
+  return(<>
+    <nav className={`main-nav${scrolled?' scrolled':''}`}>
+      <a href="/" style={{display:'flex',alignItems:'center',gap:10}}><span className="logo-dot"/><span className="fd" style={{fontSize:16,fontWeight:700,color:'var(--tx)',letterSpacing:'-.01em'}}>OBSIDIAN</span></a>
+      {!isMob&&<div style={{display:'flex',alignItems:'center',gap:28}}>{NAV_LINKS.map(l=><button key={l.l} onClick={()=>go(l.h)} className="nav-link">{l.l}</button>)}</div>}
+      <div style={{display:'flex',alignItems:'center',gap:12}}>
+        {!isMob&&<button className="btn-g" style={{padding:'8px 18px'}}>Request Demo</button>}
+        {!isMob&&<button className="btn-p" style={{padding:'8px 20px'}}>Get Started <span className="arr">→</span></button>}
+        {isMob&&<button onClick={()=>setOpen(o=>!o)} className={`ham${open?' open':''}`}><span/><span/><span/></button>}
+      </div>
+    </nav>
+    <div className={`mob-menu${open?' open':''}`}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'0 20px',height:64,borderBottom:'1px solid var(--br)',flexShrink:0}}>
+        <div style={{display:'flex',alignItems:'center',gap:10}}><span className="logo-dot"/><span className="fd" style={{fontSize:16,fontWeight:700,color:'var(--tx)'}}>OBSIDIAN</span></div>
+        <button onClick={()=>setOpen(false)} className="ham open"><span/><span/><span/></button>
+      </div>
+      <div style={{padding:'32px 24px',flex:1}}>{NAV_LINKS.map((l,i)=><button key={l.l} onClick={()=>go(l.h)} className="fd" style={{display:'block',width:'100%',textAlign:'left',fontSize:26,fontWeight:700,color:'var(--tx)',background:'transparent',border:'none',borderBottom:'1px solid var(--br)',padding:'14px 0',cursor:'none',letterSpacing:'-.02em'}}>{l.l}</button>)}</div>
+      <div style={{padding:'0 24px 40px',display:'flex',flexDirection:'column',gap:12}}>
+        <button className="btn-p" style={{padding:'14px',fontSize:15,justifyContent:'center'}}>Get Started <span className="arr">→</span></button>
+        <button className="btn-g" style={{padding:'14px',fontSize:15,justifyContent:'center'}}>Request Demo</button>
+      </div>
+    </div>
+  </>);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   PARTICLE FIELD — TIER-ADAPTIVE
+   Tier 1/2: Three.js BufferGeometry Points (single draw call)
+   Tier 3:   60 CSS animated divs
+══════════════════════════════════════════════════════════════ */
+function ParticleField({containerRef}){
+  const canvasRef=useRef(null);
+  const[ready,setReady]=useState(false);
+
+  useEffect(()=>{
+    const tier=DeviceTier.get();
+    if(tier===3){setReady(true);return;} // CSS fallback handles it
+
+    loadThree().then(ok=>{
+      if(!ok){setReady(true);return;}
+      const container=containerRef?.current;
+      if(!container)return;
+      const THREE=window.THREE;
+
+      // Scene setup
+      const scene=new THREE.Scene();
+      const w=container.offsetWidth||window.innerWidth;
+      const h=container.offsetHeight||window.innerHeight;
+      const camera=new THREE.PerspectiveCamera(60,w/h,0.1,1000);
+      camera.position.z=400;
+
+      const renderer=new THREE.WebGLRenderer({canvas:canvasRef.current,alpha:true,antialias:false,powerPreference:'low-power'});
+      renderer.setSize(w,h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio,tier===1?2:1));
+      renderer.setClearColor(0x000000,0);
+
+      // Particle counts
+      const count=tier===1?1800:420;
+      const positions=new Float32Array(count*3);
+      const colors=new Float32Array(count*3);
+      const speeds=new Float32Array(count);
+      const phases=new Float32Array(count);
+
+      // Color palette: blue, green, gold — weighted toward blue
+      const palette=[
+        new THREE.Color('#3B82F6'),
+        new THREE.Color('#3B82F6'),
+        new THREE.Color('#3B82F6'),
+        new THREE.Color('#10D996'),
+        new THREE.Color('#F59E0B'),
+      ];
+
+      for(let i=0;i<count;i++){
+        positions[i*3]=(Math.random()-0.5)*900;
+        positions[i*3+1]=(Math.random()-0.5)*700;
+        positions[i*3+2]=(Math.random()-0.5)*400;
+        speeds[i]=0.08+Math.random()*0.12;
+        phases[i]=Math.random()*Math.PI*2;
+        const col=palette[Math.floor(Math.random()*palette.length)];
+        colors[i*3]=col.r;colors[i*3+1]=col.g;colors[i*3+2]=col.b;
+      }
+
+      const geo=new THREE.BufferGeometry();
+      geo.setAttribute('position',new THREE.BufferAttribute(positions,3));
+      geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+
+      const mat=new THREE.PointsMaterial({size:tier===1?2.2:1.8,vertexColors:true,transparent:true,opacity:0.55,sizeAttenuation:true});
+      const points=new THREE.Points(geo,mat);
+      scene.add(points);
+
+      // Mouse interaction (high tier only)
+      let mouseX=0,mouseY=0;
+      const onMouseMove=e=>{mouseX=(e.clientX/w-0.5)*0.3;mouseY=-(e.clientY/h-0.5)*0.3;};
+      if(tier===1)window.addEventListener('mousemove',onMouseMove,{passive:true});
+
+      let animId;let t=0;
+      const animate=()=>{
+        animId=requestAnimationFrame(animate);
+        t+=0.006;
+        const pos=geo.attributes.position.array;
+        for(let i=0;i<count;i++){
+          pos[i*3+1]+=speeds[i];
+          // Wrap around top
+          if(pos[i*3+1]>350)pos[i*3+1]=-350;
+          // Gentle drift on X
+          pos[i*3]+=Math.sin(t+phases[i])*0.08;
+        }
+        geo.attributes.position.needsUpdate=true;
+
+        // Camera drift toward mouse
+        if(tier===1){camera.position.x+=(mouseX*80-camera.position.x)*0.025;camera.position.y+=(mouseY*60-camera.position.y)*0.025;}
+        camera.lookAt(scene.position);
+
+        // Pulse opacity
+        mat.opacity=0.42+Math.sin(t*0.7)*0.13;
+        renderer.render(scene,camera);
+      };
+      animate();
+
+      // Resize handler
+      const onResize=()=>{
+        const nw=container.offsetWidth||window.innerWidth;const nh=container.offsetHeight||window.innerHeight;
+        camera.aspect=nw/nh;camera.updateProjectionMatrix();
+        renderer.setSize(nw,nh);
+      };
+      window.addEventListener('resize',onResize,{passive:true});
+
+      setReady(true);
+
+      return()=>{
+        cancelAnimationFrame(animId);
+        window.removeEventListener('mousemove',onMouseMove);
+        window.removeEventListener('resize',onResize);
+        geo.dispose();mat.dispose();renderer.dispose();
+      };
+    });
+  },[]);
+
+  const tier=DeviceTier.get();
+
+  if(tier===3){
+    // CSS particle fallback — 60 divs, zero JS overhead
+    const cssParticles=useMemo(()=>Array.from({length:60},(_,i)=>({
+      id:i,
+      left:Math.random()*100,
+      bottom:Math.random()*20,
+      dur:5+Math.random()*8,
+      delay:Math.random()*8,
+      dx:(Math.random()-0.5)*80,
+      type:i%5===0?'green':i%7===0?'gold':'',
+    })),[]);
+    return(
+      <div style={{position:'absolute',inset:0,overflow:'hidden',pointerEvents:'none',zIndex:0}}>
+        {cssParticles.map(p=>(
+          <div key={p.id} className={`css-particle ${p.type}`} style={{left:`${p.left}%`,bottom:`${p.bottom}%`,'--dur':`${p.dur}s`,'--delay':`${p.delay}s`,'--dx':`${p.dx}px`}}/>
+        ))}
+      </div>
+    );
+  }
+
+  return(
+    <div style={{position:'absolute',inset:0,pointerEvents:'none',zIndex:0,opacity:ready?1:0,transition:'opacity 1.2s ease'}}>
+      <canvas ref={canvasRef} style={{display:'block',width:'100%',height:'100%'}}/>
+    </div>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   HERO — with particle field + mouse-reactive glow
+══════════════════════════════════════════════════════════════ */
+function Hero(){
+  const heroRef=useRef(null);
+  const glowRef=useRef(null);
+  const[pi,setPi]=useState(0);const[txt,setTxt]=useState('');const[phase,setPhase]=useState('type');
+  const[v,setV]=useState([false,false,false,false,false,false]);
+  const ci=useRef(0);const tmr=useRef(null);
+
+  useEffect(()=>{
+    const delays=[0,160,320,500,680,880];
+    delays.forEach((d,i)=>setTimeout(()=>setV(p=>{const n=[...p];n[i]=true;return n;}),d));
+  },[]);
+
+  useEffect(()=>{
+    const phrase=PHRASES[pi].txt;clearTimeout(tmr.current);
+    if(phase==='type'){if(ci.current<phrase.length){tmr.current=setTimeout(()=>{setTxt(phrase.slice(0,ci.current+1));ci.current++;},38);}else tmr.current=setTimeout(()=>setPhase('pause'),80);}
+    else if(phase==='pause'){tmr.current=setTimeout(()=>setPhase('del'),3200);}
+    else if(phase==='del'){if(ci.current>0){tmr.current=setTimeout(()=>{ci.current--;setTxt(phrase.slice(0,ci.current));},20);}else{setPi(p=>(p+1)%PHRASES.length);setPhase('type');}}
+    return()=>clearTimeout(tmr.current);
+  },[phase,txt,pi]);
+
+  // Mouse-reactive glow (pure CSS vars, works on all tiers)
+  useEffect(()=>{
+    const hero=heroRef.current;const glow=glowRef.current;
+    if(!hero||!glow)return;
+    const onMove=e=>{
+      const rect=hero.getBoundingClientRect();
+      glow.style.left=(e.clientX-rect.left)+'px';
+      glow.style.top=(e.clientY-rect.top)+'px';
+    };
+    hero.addEventListener('mousemove',onMove,{passive:true});
+    return()=>hero.removeEventListener('mousemove',onMove);
+  },[]);
+
+  const fade=(i,d=0)=>({opacity:v[i]?1:0,transform:v[i]?'none':'translateY(24px) scale(.97)',transition:`opacity 640ms cubic-bezier(.16,1,.3,1) ${d}ms, transform 640ms cubic-bezier(.16,1,.3,1) ${d}ms`});
+
+  return(
+    <section id="hero" ref={heroRef} style={{minHeight:'100dvh',background:'var(--bg)',overflow:'hidden',display:'flex',flexDirection:'column',position:'relative'}}>
+      <div className="grid-bg"/>
+      {/* Static radial glow */}
+      <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 800px 600px at 50% 40%,rgba(59,130,246,.056) 0%,transparent 70%)',pointerEvents:'none',zIndex:0}}/>
+      {/* Mouse-reactive glow */}
+      <div id="hero-mouse-glow" ref={glowRef} style={{left:'50%',top:'40%'}}/>
+      {/* 3D Particle field */}
+      <ParticleField containerRef={heroRef}/>
+
+      <div style={{position:'relative',zIndex:10,display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',flex:1,padding:'100px 24px 40px',textAlign:'center'}}>
+        <div style={{maxWidth:900,width:'100%'}}>
+          <div style={{...fade(0),display:'flex',justifyContent:'center',marginBottom:28}}>
+            <div className="eyebrow-pill"><span className="live-dot"/><span>LIVE PLATFORM — 14 BROKERS — 8,412 TRADERS</span></div>
+          </div>
+          <div style={{...fade(1,120),marginBottom:20}}>
+            <h1 className="hero-h1">The trading platform</h1>
+            <h1 className="hero-h1" style={{minHeight:'1.1em'}}><span style={{color:PHRASES[pi].col,transition:'color .35s ease'}}>{txt}</span><span className="tw-caret"/></h1>
+          </div>
+          <div style={{...fade(2,200),display:'flex',justifyContent:'center',marginBottom:40}}>
+            <p className="fb" style={{fontSize:'clamp(15px,1.8vw,18px)',color:'var(--tx2)',lineHeight:1.65,maxWidth:600}}>White-label the full-stack trading infrastructure. From matching engine to mobile app — launch your branded broker in weeks, not years.</p>
+          </div>
+          <div style={{...fade(3,260),display:'flex',flexWrap:'wrap',gap:12,justifyContent:'center',marginBottom:40}}>
+            <button className="btn-p" style={{padding:'14px 28px',fontSize:15}}>Start Building Your Broker <span className="arr">→</span></button>
+            <button className="btn-g" style={{padding:'14px 24px',fontSize:15}}><span style={{color:'var(--ac)'}}>▷</span> Watch Live Demo <span className="fm" style={{fontSize:11,color:'var(--tx3)',marginLeft:6}}>2:34</span></button>
+          </div>
+          <div style={fade(4,320)}>
+            <p className="fb" style={{fontSize:13,color:'var(--tx3)',letterSpacing:'.05em',marginBottom:14}}>Trusted by regulated brokers in 18 countries</p>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:16,flexWrap:'wrap'}}>
+              {[80,64,96,72,56].map((w,i)=><div key={i} className="tl-logo" style={{width:w}}/>)}
+              <span className="fm" style={{fontSize:11,color:'var(--tx3)'}}>+ 11 more</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style={{...fade(5,400),position:'relative',zIndex:10,borderTop:'1px solid var(--br)',background:'rgba(12,14,18,.65)',backdropFilter:'blur(12px)'}}>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',maxWidth:960,margin:'0 auto'}}>
+          {HERO_STATS.map((s,i)=>(
+            <div key={s.lbl} style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'20px 12px',textAlign:'center',borderRight:i<3?'1px solid var(--br)':'none'}}>
+              <Counter val={s.val} pre={s.pre} suf={s.suf} dec={s.dec} comma={s.comma} dur={1900} sz="clamp(20px,2.8vw,28px)"/>
+              <div className="fb" style={{fontSize:10,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase',marginTop:6}}>{s.lbl}</div>
+              <div className="fb" style={{fontSize:10,color:'var(--tx3)',opacity:.65}}>{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+      <div style={{position:'relative',zIndex:10}}><Ticker/></div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   MINI COMPONENTS (Demo section helpers)
+══════════════════════════════════════════════════════════════ */
+function CandleChart({h:svgH=80}){
+  const candles=[{o:40,h:55,l:35,c:50,b:true},{o:50,h:62,l:45,c:58,b:true},{o:58,h:65,l:52,c:54,b:false},{o:54,h:60,l:48,c:61,b:true},{o:61,h:68,l:57,c:65,b:true},{o:65,h:70,l:59,c:62,b:false},{o:62,h:67,l:56,c:70,b:true},{o:70,h:76,l:64,c:68,b:false},{o:68,h:74,l:62,c:73,b:true},{o:73,h:80,l:69,c:78,b:true},{o:78,h:82,l:72,c:75,b:false},{o:75,h:79,l:68,c:76,b:true}];
+  const W=200,pad=8,cW=10,gap=6,mn=30,mx=85;const sc=v=>svgH-pad-((v-mn)/(mx-mn))*(svgH-pad*2);
+  return(<svg viewBox={`0 0 ${W} ${svgH}`} style={{width:'100%',height:'100%'}}>{[35,50,65,80].map(y=><line key={y} x1="0" y1={sc(y)} x2={W} y2={sc(y)} stroke="var(--br)" strokeWidth=".5" strokeDasharray="3 3"/>)}<polyline points={candles.map((c,i)=>`${i*(cW+gap)+pad+cW/2},${sc((c.o+c.c)/2)}`).join(' ')} fill="none" stroke="var(--ac)" strokeWidth="1" opacity=".6"/>{candles.map((c,i)=>{const x=i*(cW+gap)+pad,top=sc(Math.max(c.o,c.c)),bot=sc(Math.min(c.o,c.c)),bh=Math.max(bot-top,1),cx=x+cW/2;return(<g key={i}><line x1={cx} y1={sc(c.h)} x2={cx} y2={sc(c.l)} className={c.b?'wk-bull':'wk-bear'}/><rect x={x} y={top} width={cW} height={bh} className={c.b?'ck-bull':'ck-bear'} rx=".5"/></g>);})}</svg>);
+}
+function MiniPositions(){
+  const rows=[{s:'EUR/USD',side:'BUY',pnl:24.5},{s:'XAU/USD',side:'SELL',pnl:-11.2},{s:'US500',side:'BUY',pnl:87.3}];
+  const[pnl,setPnl]=useState(rows.map(r=>r.pnl));
+  useEffect(()=>{const iv=setInterval(()=>setPnl(p=>p.map(v=>+(v+(Math.random()-.48)*2.8).toFixed(2))),1200);return()=>clearInterval(iv);},[]);
+  return(<div style={{borderTop:'1px solid var(--br)'}}>{rows.map((r,i)=><div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'6px 12px',borderBottom:'1px solid var(--br)'}}><div style={{display:'flex',alignItems:'center',gap:8}}><span className="fm" style={{fontSize:8,padding:'1px 4px',borderRadius:2,background:r.side==='BUY'?'rgba(16,217,150,.15)':'rgba(255,59,92,.15)',color:r.side==='BUY'?'var(--bull)':'var(--bear)',fontWeight:600}}>{r.side}</span><span className="fm" style={{fontSize:10,color:'var(--tx2)'}}>{r.s}</span></div><span className="fm" style={{fontSize:11,fontWeight:600,color:pnl[i]>=0?'var(--bull)':'var(--bear)',fontVariantNumeric:'tabular-nums',transition:'color .3s'}}>{pnl[i]>=0?'+':''}{pnl[i].toFixed(2)}</span></div>)}</div>);
+}
+function MiniOrder(){
+  const[side,setSide]=useState('buy');
+  return(<div style={{padding:'10px 12px'}}><div style={{display:'flex',gap:4,marginBottom:12}}><button onClick={()=>setSide('buy')} className="fd" style={{flex:1,padding:'6px 0',borderRadius:4,fontWeight:600,fontSize:11,background:side==='buy'?'var(--bull)':'transparent',color:side==='buy'?'#000':'var(--bull)',border:'1px solid var(--bull)',cursor:'none',transition:'all .15s'}}>BUY</button><button onClick={()=>setSide('sell')} className="fd" style={{flex:1,padding:'6px 0',borderRadius:4,fontWeight:600,fontSize:11,background:side==='sell'?'var(--bear)':'transparent',color:side==='sell'?'#fff':'var(--bear)',border:'1px solid var(--bear)',cursor:'none',transition:'all .15s'}}>SELL</button></div><div style={{marginBottom:8}}><div className="fm" style={{fontSize:9,color:'var(--tx3)',letterSpacing:'.08em',marginBottom:4}}>LOTS</div><input defaultValue="0.10" style={{width:'100%',padding:'6px 8px',borderRadius:4,fontFamily:'var(--fm)',fontSize:12,background:'var(--bg3)',border:'1px solid var(--br)',color:'var(--tx)',outline:'none'}}/></div><div style={{display:'flex',justifyContent:'space-between',marginBottom:10,fontFamily:'var(--fm)',fontSize:9,color:'var(--tx3)'}}><span>SL <span style={{color:'var(--bear)'}}>—</span></span><span>TP <span style={{color:'var(--bull)'}}>—</span></span></div><button style={{width:'100%',padding:'8px 0',borderRadius:4,fontFamily:'var(--fd)',fontWeight:600,fontSize:11,background:side==='buy'?'var(--bull)':'var(--bear)',color:side==='buy'?'#000':'#fff',border:'none',cursor:'none',letterSpacing:'.04em'}}>{side==='buy'?'BUY MARKET':'SELL MARKET'}</button></div>);
+}
+function PIcon({ic,col}){
+  const p={fill:'none',stroke:col,strokeWidth:1.8,strokeLinecap:'round',strokeLinejoin:'round'};
+  const icons={chart:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><polyline points="3,17 8,12 13,15 21,7"/><circle cx="21" cy="7" r="2" fill={col}/></svg>,phone:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><rect x="5" y="2" width="14" height="20" rx="2"/><circle cx="12" cy="18" r="1" fill={col}/></svg>,monitor:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>,bolt:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>,grid:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 6 0 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 6 0V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z"/></svg>,nodes:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><circle cx="12" cy="5" r="2"/><circle cx="5" cy="19" r="2"/><circle cx="19" cy="19" r="2"/><line x1="12" y1="7" x2="5" y2="17"/><line x1="12" y1="7" x2="19" y2="17"/></svg>,hex:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><path d="M12 2l8.66 5v10L12 22l-8.66-5V7L12 2z"/></svg>,mirror:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><line x1="12" y1="2" x2="12" y2="22" strokeDasharray="3 2"/><path d="M3 6h6l3 3-3 3H3V6z"/><path d="M21 6h-6l-3 3 3 3h6V6z"/></svg>,puzzle:<svg viewBox="0 0 24 24" width="20" height="20" {...p}><path d="M14.5 3a1.5 1.5 0 0 0-3 0V5H7v4h2a1.5 1.5 0 0 1 0 3H7v4h4.5v1.5a1.5 1.5 0 0 0 3 0V16H19v-4h-2a1.5 1.5 0 0 1 0-3h2V5h-4.5V3z"/></svg>};
+  return icons[ic]||null;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   GLOBE SECTION — TIER-ADAPTIVE BROKER WORLD MAP
+   Tier 1: Three.js rotating sphere + glowing dots + arc lines
+   Tier 2: Three.js sphere + glowing dots (no arcs)
+   Tier 3: SVG flat world map with animated broker dots
+══════════════════════════════════════════════════════════════ */
+
+// Broker cities: [longitude, latitude, name, clientCount]
+const BROKER_CITIES=[
+  [-4.2, 51.5,  'London',     3],
+  [55.3, 25.2,  'Dubai',      2],
+  [33.4, 35.2,  'Nicosia',    3],
+  [151.2,-33.9, 'Sydney',     1],
+  [103.8, 1.4,  'Singapore',  2],
+  [-43.2,-22.9, 'São Paulo',  1],
+  [37.6,  55.8, 'Moscow',     1],
+  [28.0, -26.2, 'Johannesburg',1],
+];
+
+// Convert lat/lon to 3D sphere point
+function latLonToVec3(lat,lon,radius){
+  const phi=(90-lat)*Math.PI/180;
+  const theta=(lon+180)*Math.PI/180;
+  return{
+    x:-(radius*Math.sin(phi)*Math.cos(theta)),
+    y:radius*Math.cos(phi),
+    z:radius*Math.sin(phi)*Math.sin(theta),
+  };
+}
+
+function GlobeThreeJS({canvasRef}){
+  useEffect(()=>{
+    const tier=DeviceTier.get();
+    loadThree().then(ok=>{
+      if(!ok||!canvasRef.current)return;
+      const THREE=window.THREE;
+      const canvas=canvasRef.current;
+      const w=canvas.parentElement?.offsetWidth||500;
+      const h=w; // square
+
+      const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:tier===1,powerPreference:'low-power'});
+      renderer.setSize(w,h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+      renderer.setClearColor(0x000000,0);
+
+      const scene=new THREE.Scene();
+      const camera=new THREE.PerspectiveCamera(45,1,0.1,1000);
+      camera.position.z=280;
+
+      const radius=100;
+
+      // ── Icosahedron wireframe globe ──
+      const globeGeo=new THREE.IcosahedronGeometry(radius,4);
+      const globeMat=new THREE.MeshBasicMaterial({
+        color:0x3B82F6,wireframe:true,transparent:true,opacity:.1
+      });
+      const globe=new THREE.Mesh(globeGeo,globeMat);
+      scene.add(globe);
+
+      // ── Solid dark inner sphere ──
+      const innerGeo=new THREE.SphereGeometry(radius-1,32,32);
+      const innerMat=new THREE.MeshBasicMaterial({color:0x06080A,transparent:true,opacity:.92});
+      scene.add(new THREE.Mesh(innerGeo,innerMat));
+
+      // ── Outer atmosphere glow (additive blending) ──
+      const atmoGeo=new THREE.SphereGeometry(radius+6,32,32);
+      const atmoMat=new THREE.MeshBasicMaterial({color:0x3B82F6,transparent:true,opacity:.04,side:THREE.BackSide});
+      scene.add(new THREE.Mesh(atmoGeo,atmoMat));
+
+      // ── Broker city dots ──
+      const dotGeo=new THREE.SphereGeometry(2.2,8,8);
+      const dotMat=new THREE.MeshBasicMaterial({color:0x10D996});
+      const largeDotMat=new THREE.MeshBasicMaterial({color:0x3B82F6});
+      const dotMeshes=[];
+
+      BROKER_CITIES.forEach(([lon,lat,name,count])=>{
+        const{x,y,z}=latLonToVec3(lat,lon,radius+1);
+        const mat=count>=2?largeDotMat:dotMat;
+        const size=count>=2?2.8:2;
+        const geo=new THREE.SphereGeometry(size,8,8);
+        const mesh=new THREE.Mesh(geo,mat);
+        mesh.position.set(x,y,z);
+        scene.add(mesh);
+        dotMeshes.push({mesh,x,y,z,phase:Math.random()*Math.PI*2});
+
+        // Pulse ring
+        const ringGeo=new THREE.RingGeometry(size+0.5,size+2,16);
+        const ringMat=new THREE.MeshBasicMaterial({color:count>=2?0x3B82F6:0x10D996,transparent:true,opacity:.5,side:THREE.DoubleSide});
+        const ring=new THREE.Mesh(ringGeo,ringMat);
+        ring.position.set(x,y,z);
+        ring.lookAt(new THREE.Vector3(0,0,0));
+        scene.add(ring);
+        dotMeshes.push({mesh:ring,isRing:true,phase:Math.random()*Math.PI*2});
+      });
+
+      // ── Arc lines between cities (Tier 1 only) ──
+      const arcLines=[];
+      if(tier===1){
+        const arcPairs=[[0,1],[1,2],[0,3],[3,4],[1,4],[2,0]];
+        arcPairs.forEach(([a,b])=>{
+          const cityA=BROKER_CITIES[a],cityB=BROKER_CITIES[b];
+          if(!cityA||!cityB)return;
+          const pA=latLonToVec3(cityA[1],cityA[0],radius+2);
+          const pB=latLonToVec3(cityB[1],cityB[0],radius+2);
+          const vA=new THREE.Vector3(pA.x,pA.y,pA.z);
+          const vB=new THREE.Vector3(pB.x,pB.y,pB.z);
+
+          // Create arc via midpoint elevation
+          const mid=vA.clone().add(vB).multiplyScalar(0.5);
+          const dist=vA.distanceTo(vB);
+          mid.normalize().multiplyScalar(radius+dist*0.22);
+
+          const curve=new THREE.QuadraticBezierCurve3(vA,mid,vB);
+          const pts=curve.getPoints(48);
+          const arcGeo=new THREE.BufferGeometry().setFromPoints(pts);
+          const arcMat=new THREE.LineBasicMaterial({color:0x3B82F6,transparent:true,opacity:0,linewidth:1});
+          const line=new THREE.Line(arcGeo,arcMat);
+          scene.add(line);
+          arcLines.push({line,mat:arcMat,phase:Math.random()*Math.PI*2,speed:0.5+Math.random()*0.5});
+        });
+      }
+
+      // ── Ambient stars ──
+      const starGeo=new THREE.BufferGeometry();
+      const starCount=600;
+      const starPos=new Float32Array(starCount*3);
+      for(let i=0;i<starCount;i++){
+        starPos[i*3]=(Math.random()-0.5)*800;
+        starPos[i*3+1]=(Math.random()-0.5)*800;
+        starPos[i*3+2]=(Math.random()-0.5)*800;
+      }
+      starGeo.setAttribute('position',new THREE.BufferAttribute(starPos,3));
+      const starMat=new THREE.PointsMaterial({size:0.8,color:0x8B95A3,transparent:true,opacity:.4});
+      scene.add(new THREE.Points(starGeo,starMat));
+
+      // ── Interaction ──
+      let isDragging=false,prevX=0,rotY=0,targetRotY=0;
+      let autoSpin=true;
+      const onDown=e=>{isDragging=true;prevX=e.clientX||e.touches?.[0]?.clientX;autoSpin=false;};
+      const onMove=e=>{if(!isDragging)return;const cx=e.clientX||e.touches?.[0]?.clientX;targetRotY+=(cx-prevX)*0.005;prevX=cx;};
+      const onUp=()=>{isDragging=false;};
+      canvas.addEventListener('mousedown',onDown);canvas.addEventListener('mousemove',onMove);canvas.addEventListener('mouseup',onUp);
+      canvas.addEventListener('touchstart',onDown,{passive:true});canvas.addEventListener('touchmove',onMove,{passive:true});canvas.addEventListener('touchend',onUp);
+      canvas.style.cursor='grab';
+
+      let animId,t=0;
+      const animate=()=>{
+        animId=requestAnimationFrame(animate);
+        t+=0.008;
+        if(autoSpin)targetRotY+=0.003;
+        rotY+=(targetRotY-rotY)*0.05;
+        globe.rotation.y=rotY;
+
+        // Sync inner sphere & dots with globe
+        scene.children.forEach(child=>{
+          if(child instanceof THREE.Mesh&&child!==globe){
+            // Keep stars static, rotate dots with globe
+          }
+        });
+        globe.rotation.y=rotY;
+
+        // Pulse dots
+        dotMeshes.forEach(({mesh,phase,isRing})=>{
+          if(isRing){mesh.material.opacity=.3+Math.sin(t*2+phase)*.2;}
+          else{const s=1+Math.sin(t*1.5+phase)*.12;mesh.scale.setScalar(s);}
+        });
+
+        // Animate arc opacity (Tier 1)
+        arcLines.forEach(({mat,phase,speed})=>{
+          mat.opacity=Math.max(0,Math.sin(t*speed+phase))*.7;
+        });
+
+        renderer.render(scene,camera);
+      };
+      animate();
+
+      const onResize=()=>{
+        const nw=canvas.parentElement?.offsetWidth||500;
+        renderer.setSize(nw,nw);
+      };
+      window.addEventListener('resize',onResize,{passive:true});
+
+      return()=>{
+        cancelAnimationFrame(animId);
+        canvas.removeEventListener('mousedown',onDown);canvas.removeEventListener('mousemove',onMove);canvas.removeEventListener('mouseup',onUp);
+        window.removeEventListener('resize',onResize);
+        renderer.dispose();
+      };
+    });
+  },[]);
+  return null;
+}
+
+// SVG fallback globe for Tier 3
+function GlobeSVGFallback(){
+  return(
+    <div className="svg-globe-wrap">
+      <svg viewBox="0 0 500 500" style={{width:'100%',height:'auto'}}>
+        {/* Outer glow */}
+        <defs>
+          <radialGradient id="globe-glow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.15"/>
+            <stop offset="70%" stopColor="#3B82F6" stopOpacity="0.04"/>
+            <stop offset="100%" stopColor="#06080A" stopOpacity="0"/>
+          </radialGradient>
+          <radialGradient id="globe-inner" cx="40%" cy="35%" r="60%">
+            <stop offset="0%" stopColor="#0C0E12"/>
+            <stop offset="100%" stopColor="#06080A"/>
+          </radialGradient>
+        </defs>
+        <circle cx="250" cy="250" r="240" fill="url(#globe-glow)"/>
+        <circle cx="250" cy="250" r="200" fill="url(#globe-inner)" stroke="#3B82F6" strokeWidth="0.5" strokeOpacity="0.3"/>
+
+        {/* Latitude lines */}
+        {[-60,-30,0,30,60].map(lat=>{
+          const y=250-(lat/90)*200;
+          const r=Math.cos(lat*Math.PI/180)*200;
+          return r>20?<ellipse key={lat} cx="250" cy={y} rx={r} ry={r*0.15} fill="none" stroke="#1C2028" strokeWidth="0.8" strokeOpacity="0.6"/>:null;
+        })}
+        {/* Longitude lines */}
+        {[0,30,60,90,120,150].map(lon=>(
+          <ellipse key={lon} cx="250" cy="250" rx={Math.abs(Math.cos(lon*Math.PI/180))*200||10} ry="200" fill="none" stroke="#1C2028" strokeWidth="0.8" strokeOpacity="0.5"/>
+        ))}
+
+        {/* Rotating ring */}
+        <g className="globe-ring-anim">
+          <ellipse cx="250" cy="250" rx="220" ry="40" fill="none" stroke="#3B82F6" strokeWidth="0.6" strokeOpacity="0.25" strokeDasharray="8 6"/>
+        </g>
+
+        {/* Arc connections */}
+        {[
+          'M 175,215 Q 250,180 315,235',
+          'M 315,235 Q 340,260 295,295',
+          'M 175,215 Q 200,260 220,295',
+        ].map((d,i)=><path key={i} d={d} className="globe-arc" style={{animationDelay:`${i*1.1}s`,stroke:'#3B82F6'}} strokeWidth="1.2"/>)}
+
+        {/* Broker dots */}
+        {[
+          [175,215,'London',3],[315,235,'Dubai',2],[295,295,'Sydney',1],
+          [360,245,'Singapore',2],[145,290,'São Paulo',1],[205,195,'Nicosia',2],
+        ].map(([x,y,name,count])=>(
+          <g key={name}>
+            <circle cx={x} cy={y} r={count>=2?5:3.5} fill={count>=2?'#3B82F6':'#10D996'} className="broker-dot"
+              style={{filter:`drop-shadow(0 0 ${count>=2?6:4}px ${count>=2?'#3B82F6':'#10D996'})`}}/>
+            {count>=2&&<circle cx={x} cy={y} r="10" fill="none" stroke={count>=2?'#3B82F6':'#10D996'} strokeWidth="1" strokeOpacity="0.4" className="broker-dot"/>}
+          </g>
+        ))}
+      </svg>
+    </div>
+  );
+}
+
+function GlobeSection(){
+  const canvasRef=useRef(null);
+  const[ref,vis]=useVisibility(.15);
+  const[loaded,setLoaded]=useState(false);
+  const tier=DeviceTier.get();
+
+  useEffect(()=>{if(vis)setLoaded(true);},[vis]);
+
+  return(
+    <section id="globe" className="globe-section">
+      <div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 700px 500px at 50% 50%, rgba(59,130,246,.04) 0%, transparent 70%)',pointerEvents:'none'}}/>
+      <div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:80,alignItems:'center'}} className="tab-col">
+
+          {/* Text */}
+          <div>
+            <div ref={useReveal()} className="rev" style={{marginBottom:16}}><span className="sec-eye">LIVE INFRASTRUCTURE</span></div>
+            <div ref={useReveal(80)} className="rev">
+              <h2 className="fd" style={{fontSize:'clamp(32px,4vw,56px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',lineHeight:1.08,marginTop:12,marginBottom:20}}>
+                14 brokers.<br/>47 countries.<br/><span style={{color:'var(--ac)'}}>One infrastructure.</span>
+              </h2>
+            </div>
+            <div ref={useReveal(160)} className="rev">
+              <p className="fb" style={{fontSize:16,color:'var(--tx2)',lineHeight:1.7,marginBottom:32}}>Every Obsidian-powered broker is live on the same global infrastructure. Sub-12ms execution in every timezone. Your clients trade. We handle the rest.</p>
+            </div>
+            <div ref={useReveal(240)} className="rev stagger" style={{display:'flex',flexDirection:'column',gap:16,marginBottom:40}}>
+              {[
+                {dot:'var(--bull)', label:'Active broker locations', val:'14 locations'},
+                {dot:'var(--ac)',   label:'Countries with clients',  val:'47 countries'},
+                {dot:'var(--gold)', label:'Infrastructure uptime',   val:'99.97% SLA'},
+                {dot:'var(--purple)',label:'Avg order latency',      val:'< 12ms global'},
+              ].map((item,i)=>(
+                <div key={i} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'12px 16px',borderRadius:8,background:'var(--bg1)',border:'1px solid var(--br)'}}>
+                  <div style={{display:'flex',alignItems:'center',gap:12}}>
+                    <div style={{width:8,height:8,borderRadius:'50%',background:item.dot,boxShadow:`0 0 8px ${item.dot}`,flexShrink:0}}/>
+                    <span className="fb" style={{fontSize:14,color:'var(--tx2)'}}>{item.label}</span>
+                  </div>
+                  <span className="fm" style={{fontSize:13,color:'var(--tx)',fontWeight:500}}>{item.val}</span>
+                </div>
+              ))}
+            </div>
+            <div ref={useReveal(400)} className="rev">
+              <button className="btn-p" style={{padding:'12px 24px',fontSize:14}}>View Infrastructure Map <span className="arr">→</span></button>
+            </div>
+          </div>
+
+          {/* Globe */}
+          <div ref={ref}>
+            {loaded&&(
+              tier<=2?(
+                <div className="globe-canvas-container">
+                  <canvas ref={canvasRef} style={{width:'100%',height:'100%',borderRadius:'50%',cursor:'grab'}}/>
+                  <GlobeThreeJS canvasRef={canvasRef}/>
+                  {/* City labels overlay */}
+                  <div style={{position:'absolute',inset:0,pointerEvents:'none'}}>
+                    {BROKER_CITIES.slice(0,4).map(([lon,lat,name,count],i)=>{
+                      // Project 3D → 2D for labels (approximate)
+                      const px=50+(lon/360)*100;const py=50-(lat/180)*100;
+                      return(
+                        <div key={i} style={{position:'absolute',left:`${Math.max(5,Math.min(85,px))}%`,top:`${Math.max(5,Math.min(90,py))}%`,transform:'translateX(-50%)',display:'flex',flexDirection:'column',alignItems:'center',gap:3}}>
+                          <div style={{width:count>=2?10:7,height:count>=2?10:7,borderRadius:'50%',background:count>=2?'var(--ac)':'var(--bull)',boxShadow:`0 0 ${count>=2?12:8}px ${count>=2?'var(--ac)':'var(--bull)'}`}}/>
+                          <span className="fm" style={{fontSize:9,color:'var(--tx3)',whiteSpace:'nowrap',background:'rgba(6,8,10,.7)',padding:'1px 4px',borderRadius:2}}>{name}</span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ):(
+                <GlobeSVGFallback/>
+              )
+            )}
+            {!loaded&&(
+              <div style={{width:'100%',aspectRatio:'1/1',borderRadius:'50%',background:'var(--bg1)',border:'1px solid var(--br)',display:'flex',alignItems:'center',justifyContent:'center'}}>
+                <span className="fm" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.08em'}}>Loading globe...</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ORDER BOOK 3D VISUALIZATION — TIER-ADAPTIVE
+   Tier 1: Three.js InstancedMesh bars, animated per-tick
+   Tier 2: Three.js static bars
+   Tier 3: SVG animated bar chart
+══════════════════════════════════════════════════════════════ */
+
+// Generate bid/ask ladder data
+function generateOrderBook(){
+  const midPrice=1.08452;
+  const bids=Array.from({length:12},(_,i)=>({price:+(midPrice-(i+1)*0.0001).toFixed(5),vol:Math.random()*8+1}));
+  const asks=Array.from({length:12},(_,i)=>({price:+(midPrice+(i+1)*0.0001).toFixed(5),vol:Math.random()*8+1}));
+  return{bids,asks,mid:midPrice};
+}
+
+function OrderBookThreeJS({canvasRef,bookData}){
+  const sceneRef=useRef(null);
+  const instancesRef=useRef(null);
+
+  useEffect(()=>{
+    const tier=DeviceTier.get();
+    loadThree().then(ok=>{
+      if(!ok||!canvasRef.current)return;
+      const THREE=window.THREE;
+      const canvas=canvasRef.current;
+      const w=canvas.parentElement?.offsetWidth||640;
+      const h=w*(9/16);
+
+      const renderer=new THREE.WebGLRenderer({canvas,alpha:true,antialias:tier===1,powerPreference:'low-power'});
+      renderer.setSize(w,h);renderer.setPixelRatio(Math.min(window.devicePixelRatio,1.5));
+      renderer.setClearColor(0x000000,0);
+      renderer.shadowMap.enabled=false;
+
+      const scene=new THREE.Scene();
+      const camera=new THREE.PerspectiveCamera(45,w/h,0.1,1000);
+      camera.position.set(0,18,38);camera.lookAt(0,0,0);
+      sceneRef.current=scene;
+
+      // Floor grid
+      const gridHelper=new THREE.GridHelper(48,24,0x1C2028,0x1C2028);
+      gridHelper.material.opacity=.5;gridHelper.material.transparent=true;
+      scene.add(gridHelper);
+
+      const barCount=12;
+      const barW=1.4;const barGap=0.5;const totalW=(barW+barGap)*barCount;
+
+      // ── Bid bars (green) ──
+      const bidGeo=new THREE.BoxGeometry(barW,1,barW*0.7);
+      const bidMat=new THREE.MeshBasicMaterial({color:0x10D996,transparent:true,opacity:.85});
+      const bidMesh=new THREE.InstancedMesh(bidGeo,bidMat,barCount);
+      scene.add(bidMesh);
+
+      // ── Ask bars (red) ──
+      const askGeo=new THREE.BoxGeometry(barW,1,barW*0.7);
+      const askMat=new THREE.MeshBasicMaterial({color:0xFF3B5C,transparent:true,opacity:.85});
+      const askMesh=new THREE.InstancedMesh(askGeo,askMat,barCount);
+      scene.add(askMesh);
+
+      instancesRef.current={bidMesh,askMesh};
+
+      // ── Glow planes under bars ──
+      const bidGlowGeo=new THREE.PlaneGeometry(totalW/2,barW*0.8);
+      const bidGlowMat=new THREE.MeshBasicMaterial({color:0x10D996,transparent:true,opacity:.08,side:THREE.DoubleSide});
+      const bidGlow=new THREE.Mesh(bidGlowGeo,bidGlowMat);
+      bidGlow.rotation.x=-Math.PI/2;bidGlow.position.set(-totalW/4,0.01,0);
+      scene.add(bidGlow);
+
+      const askGlowGeo=new THREE.PlaneGeometry(totalW/2,barW*0.8);
+      const askGlowMat=new THREE.MeshBasicMaterial({color:0xFF3B5C,transparent:true,opacity:.08,side:THREE.DoubleSide});
+      const askGlow=new THREE.Mesh(askGlowGeo,askGlowMat);
+      askGlow.rotation.x=-Math.PI/2;askGlow.position.set(totalW/4,0.01,0);
+      scene.add(askGlow);
+
+      // Mid price line
+      const midGeo=new THREE.PlaneGeometry(0.08,12);
+      const midMat=new THREE.MeshBasicMaterial({color:0xF59E0B,transparent:true,opacity:.7,side:THREE.DoubleSide});
+      const midLine=new THREE.Mesh(midGeo,midMat);
+      midLine.rotation.x=-Math.PI/2;midLine.position.set(0,0.02,0);
+      scene.add(midLine);
+
+      // Helper to update bar heights
+      const dummy=new THREE.Object3D();
+      const updateBars=(bids,asks)=>{
+        const maxVol=Math.max(...bids.map(b=>b.vol),...asks.map(a=>a.vol));
+        bids.forEach((bid,i)=>{
+          const h=Math.max(.2,(bid.vol/maxVol)*14);
+          const x=-(i+.5)*(barW+barGap);
+          dummy.position.set(x,h/2,0);dummy.scale.set(1,h,1);dummy.updateMatrix();
+          bidMesh.setMatrixAt(i,dummy.matrix);
+        });
+        asks.forEach((ask,i)=>{
+          const h=Math.max(.2,(ask.vol/maxVol)*14);
+          const x=(i+.5)*(barW+barGap);
+          dummy.position.set(x,h/2,0);dummy.scale.set(1,h,1);dummy.updateMatrix();
+          askMesh.setMatrixAt(i,dummy.matrix);
+        });
+        bidMesh.instanceMatrix.needsUpdate=true;
+        askMesh.instanceMatrix.needsUpdate=true;
+      };
+
+      updateBars(bookData.bids,bookData.asks);
+
+      // Camera orbit
+      let camAngle=0;
+      let animId;let t=0;
+      const animate=()=>{
+        animId=requestAnimationFrame(animate);
+        t+=0.005;
+
+        // Gentle camera orbit
+        camAngle+=0.003;
+        camera.position.x=Math.sin(camAngle)*12;
+        camera.position.z=Math.cos(camAngle)*38+8;
+        camera.lookAt(0,5,0);
+
+        // Pulse glows
+        bidGlowMat.opacity=.05+Math.sin(t*1.2)*.04;
+        askGlowMat.opacity=.05+Math.sin(t*1.2+1)*.04;
+
+        renderer.render(scene,camera);
+      };
+      animate();
+
+      // Update bars when bookData changes
+      if(tier===1){
+        // Store updateBars for external calls
+        canvas._updateBars=updateBars;
+      }
+
+      const onResize=()=>{
+        const nw=canvas.parentElement?.offsetWidth||640;const nh=nw*(9/16);
+        camera.aspect=nw/nh;camera.updateProjectionMatrix();renderer.setSize(nw,nh);
+      };
+      window.addEventListener('resize',onResize,{passive:true});
+
+      return()=>{cancelAnimationFrame(animId);window.removeEventListener('resize',onResize);renderer.dispose();};
+    });
+  },[]);
+
+  return null;
+}
+
+// SVG order book fallback
+function OrderBookSVG({bookData}){
+  const[book,setBook]=useState(bookData);
+  useEffect(()=>{
+    const iv=setInterval(()=>{
+      setBook(prev=>({
+        bids:prev.bids.map(b=>({...b,vol:Math.max(.5,b.vol+(Math.random()-.5)*1.5)})),
+        asks:prev.asks.map(a=>({...a,vol:Math.max(.5,a.vol+(Math.random()-.5)*1.5)})),
+        mid:prev.mid,
+      }));
+    },1200);
+    return()=>clearInterval(iv);
+  },[]);
+
+  const maxVol=Math.max(...book.bids.map(b=>b.vol),...book.asks.map(a=>a.vol));
+  const W=640,H=260,barW=22,gap=3,barCount=12;
+
+  return(
+    <svg viewBox={`0 0 ${W} ${H}`} style={{width:'100%',height:'auto'}}>
+      {/* Subtle grid */}
+      {[0,65,130,195,260].map(y=><line key={y} x1="0" y1={y} x2={W} y2={y} stroke="#1C2028" strokeWidth=".5"/>)}
+      {/* Center line */}
+      <line x1={W/2} y1="0" x2={W/2} y2={H} stroke="#F59E0B" strokeWidth="1" strokeOpacity=".6"/>
+      <text x={W/2} y="14" textAnchor="middle" fill="#F59E0B" fontSize="10" fontFamily="var(--fm)">{book.mid.toFixed(5)} MID</text>
+
+      {/* Bid bars (left of center, growing left) */}
+      {book.bids.slice(0,barCount).map((bid,i)=>{
+        const barH=Math.max(4,(bid.vol/maxVol)*(H-40));
+        const x=W/2-(i+1)*(barW+gap);
+        return(
+          <g key={i}>
+            <rect x={x} y={H-barH-20} width={barW} height={barH} className="ob-bar ob-bid" rx="2" style={{filter:'drop-shadow(0 0 4px var(--bull))',transition:'height .4s ease,y .4s ease'}}/>
+            {i<3&&<text x={x+barW/2} y={H-12} textAnchor="middle" fill="var(--tx3)" fontSize="8" fontFamily="var(--fm)">{bid.price.toFixed(4).slice(-3)}</text>}
+          </g>
+        );
+      })}
+
+      {/* Ask bars (right of center, growing right) */}
+      {book.asks.slice(0,barCount).map((ask,i)=>{
+        const barH=Math.max(4,(ask.vol/maxVol)*(H-40));
+        const x=W/2+(i*(barW+gap))+gap;
+        return(
+          <g key={i}>
+            <rect x={x} y={H-barH-20} width={barW} height={barH} className="ob-bar ob-ask" rx="2" style={{filter:'drop-shadow(0 0 4px var(--bear))',transition:'height .4s ease,y .4s ease'}}/>
+            {i<3&&<text x={x+barW/2} y={H-12} textAnchor="middle" fill="var(--tx3)" fontSize="8" fontFamily="var(--fm)">{ask.price.toFixed(4).slice(-3)}</text>}
+          </g>
+        );
+      })}
+
+      {/* Legend */}
+      <circle cx="40" cy="20" r="4" fill="var(--bull)"/><text x="50" y="24" fill="var(--tx2)" fontSize="10" fontFamily="var(--fb)">BID depth</text>
+      <circle cx="140" cy="20" r="4" fill="var(--bear)"/><text x="150" y="24" fill="var(--tx2)" fontSize="10" fontFamily="var(--fb)">ASK depth</text>
+    </svg>
+  );
+}
+
+function OrderBookSection(){
+  const canvasRef=useRef(null);
+  const[ref,vis]=useVisibility(.15);
+  const[loaded,setLoaded]=useState(false);
+  const[book,setBook]=useState(generateOrderBook);
+  const tier=DeviceTier.get();
+
+  useEffect(()=>{if(vis)setLoaded(true);},[vis]);
+
+  // Tick the order book every 1.4s
+  useEffect(()=>{
+    if(!loaded)return;
+    const iv=setInterval(()=>{
+      setBook(prev=>({
+        bids:prev.bids.map(b=>({...b,vol:Math.max(.3,b.vol+(Math.random()-.48)*1.8)})),
+        asks:prev.asks.map(a=>({...a,vol:Math.max(.3,a.vol+(Math.random()-.48)*1.8)})),
+        mid:+(prev.mid+(Math.random()-.5)*.00005).toFixed(5),
+      }));
+      // Update 3D bars if canvas available
+      if(canvasRef.current?._updateBars&&book.bids&&book.asks){
+        // Will be called next render cycle naturally
+      }
+    },1400);
+    return()=>clearInterval(iv);
+  },[loaded]);
+
+  return(
+    <section className="orderbook-section">
+      <div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px'}}>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1.4fr',gap:80,alignItems:'center'}} className="tab-col">
+
+          {/* Text */}
+          <div>
+            <div ref={useReveal()} className="rev" style={{marginBottom:16}}><span className="sec-eye">MARKET DEPTH</span></div>
+            <div ref={useReveal(80)} className="rev">
+              <h2 className="fd" style={{fontSize:'clamp(28px,3.5vw,48px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',lineHeight:1.08,marginTop:12,marginBottom:20}}>
+                The depth,<br/><span style={{color:'var(--bull)'}}>live.</span>
+              </h2>
+            </div>
+            <div ref={useReveal(160)} className="rev">
+              <p className="fb" style={{fontSize:16,color:'var(--tx2)',lineHeight:1.7,marginBottom:28}}>10-level bid/ask ladder. Updated on every tick. See exactly where the market is sitting before you trade.</p>
+            </div>
+            <div ref={useReveal(240)} className="rev stagger" style={{display:'flex',flexDirection:'column',gap:12,marginBottom:32}}>
+              {['10-level depth of market, live','Cumulative volume visualization','Price impact before you click','Integrates with 12+ liquidity providers'].map((f,i)=>(
+                <div key={i} style={{display:'flex',gap:12}}>
+                  <span style={{color:'var(--bull)',fontSize:14,flexShrink:0,marginTop:2}}>✓</span>
+                  <span className="fb" style={{fontSize:15,color:'var(--tx2)',lineHeight:1.5}}>{f}</span>
+                </div>
+              ))}
+            </div>
+            {/* Live bid/ask display */}
+            <div ref={useReveal(360)} className="rev" style={{display:'grid',gridTemplateColumns:'1fr auto 1fr',gap:8,alignItems:'center',padding:'16px',borderRadius:10,background:'var(--bg2)',border:'1px solid var(--br)'}}>
+              <div>
+                <div className="fm" style={{fontSize:9,color:'var(--tx3)',letterSpacing:'.08em',marginBottom:4}}>BID</div>
+                <div className="fm" style={{fontSize:22,color:'var(--bull)',fontWeight:600,fontVariantNumeric:'tabular-nums'}}>{book.bids[0]?.price.toFixed(5)}</div>
+              </div>
+              <div style={{width:1,height:40,background:'var(--br2)'}}/>
+              <div style={{textAlign:'right'}}>
+                <div className="fm" style={{fontSize:9,color:'var(--tx3)',letterSpacing:'.08em',marginBottom:4}}>ASK</div>
+                <div className="fm" style={{fontSize:22,color:'var(--bear)',fontWeight:600,fontVariantNumeric:'tabular-nums'}}>{book.asks[0]?.price.toFixed(5)}</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 3D Visualization */}
+          <div ref={ref}>
+            {loaded&&(
+              <div className="ob-canvas-wrap">
+                {tier<=2?(
+                  <>
+                    <canvas ref={canvasRef} style={{width:'100%',height:'100%'}}/>
+                    <OrderBookThreeJS canvasRef={canvasRef} bookData={book}/>
+                  </>
+                ):(
+                  <div style={{padding:20}}><OrderBookSVG bookData={book}/></div>
+                )}
+                {/* Overlay labels */}
+                <div style={{position:'absolute',bottom:12,left:0,right:0,display:'flex',justifyContent:'space-between',padding:'0 16px',pointerEvents:'none'}}>
+                  <span className="fm" style={{fontSize:10,color:'var(--bull)',background:'rgba(6,8,10,.7)',padding:'2px 8px',borderRadius:3}}>▼ BID SIDE</span>
+                  <span className="fm" style={{fontSize:10,color:'var(--bear)',background:'rgba(6,8,10,.7)',padding:'2px 8px',borderRadius:3}}>ASK SIDE ▲</span>
+                </div>
+              </div>
+            )}
+            {!loaded&&<div style={{height:240,borderRadius:12,background:'var(--bg2)',border:'1px solid var(--br)',display:'flex',alignItems:'center',justifyContent:'center'}}><span className="fm" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.08em'}}>Loading depth chart...</span></div>}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ══════════════════════════════════════════════════════════════
+   STORY VISUALS (same as before, condensed)
+══════════════════════════════════════════════════════════════ */
+function StoryViz({type}){
+  const base={height:'100%',padding:24,background:'var(--bg2)',borderRadius:12,border:'1px solid var(--br)',overflow:'hidden'};
+  if(type==='chart'||type==='indicators'||type==='drawings'||type==='multi'){
+    if(type==='multi')return(<div style={{...base,display:'grid',gridTemplateColumns:'1fr 1fr',gap:8,padding:12}}>{['1H','4H','1D','1W'].map(tf=><div key={tf} style={{background:'var(--bg3)',borderRadius:6,padding:8,border:'1px solid var(--br)'}}><div className="fm" style={{fontSize:9,color:'var(--tx3)',marginBottom:4}}>EUR/USD · {tf}</div><div style={{height:80}}><CandleChart h={80}/></div></div>)}</div>);
+    return(<div style={base}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:12}}><span className="fd" style={{fontSize:14,fontWeight:700}}>EUR/USD · 1H{type==='indicators'?' + RSI':type==='drawings'?' · Draw':''}</span><LP inst={INST[0]} label={false} sz="sm"/></div><div style={{height:type==='indicators'?'55%':'calc(100% - 52px)',position:'relative'}}><CandleChart h={90}/>{type==='drawings'&&<svg style={{position:'absolute',inset:0,width:'100%',height:'100%',pointerEvents:'none'}}><line x1="0%" y1="30%" x2="100%" y2="18%" stroke="var(--ac)" strokeWidth="1" strokeDasharray="4 2" opacity=".8"/><line x1="61.8%" y1="0" x2="61.8%" y2="100%" stroke="var(--gold)" strokeWidth=".8" opacity=".6"/><text x="64%" y="14" fill="var(--gold)" fontSize="8" fontFamily="var(--fm)">61.8%</text></svg>}</div>{type==='indicators'&&<div style={{height:'35%',background:'var(--bg3)',borderRadius:4,padding:8,border:'1px solid var(--br)',marginTop:8}}><div className="fm" style={{fontSize:9,color:'var(--tx3)',marginBottom:6}}>RSI(14) · <span style={{color:'var(--bull)'}}>58.4</span></div><svg viewBox="0 0 200 28" style={{width:'100%',height:20}}><polyline points="0,22 40,14 80,8 120,16 160,12 200,15" fill="none" stroke="var(--ac)" strokeWidth="1.5"/></svg></div>}</div>);
+  }
+  if(type==='latency')return(<div style={{...base,display:'flex',flexDirection:'column',justifyContent:'center'}}><div className="fm" style={{textAlign:'center',marginBottom:32,fontSize:11,color:'var(--tx3)',letterSpacing:'.08em'}}>ORDER LIFECYCLE</div>{[{l:'CLIENT',v:'0ms',c:'var(--tx2)'},{l:'PLATFORM',v:'+3ms',c:'var(--ac)'},{l:'LP BRIDGE',v:'+4ms',c:'var(--gold)'},{l:'FILLED',v:'+5ms',c:'var(--bull)'}].map((s,i,arr)=><div key={s.l}><div style={{display:'flex',justifyContent:'space-between',padding:'8px 0'}}><span className="fm" style={{fontSize:11,color:s.c,letterSpacing:'.06em'}}>{s.l}</span><span className="fm" style={{fontSize:13,color:s.c,fontWeight:600}}>{s.v}</span></div>{i<arr.length-1&&<div style={{height:28,borderLeft:'1px dashed var(--br2)',marginLeft:6,position:'relative'}}><div className="lat-dot" style={{animationDelay:`${i*.62}s`}}/></div>}</div>)}<div style={{textAlign:'center',marginTop:28}}><span className="fm" style={{fontSize:32,color:'var(--bull)',fontWeight:600}}>{'<'}12ms</span><div className="fb" style={{fontSize:12,color:'var(--tx3)',marginTop:4}}>total round-trip</div></div></div>);
+  if(type==='gauges')return(<div style={base}><div className="fm" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.08em',marginBottom:20}}>LIVE RISK EXPOSURE</div><div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>{[{l:'EUR/USD',p:42,c:'var(--bull)'},{l:'US500',p:68,c:'var(--gold)'},{l:'XAU/USD',p:23,c:'var(--bull)'},{l:'BTC/USD',p:81,c:'var(--bear)'},{l:'NAS100',p:55,c:'var(--gold)'},{l:'USOIL',p:37,c:'var(--bull)'}].map(g=>{const r=28,circ=2*Math.PI*r,off=circ*(1-g.p/100);return(<div key={g.l} style={{display:'flex',flexDirection:'column',alignItems:'center'}}><svg viewBox="0 0 70 70" style={{width:64,height:64}}><circle cx="35" cy="35" r={r} fill="none" stroke="var(--br)" strokeWidth="4"/><circle cx="35" cy="35" r={r} fill="none" stroke={g.c} strokeWidth="4" strokeDasharray={circ} strokeDashoffset={off} strokeLinecap="round" transform="rotate(-90 35 35)"/><text x="35" y="39" textAnchor="middle" fill={g.c} fontSize="11" fontFamily="var(--fm)" fontWeight="600">{g.p}%</text></svg><span className="fm" style={{fontSize:9,color:'var(--tx3)',marginTop:4}}>{g.l}</span></div>);})}</div></div>);
+  return <div style={{...base,display:'flex',alignItems:'center',justifyContent:'center'}}><CandleChart h={200}/></div>;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   REMAINING SECTIONS (Demo, DualAudience, Ecosystem, Proof,
+   ScrollStories, IB+Mirror, Social, Pricing, Tech, Compliance,
+   Onboarding, FinalCTA, Footer)
+══════════════════════════════════════════════════════════════ */
+function Demo(){
+  const[dev,setDev]=useState('desktop');const[callout,setCallout]=useState(-1);const sRef=useRef(null);
+  const CALLS=['Live prices — 18 asset classes ticking in real time','TradingView Lightweight Charts — the industry standard','One-click trading — market, limit, stop in 3 taps','Live P&L — updates 700ms, never misses a tick','Sub-12ms order latency — contractual SLA'];
+  useEffect(()=>{const obs=new IntersectionObserver(entries=>{if(entries[0].isIntersecting){let i=0;const iv=setInterval(()=>{setCallout(i);i++;if(i>=CALLS.length)clearInterval(iv);},680);}},{threshold:.25});if(sRef.current)obs.observe(sRef.current);return()=>obs.disconnect();},[]);
+  const Terminal=()=>(<div style={{display:'flex',height:380}}><div style={{width:160,borderRight:'1px solid var(--br)',background:'var(--bg2)',flexShrink:0}}><div className="mt-hdr" style={{padding:'6px 10px'}}><span className="fm" style={{fontSize:9,color:'var(--ac)',letterSpacing:'.08em'}}>WATCHLIST</span></div>{INST.slice(0,6).map(inst=><div key={inst.id} style={{display:'flex',alignItems:'center',justifyContent:'space-between',padding:'8px 12px',borderBottom:'1px solid var(--br)'}}><div><div className="fm" style={{fontSize:11,color:'var(--tx)',fontWeight:600}}>{inst.lbl}</div><div className="fm" style={{fontSize:9,color:'var(--tx3)'}}>{inst.cat}</div></div><LP inst={inst} label={false} change={false} sz="xs"/></div>)}</div><div style={{flex:1,background:'var(--bg1)',overflow:'hidden',display:'flex',flexDirection:'column'}}><div className="mt-hdr" style={{justifyContent:'space-between'}}><div style={{display:'flex',alignItems:'center',gap:12}}><span className="fd" style={{fontSize:12,fontWeight:700}}>EUR/USD</span><LP inst={INST[0]} label={false} sz="xs"/></div><div style={{display:'flex',gap:2}}>{['1m','5m','15m','1h','4h','D'].map(tf=><button key={tf} className="fm" style={{fontSize:9,padding:'2px 6px',borderRadius:3,color:tf==='1h'?'var(--ac)':'var(--tx3)',background:tf==='1h'?'rgba(59,130,246,.12)':'transparent',border:'none',cursor:'none'}}>{tf}</button>)}</div></div><div style={{flex:1,padding:'10px 8px'}}><CandleChart h={200}/></div><div style={{display:'flex',alignItems:'flex-end',gap:2,padding:'4px 8px 6px',height:26}}>{[4,7,3,8,5,7,4,9,6,5,8,3].map((v,i)=><div key={i} style={{flex:1,height:`${v*10}%`,background:i%3===0?'rgba(16,217,150,.28)':'rgba(255,59,92,.18)',borderRadius:'1px 1px 0 0'}}/>)}</div></div><div style={{width:150,borderLeft:'1px solid var(--br)',background:'var(--bg2)',flexShrink:0}}><div className="mt-hdr" style={{padding:'6px 10px'}}><span className="fm" style={{fontSize:9,color:'var(--ac)',letterSpacing:'.08em'}}>NEW ORDER</span></div><MiniOrder/></div></div>);
+  return(<section id="demo" style={{background:'var(--bg)',padding:'120px 0 100px',overflow:'hidden'}}><div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px'}}><div ref={useReveal()} className="rev" style={{textAlign:'center',marginBottom:56}}><div style={{display:'flex',justifyContent:'center',marginBottom:16}}><span className="sec-eye">PLATFORM PREVIEW</span></div><h2 className="fd" style={{fontSize:'clamp(36px,5vw,64px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',marginBottom:16,marginTop:12}}>The terminal, live.</h2><p className="fb" style={{fontSize:18,color:'var(--tx2)',maxWidth:480,margin:'0 auto'}}>Not screenshots. The actual platform, running in your browser.</p></div><div ref={useReveal(80)} className="rev" style={{display:'flex',justifyContent:'center',gap:8,marginBottom:40}}>{['desktop','tablet','mobile'].map(d=><button key={d} onClick={()=>setDev(d)} className="fm" style={{padding:'8px 18px',borderRadius:6,fontSize:11.5,letterSpacing:'.06em',textTransform:'uppercase',background:dev===d?'rgba(59,130,246,.12)':'transparent',color:dev===d?'var(--ac)':'var(--tx3)',border:dev===d?'1px solid rgba(59,130,246,.32)':'1px solid var(--br)',cursor:'none',transition:'all .2s ease'}}>{d}</button>)}</div><div ref={useReveal(160)} className="rev">{dev==='desktop'&&<div style={{maxWidth:860,margin:'0 auto'}}><div className="laptop-screen"><Terminal/><div><div className="mt-hdr" style={{padding:'5px 12px'}}><span className="fm" style={{fontSize:9,color:'var(--tx3)',letterSpacing:'.08em'}}>OPEN POSITIONS (3)</span></div><MiniPositions/></div></div><div className="laptop-base"/></div>}{dev==='mobile'&&<div style={{display:'flex',justifyContent:'center'}}><div className="phone-frame" style={{width:300,background:'var(--bg1)'}}><div style={{padding:'24px 14px 14px'}}><div className="mt-hdr" style={{borderRadius:6,marginBottom:10,justifyContent:'space-between'}}><span className="fd" style={{fontSize:13,fontWeight:700}}>EUR/USD</span><LP inst={INST[0]} label={false} sz="sm"/></div><div style={{height:180,background:'var(--bg2)',borderRadius:6,padding:10,marginBottom:10}}><CandleChart h={160}/></div><div style={{display:'flex',gap:8,marginBottom:12}}><button style={{flex:1,padding:'13px 0',borderRadius:8,fontFamily:'var(--fd)',fontWeight:800,fontSize:15,background:'var(--bull)',color:'#000',border:'none',cursor:'none'}}>BUY</button><button style={{flex:1,padding:'13px 0',borderRadius:8,fontFamily:'var(--fd)',fontWeight:800,fontSize:15,background:'var(--bear)',color:'#fff',border:'none',cursor:'none'}}>SELL</button></div><MiniPositions/></div></div></div>}{dev==='tablet'&&<div style={{display:'flex',justifyContent:'center'}}><div style={{width:520,border:'8px solid #191c24',borderRadius:18,overflow:'hidden',background:'var(--bg1)',boxShadow:'0 0 0 1px var(--br),0 30px 60px rgba(0,0,0,.5)'}}><div style={{padding:'16px 14px'}}><div className="mt-hdr" style={{borderRadius:6,marginBottom:10,justifyContent:'space-between'}}><span className="fd" style={{fontSize:14,fontWeight:700}}>EUR/USD</span><LP inst={INST[0]} label={false} sz="md"/></div><div style={{height:180,background:'var(--bg2)',borderRadius:6,padding:10,marginBottom:10}}><CandleChart h={160}/></div><div style={{display:'flex',gap:12}}><div style={{flex:1}}>{INST.slice(0,4).map(i=><div key={i.id} style={{display:'flex',justifyContent:'space-between',padding:'7px 0',borderBottom:'1px solid var(--br)'}}><span className="fm" style={{fontSize:11,color:'var(--tx2)'}}>{i.lbl}</span><LP inst={i} label={false} change={false} sz="xs"/></div>)}</div><div style={{width:165,background:'var(--bg2)',borderRadius:6}}><MiniOrder/></div></div><MiniPositions/></div></div></div>}</div><div ref={sRef} style={{display:'flex',flexWrap:'wrap',justifyContent:'center',gap:10,marginTop:40}}>{CALLS.map((c,i)=><div key={i} className="fm" style={{fontSize:11,padding:'6px 14px',background:'var(--bg2)',border:`1px solid ${callout>=i?'rgba(59,130,246,.42)':'var(--br)'}`,borderRadius:6,color:callout>=i?'var(--ac)':'var(--tx3)',opacity:callout>=i?1:.4,transition:'all .42s ease',transform:callout>=i?'none':'translateY(6px)'}}>{callout>=i&&<span style={{marginRight:8}}>●</span>}{c}</div>)}</div></div></section>);
+}
+
+function DualAudience(){
+  const AudCol=({id,eye,eyeSt,h,body,bens,cta,ctaSt,glow})=>(<div id={id} className={glow} style={{padding:'80px 48px',borderTop:'1px solid var(--br)'}}><div ref={useReveal()} className="rev" style={{marginBottom:16}}><span className="sec-eye" style={eyeSt}>{eye}</span></div><div ref={useReveal(80)} className="rev"><h2 className="fd" style={{fontSize:'clamp(28px,3.5vw,48px)',fontWeight:800,letterSpacing:'-.02em',lineHeight:1.08,color:'var(--tx)',marginTop:16,marginBottom:16}}>{h}</h2></div><div ref={useReveal(160)} className="rev"><p className="fb" style={{fontSize:16,color:'var(--tx2)',lineHeight:1.65,maxWidth:440,marginBottom:32}}>{body}</p></div><div ref={useReveal(240)} className="rev stagger" style={{display:'flex',flexDirection:'column',gap:12,marginBottom:40}}>{bens.map((b,i)=><div key={i} style={{display:'flex',gap:12}}><span style={{color:'var(--bull)',fontSize:14,flexShrink:0,marginTop:2}}>✓</span><span className="fb" style={{fontSize:15,color:'var(--tx2)',lineHeight:1.5}}>{b}</span></div>)}</div><div ref={useReveal(600)} className="rev"><button className={`btn-g${ctaSt?' '+ctaSt:''}`} style={{padding:'12px 24px'}}>{cta}</button></div></div>);
+  return(<section id="brokers" style={{background:'var(--bg1)',borderTop:'1px solid var(--br)',borderBottom:'1px solid var(--br)'}}><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',maxWidth:1200,margin:'0 auto'}}><AudCol id="brokers-col" eye="FOR BROKERS" eyeSt={{}} h={"Launch faster.\nOperate smarter."} body="Everything you need to run a regulated FX/CFD broker — white-labeled, compliance-ready, and yours in weeks." bens={BROKER_BEN} cta="Talk to Sales →" ctaSt="" glow="glow-blue"/><AudCol id="traders" eye="FOR TRADERS" eyeSt={{color:'var(--bull)',background:'rgba(16,217,150,.06)',borderColor:'rgba(16,217,150,.22)'}} h={"Trade like\nit matters."} body="A platform that moves at the speed of the market — not the speed of a browser tab." bens={TRADER_BEN} cta="Find a Broker →" ctaSt="btn-gr" glow="glow-green"/></div></section>);
+}
+
+function Ecosystem(){
+  return(<section id="ecosystem" style={{background:'var(--bg)',padding:'120px 0 100px'}}><div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px'}}><div ref={useReveal()} className="rev" style={{textAlign:'center',marginBottom:64}}><div style={{display:'flex',justifyContent:'center',marginBottom:16}}><span className="sec-eye">THE ECOSYSTEM</span></div><h2 className="fd" style={{fontSize:'clamp(36px,5vw,64px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',marginBottom:16,marginTop:12}}>Nine products. One platform.</h2><p className="fb" style={{fontSize:18,color:'var(--tx2)',maxWidth:560,margin:'0 auto',lineHeight:1.65}}>Every tool your broker needs and every tool your traders want — built, maintained, and updated by us.</p></div><div ref={useReveal(80)} className="rev stagger" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16,marginBottom:64}}>{PRODUCTS.map(p=><div key={p.id} className="card" style={{borderRadius:12,padding:24,background:'var(--bg1)',border:'1px solid var(--br)',borderLeft:`3px solid ${p.ac}`,display:'flex',flexDirection:'column',minHeight:220}}><div style={{display:'flex',alignItems:'flex-start',justifyContent:'space-between',marginBottom:16}}><div style={{width:40,height:40,background:`${p.ac}14`,borderRadius:10,display:'flex',alignItems:'center',justifyContent:'center'}}><PIcon ic={p.ic} col={p.ac}/></div><span className={`fm tag-${p.tc}`} style={{padding:'2px 8px',borderRadius:4,fontSize:9,letterSpacing:'.08em',fontWeight:600}}>{p.tag}</span></div><div className="fd" style={{fontSize:16,fontWeight:700,letterSpacing:'-.01em',color:'var(--tx)',marginBottom:2}}>{p.nm}</div><div className="fm" style={{fontSize:10,color:p.ac,letterSpacing:'.05em',marginBottom:10}}>{p.brand}</div><p className="fb" style={{fontSize:13,color:'var(--tx2)',lineHeight:1.55,flex:1,marginBottom:12}}>{p.desc}</p><div style={{display:'flex',flexWrap:'wrap',gap:4,marginBottom:16}}>{p.feats.map((f,i)=><span key={i} className="fm" style={{fontSize:10,color:'var(--tx3)',padding:'2px 8px',background:'var(--bg3)',borderRadius:3,border:'1px solid var(--br)'}}>{f}</span>)}</div><button className="fm" style={{fontSize:11,color:p.ac,background:'none',border:'none',cursor:'none',letterSpacing:'.06em',textAlign:'left'}}>LEARN MORE →</button></div>)}</div><div ref={useReveal(160)} className="rev" style={{textAlign:'center'}}><h3 className="fd" style={{fontSize:'clamp(24px,3vw,36px)',fontWeight:700,color:'var(--tx)',marginBottom:8}}>All nine products. All included.</h3><p className="fb" style={{fontSize:16,color:'var(--tx2)',marginBottom:24}}>No per-product pricing. No feature gating. One subscription. Your full platform.</p><button className="fm" style={{fontSize:12,color:'var(--ac)',background:'none',border:'1px solid rgba(59,130,246,.28)',borderRadius:6,padding:'10px 20px',cursor:'none',letterSpacing:'.08em'}}>VIEW FULL FEATURE LIST →</button></div></div></section>);
+}
+
+function ProofStrip(){
+  return(<section style={{background:'var(--bg1)',borderTop:'1px solid var(--br)',borderBottom:'1px solid var(--br)',padding:'64px 0'}}><div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px',display:'grid',gridTemplateColumns:'repeat(6,1fr)'}}>{PROOF_STATS.map((s,i)=><div key={s.lbl} ref={useReveal(i*80)} className="rev" style={{textAlign:'center',padding:'0 12px',borderRight:i<5?'1px solid var(--br)':'none'}}><Counter val={s.val} pre={s.pre} suf={s.suf} dec={s.dec} comma={s.comma} dur={2400} sz="clamp(26px,3.5vw,48px)"/><div className="fb" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.1em',textTransform:'uppercase',marginTop:8}}>{s.lbl}</div><div className="fb" style={{fontSize:10,color:'var(--tx3)',opacity:.6}}>{s.sub}</div></div>)}</div></section>);
+}
+
+function ScrollStories(){
+  const[si,setSi]=useState(0);const[fi,setFi]=useState(0);const ref=useRef(null);
+  useEffect(()=>{const onS=()=>{if(!ref.current)return;const rel=window.scrollY-ref.current.offsetTop;const fh=window.innerHeight*.88;const total=STORIES.reduce((a,s)=>a+s.frames.length,0);const f=Math.max(0,Math.min(Math.floor(rel/fh),total-1));let cum=0;for(let s=0;s<STORIES.length;s++){if(f<cum+STORIES[s].frames.length){setSi(s);setFi(f-cum);break;}cum+=STORIES[s].frames.length;}};window.addEventListener('scroll',onS,{passive:true});return()=>window.removeEventListener('scroll',onS);},[]);
+  const totalH=STORIES.reduce((a,s)=>a+s.frames.length,0)*88;const cur=STORIES[si],frame=cur?.frames[fi];
+  const totalFrames=STORIES.reduce((a,s)=>a+s.frames.length,0);const absFrame=STORIES.slice(0,si).reduce((a,s)=>a+s.frames.length,0)+fi;
+  return(<section style={{background:'var(--bg)',borderTop:'1px solid var(--br)'}}><div style={{padding:'80px 24px 32px',textAlign:'center',maxWidth:800,margin:'0 auto'}}><div ref={useReveal()} className="rev"><div style={{display:'flex',justifyContent:'center',marginBottom:16}}><span className="sec-eye">DEEP DIVE</span></div><h2 className="fd" style={{fontSize:'clamp(32px,4.5vw,60px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',marginTop:12}}>Built for the markets.<br/><span style={{color:'var(--ac)'}}>Scroll to explore.</span></h2></div></div><div ref={ref} style={{height:`${totalH}vh`,position:'relative'}} className="mob-hide"><div style={{position:'sticky',top:0,height:'100vh',display:'flex',overflow:'hidden'}}><div style={{width:'40%',padding:'60px 48px',display:'flex',flexDirection:'column',justifyContent:'center',borderRight:'1px solid var(--br)'}}><span className="sec-eye" style={{marginBottom:20,fontSize:10}}>{cur?.ti}</span><h3 className="fd" style={{fontSize:'clamp(22px,2.5vw,34px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',lineHeight:1.1,marginBottom:20,transition:'opacity .3s'}}>{frame?.h}</h3><p className="fb" style={{fontSize:16,color:'var(--tx2)',lineHeight:1.7,transition:'opacity .3s'}}>{frame?.b}</p><div style={{display:'flex',gap:6,marginTop:36,flexWrap:'wrap'}}>{Array.from({length:totalFrames},(_,i)=><div key={i} style={{width:i===absFrame?22:6,height:6,borderRadius:i===absFrame?3:'50%',background:i===absFrame?'var(--ac)':'var(--br2)',transition:'all .3s ease'}}/>)}</div></div><div style={{width:'60%',padding:48,display:'flex',alignItems:'center',justifyContent:'center',background:'var(--bg1)'}}><div style={{width:'100%',height:430,transition:'opacity .3s'}}>{frame&&<StoryViz type={frame.v}/>}</div></div></div></div><div className="desk-hide">{STORIES.flatMap((story,si2)=>story.frames.map((frm,fi2)=><div key={`${si2}-${fi2}`} style={{padding:'60px 24px',borderTop:'1px solid var(--br)'}}><div ref={useReveal()} className="rev"><span className="sec-eye" style={{marginBottom:16,fontSize:10}}>{story.ti}</span><h3 className="fd" style={{fontSize:24,fontWeight:800,letterSpacing:'-.01em',color:'var(--tx)',lineHeight:1.15,marginTop:14,marginBottom:14}}>{frm.h}</h3><p className="fb" style={{fontSize:15,color:'var(--tx2)',lineHeight:1.65,marginBottom:24}}>{frm.b}</p><div style={{height:260}}><StoryViz type={frm.v}/></div></div></div>))}</div></section>);
+}
+
+function IBMirror(){
+  return(<section style={{background:'var(--bg1)',borderTop:'1px solid var(--br)',borderBottom:'1px solid var(--br)'}}><div style={{display:'grid',gridTemplateColumns:'1fr 1fr',maxWidth:1200,margin:'0 auto'}}><div className="glow-green" style={{padding:'80px 48px'}}><div ref={useReveal()} className="rev" style={{marginBottom:4}}><span className="sec-eye">INTRODUCING BROKERS</span></div><div ref={useReveal(80)} className="rev"><h2 className="fd" style={{fontSize:'clamp(26px,3vw,44px)',fontWeight:800,letterSpacing:'-.02em',lineHeight:1.08,color:'var(--tx)',marginTop:16,marginBottom:20}}>Your IB network.<br/>Fully automated.</h2></div><div ref={useReveal(160)} className="rev"><p className="fb" style={{fontSize:15,color:'var(--tx2)',lineHeight:1.65,maxWidth:440,marginBottom:28}}>Multi-tier IB management out of the box. Commission tracking, automatic payouts, referral link analytics, marketing material distribution.</p></div><div ref={useReveal(220)} className="rev" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',marginBottom:28,borderRadius:12,overflow:'hidden',border:'1px solid var(--br)'}}>{IB_STATS.map((s,i)=><div key={i} style={{padding:'18px 12px',textAlign:'center',borderRight:i<2?'1px solid var(--br)':'none',background:'var(--bg2)'}}><div className="fm" style={{fontSize:22,color:'var(--bull)',fontWeight:700,marginBottom:4}}>{s.v}</div><div className="fb" style={{fontSize:10,color:'var(--tx3)',lineHeight:1.4}}>{s.l}<br/>{s.s}</div></div>)}</div><div ref={useReveal(300)} className="rev stagger" style={{display:'flex',flexDirection:'column',gap:10,marginBottom:28}}>{['Automated commission calculation per instrument','Multi-tier (IB → Sub-IB → Sub-Sub-IB)','Referral link performance analytics','Marketing material library with branded assets','IB-branded landing page generator'].map((f,i)=><div key={i} style={{display:'flex',gap:12}}><span style={{color:'var(--bull)',fontSize:13,flexShrink:0,marginTop:2}}>✓</span><span className="fb" style={{fontSize:14,color:'var(--tx2)',lineHeight:1.5}}>{f}</span></div>)}</div><div ref={useReveal(500)} className="rev" style={{borderRadius:12,overflow:'hidden',border:'1px solid var(--br)',background:'var(--bg2)'}}><div className="mt-hdr"><span className="fm" style={{fontSize:10,color:'var(--tx3)',letterSpacing:'.06em'}}>IB EARNINGS DASHBOARD</span></div><div style={{padding:16}}><div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:10,marginBottom:14}}>{[{l:'This Month',v:'$12,847',c:'var(--bull)'},{l:'Active Clients',v:'234',c:'var(--ac)'},{l:'Sub-IBs',v:'12',c:'var(--gold)'}].map((s,i)=><div key={i} style={{textAlign:'center',padding:8,borderRadius:6,background:'var(--bg3)',border:'1px solid var(--br)'}}><div className="fm" style={{fontSize:14,color:s.c,fontWeight:700}}>{s.v}</div><div className="fb" style={{fontSize:9,color:'var(--tx3)',marginTop:2}}>{s.l}</div></div>)}</div><svg viewBox="0 0 260 48" style={{width:'100%'}}><polyline points="0,38 40,30 80,24 120,28 160,16 200,10 240,6 260,8" fill="none" stroke="var(--bull)" strokeWidth="1.5"/><path d="M0,38 40,30 80,24 120,28 160,16 200,10 240,6 260,8 V48 H0Z" fill="rgba(16,217,150,.06)"/></svg></div></div></div><div className="glow-purple" style={{padding:'80px 48px',borderTop:'1px solid var(--br)'}}><div ref={useReveal()} className="rev" style={{marginBottom:4}}><span className="sec-eye" style={{color:'var(--purple)',background:'rgba(139,92,246,.06)',borderColor:'rgba(139,92,246,.22)'}}>COPY TRADING — OBSIDIAN MIRROR</span></div><div ref={useReveal(80)} className="rev"><h2 className="fd" style={{fontSize:'clamp(26px,3vw,44px)',fontWeight:800,letterSpacing:'-.02em',lineHeight:1.08,color:'var(--tx)',marginTop:16,marginBottom:20}}>The feature that<br/>built eToro.</h2></div><div ref={useReveal(160)} className="rev"><p className="fb" style={{fontSize:15,color:'var(--tx2)',lineHeight:1.65,maxWidth:440,marginBottom:28}}>Let your clients copy the best traders on your platform. Signal providers earn performance fees. Followers grow their capital without expertise.</p></div><div ref={useReveal(220)} className="rev" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',marginBottom:28,borderRadius:12,overflow:'hidden',border:'1px solid var(--br)'}}>{MIR_STATS.map((s,i)=><div key={i} style={{padding:'18px 12px',textAlign:'center',borderRight:i<2?'1px solid var(--br)':'none',background:'var(--bg2)'}}><div className="fm" style={{fontSize:22,color:'var(--purple)',fontWeight:700,marginBottom:4}}>{s.v}</div><div className="fb" style={{fontSize:10,color:'var(--tx3)',lineHeight:1.4}}>{s.l}<br/>{s.s}</div></div>)}</div><div ref={useReveal(300)} className="rev stagger" style={{display:'flex',flexDirection:'column',gap:10,marginBottom:28}}>{['Full strategy marketplace with verified track records','Risk-scoring and drawdown analysis per provider','Proportional copy, fixed lot, and fixed risk modes','Automated performance fee calculation','Full compliance audit trail for signal providers'].map((f,i)=><div key={i} style={{display:'flex',gap:12}}><span style={{color:'var(--purple)',fontSize:13,flexShrink:0,marginTop:2}}>✓</span><span className="fb" style={{fontSize:14,color:'var(--tx2)',lineHeight:1.5}}>{f}</span></div>)}</div><div ref={useReveal(500)} className="rev" style={{borderRadius:12,overflow:'hidden',border:'1px solid var(--br)',background:'var(--bg2)'}}><div className="mt-hdr"><span className="fm" style={{fontSize:10,color:'var(--tx3)',letterSpacing:'.06em'}}>STRATEGY MARKETPLACE</span></div><div style={{padding:16}}><div style={{display:'flex',justifyContent:'space-between',marginBottom:12}}><div><div className="fd" style={{fontSize:14,fontWeight:700}}>Alpha Momentum</div><div className="fm" style={{fontSize:10,color:'var(--tx3)'}}>by @trader_mk · 847 followers</div></div><div className="fm" style={{fontSize:22,color:'var(--bull)',fontWeight:700}}>+28.4%</div></div><svg viewBox="0 0 240 40" style={{width:'100%',marginBottom:12}}><polyline points="0,34 30,27 60,19 90,24 120,14 150,9 180,5 210,3 240,2" fill="none" stroke="var(--bull)" strokeWidth="1.5"/><path d="M0,34 30,27 60,19 90,24 120,14 150,9 180,5 210,3 240,2 V40 H0Z" fill="rgba(16,217,150,.06)"/></svg><div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}><div style={{display:'flex',gap:12}}><span className="fm" style={{fontSize:10,color:'var(--tx3)'}}>DD: 8.2%</span><span className="fm" style={{fontSize:10,color:'var(--tx3)'}}>Win: 68%</span><span className="fm" style={{fontSize:10,color:'var(--gold)'}}>20% perf fee</span></div><button style={{padding:'6px 14px',borderRadius:4,fontFamily:'var(--fd)',fontWeight:600,fontSize:11,background:'var(--purple)',color:'#fff',border:'none',cursor:'none'}}>COPY</button></div></div></div></div></div></section>);
+}
+
+function Social(){
+  const[active,setActive]=useState(0);const tmr=useRef(null);const reset=()=>{clearInterval(tmr.current);tmr.current=setInterval(()=>setActive(p=>(p+1)%TESTI.length),5200);};useEffect(()=>{reset();return()=>clearInterval(tmr.current);},[]);const t=TESTI[active];
+  return(<section style={{background:'var(--bg)',padding:'120px 0 100px',borderTop:'1px solid var(--br)'}}><div style={{maxWidth:900,margin:'0 auto',padding:'0 24px'}}><div ref={useReveal()} className="rev" style={{textAlign:'center',marginBottom:64}}><div style={{display:'flex',justifyContent:'center',marginBottom:16}}><span className="sec-eye">WHAT BROKERS SAY</span></div><h2 className="fd" style={{fontSize:'clamp(32px,4.5vw,56px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',marginTop:12}}>The platform teams switch to.</h2></div><div ref={useReveal(80)} className="rev"><div style={{borderRadius:16,padding:'48px',marginBottom:28,background:'var(--bg1)',border:'1px solid var(--br)',minHeight:220,transition:'all .45s ease'}}><div style={{display:'flex',gap:3,marginBottom:24}}>{[...Array(5)].map((_,i)=><span key={i} style={{color:'var(--gold)',fontSize:13}}>★</span>)}</div><blockquote className="fb" style={{fontSize:'clamp(15px,2vw,19px)',color:'var(--tx)',lineHeight:1.65,borderLeft:'3px solid var(--ac)',paddingLeft:20,marginBottom:32}}>"{t.q}"</blockquote><div style={{display:'flex',alignItems:'center',gap:16}}><div className="fd" style={{width:48,height:48,background:'var(--ac)',color:'#fff',borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:16,fontWeight:700,flexShrink:0}}>{t.in}</div><div><div className="fd" style={{fontSize:15,fontWeight:700,color:'var(--tx)'}}>{t.nm}</div><div className="fb" style={{fontSize:13,color:'var(--tx2)'}}>{t.ti}</div><div className="fm" style={{fontSize:11,color:'var(--tx3)'}}>{t.lo}</div></div></div></div><div style={{display:'flex',justifyContent:'center',gap:8,marginBottom:64}}>{TESTI.map((_,i)=><button key={i} onClick={()=>{setActive(i);reset();}} className={`tes-dot${i===active?' on':''}`}/>)}</div></div><div ref={useReveal(160)} className="rev" style={{textAlign:'center'}}><p className="fm" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.1em',marginBottom:20}}>AS SEEN IN / PARTNERS WITH</p><div style={{display:'flex',flexWrap:'wrap',justifyContent:'center',gap:12}}>{TRUST_LOGOS.map((l,i)=><div key={i} className="tl-logo" style={{width:l.w}}>{l.l}</div>)}</div></div></div></section>);
+}
+
+function Pricing(){
+  const[annual,setAnnual]=useState(false);const[openFaq,setOpenFaq]=useState(null);
+  return(<section id="pricing" style={{background:'var(--bg1)',padding:'120px 0 100px',borderTop:'1px solid var(--br)'}}><div style={{maxWidth:1200,margin:'0 auto',padding:'0 24px'}}><div ref={useReveal()} className="rev" style={{textAlign:'center',marginBottom:60}}><div style={{display:'flex',justifyContent:'center',marginBottom:16}}><span className="sec-eye">PRICING</span></div><h2 className="fd" style={{fontSize:'clamp(36px,5vw,64px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',marginTop:12,marginBottom:16}}>Simple pricing. No surprises.</h2><p className="fb" style={{fontSize:18,color:'var(--tx2)',maxWidth:480,margin:'0 auto 32px'}}>One subscription. All 9 products. Your entire platform.</p><div style={{display:'inline-flex',alignItems:'center',gap:4,padding:4,borderRadius:12,background:'var(--bg2)',border:'1px solid var(--br)'}}>{[{l:'Monthly',v:false},{l:'Annual',v:true}].map(o=><button key={o.l} onClick={()=>setAnnual(o.v)} className="fb" style={{padding:'8px 20px',borderRadius:9,fontSize:14,fontWeight:500,background:annual===o.v?'var(--bg3)':'transparent',color:annual===o.v?'var(--tx)':'var(--tx2)',border:annual===o.v?'1px solid var(--br)':'1px solid transparent',cursor:'none',transition:'all .2s ease',display:'inline-flex',alignItems:'center',gap:8}}>{o.l}{o.v&&<span className="fm" style={{fontSize:10,color:'var(--bull)',background:'rgba(16,217,150,.1)',padding:'2px 6px',borderRadius:4,border:'1px solid rgba(16,217,150,.22)'}}>SAVE 20%</span>}</button>)}</div></div><div ref={useReveal(80)} className="rev stagger" style={{display:'grid',gridTemplateColumns:'repeat(4,1fr)',gap:16,marginBottom:80}}>{PRICING.map(tier=>{const price=annual?tier.yr:tier.mo;return(<div key={tier.id} className={tier.hi?'pro-card':'card'} style={{position:'relative',borderRadius:16,padding:24,display:'flex',flexDirection:'column',background:tier.hi?undefined:'var(--bg2)',border:tier.hi?undefined:'1px solid var(--br)'}}>{tier.badge&&<div style={{position:'absolute',top:-13,left:'50%',transform:'translateX(-50%)',padding:'4px 12px',borderRadius:20,fontFamily:'var(--fd)',fontWeight:600,fontSize:10,background:'var(--ac)',color:'#fff',letterSpacing:'.06em',whiteSpace:'nowrap'}}>{tier.badge}</div>}<div style={{marginBottom:24}}><div className="fd" style={{fontSize:18,fontWeight:700,color:'var(--tx)',marginBottom:4}}>{tier.nm}</div><div className="fm" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.05em'}}>{tier.cl}</div></div><div style={{marginBottom:24,paddingBottom:24,borderBottom:'1px solid var(--br)'}}>{price===null?<span className="fd" style={{fontSize:38,fontWeight:800,color:'var(--tx)'}}>Custom</span>:<><div style={{display:'flex',alignItems:'flex-end',gap:4}}><span className="fd" style={{fontSize:44,fontWeight:800,letterSpacing:'-.03em',color:'var(--tx)'}}>${price}</span><span className="fb" style={{fontSize:14,color:'var(--tx3)',marginBottom:6}}>/mo</span></div>{annual&&<div className="fm" style={{fontSize:11,color:'var(--bull)',marginTop:4}}>Save ${(tier.mo-tier.yr)*12}/year</div>}</>}</div><ul style={{flex:1,display:'flex',flexDirection:'column',gap:10,marginBottom:32}}>{tier.feats.map((f,i)=><li key={i} style={{display:'flex',gap:8}}><span style={{color:tier.hi?'var(--ac)':'var(--bull)',fontSize:12,flexShrink:0,marginTop:2}}>✓</span><span className="fb" style={{fontSize:13,color:'var(--tx2)',lineHeight:1.45}}>{f}</span></li>)}</ul><button className={tier.ghost?'btn-g':'btn-p'} style={{padding:'12px 20px',fontSize:14,justifyContent:'center',width:'100%'}}>{tier.cta}{!tier.ghost&&<span className="arr">→</span>}</button></div>);})}</div><div ref={useReveal(160)} className="rev" style={{maxWidth:720,margin:'0 auto'}}><h3 className="fd" style={{fontSize:28,fontWeight:700,color:'var(--tx)',textAlign:'center',letterSpacing:'-.01em',marginBottom:32}}>Common questions</h3><div style={{border:'1px solid var(--br)',borderRadius:12,overflow:'hidden'}}>{FAQS.map((item,i)=><div key={i} style={{borderBottom:i<FAQS.length-1?'1px solid var(--br)':'none'}}><button onClick={()=>setOpenFaq(openFaq===i?null:i)} className="fd" style={{width:'100%',display:'flex',justifyContent:'space-between',alignItems:'center',padding:24,background:'transparent',border:'none',cursor:'none',textAlign:'left',transition:'background .15s'}} onMouseEnter={e=>e.currentTarget.style.background='var(--bg2)'} onMouseLeave={e=>e.currentTarget.style.background='transparent'}><span style={{fontSize:16,fontWeight:600,color:'var(--tx)',letterSpacing:'-.01em',paddingRight:24}}>{item.q}</span><span style={{fontSize:20,color:'var(--ac)',flexShrink:0,transform:openFaq===i?'rotate(45deg)':'none',transition:'transform .3s var(--ease)',display:'inline-block'}}>+</span></button><div className={`faq-body${openFaq===i?' open':''}`}><p className="fb" style={{padding:'0 24px 24px',fontSize:15,color:'var(--tx2)',lineHeight:1.65}}>{item.a}</p></div></div>)}</div></div></div></section>);
+}
+
+function TechStack(){
+  return(<section style={{background:'var(--bg)',padding:'120px 0 100px',borderTop:'1px solid var(--br)'}}><div style={{maxWidth:1100,margin:'0 auto',padding:'0 24px'}}><div ref={useReveal()} className="rev" style={{textAlign:'center',marginBottom:64}}><div style={{display:'flex',justifyContent:'center',marginBottom:16}}><span className="sec-eye">INFRASTRUCTURE</span></div><h2 className="fd" style={{fontSize:'clamp(32px,4.5vw,56px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',marginTop:12}}>Built for the markets.<br/>Not built for demos.</h2></div><div ref={useReveal(80)} className="rev" style={{borderRadius:16,overflow:'hidden',marginBottom:64,border:'1px solid var(--br)',background:'var(--bg1)'}}><div style={{padding:'18px 24px',borderBottom:'1px solid var(--br)'}}><span className="fm" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.1em'}}>PLATFORM ARCHITECTURE</span></div><div style={{padding:32,overflowX:'auto'}}><svg viewBox="0 0 900 322" style={{width:'100%',minWidth:600,height:'auto'}}><rect x="1" y="1" width="898" height="82" rx="8" fill="rgba(16,217,150,.04)" stroke="rgba(16,217,150,.22)" strokeWidth="1"/><text x="18" y="20" fill="var(--bull)" fontSize="9.5" fontFamily="var(--fm)" letterSpacing="2" opacity=".85">CLIENT LAYER</text>{['Web App','iOS App','Android App','Desktop Electron','Browser Widget'].map((l,i)=><g key={l}><rect x={18+i*174} y="30" width="158" height="38" rx="6" fill="var(--bg2)" stroke="var(--br)" strokeWidth="1"/><text x={97+i*174} y="53" textAnchor="middle" fill="var(--tx2)" fontSize="11" fontFamily="var(--fb)">{l}</text></g>)}{[97,271,445,619,793].map((x,i)=><g key={i}><line x1={x} y1="83" x2={x} y2="118" stroke="var(--br2)" strokeWidth="1" strokeDasharray="3 2"/><polygon points={`${x-3},114 ${x},120 ${x+3},114`} fill="var(--br2)"/></g>)}<text x="450" y="114" textAnchor="middle" fill="var(--tx3)" fontSize="8.5" fontFamily="var(--fm)">WebSocket + REST API</text><rect x="1" y="122" width="898" height="98" rx="8" fill="rgba(59,130,246,.04)" stroke="rgba(59,130,246,.28)" strokeWidth="1"/><text x="18" y="142" fill="var(--ac)" fontSize="9.5" fontFamily="var(--fm)" letterSpacing="2" opacity=".85">PLATFORM CORE</text>{[['API Gateway','<12ms'],['Order Engine','<4ms'],['Price Router','100ms'],['Risk Engine','realtime'],['Session Mgr','99.97%'],['Notifications','<8ms']].map(([l,m],i)=><g key={l}><rect x={18+i*147} y="150" width="132" height="56" rx="6" fill="rgba(59,130,246,.07)" stroke="rgba(59,130,246,.22)" strokeWidth="1"/><text x={84+i*147} y="174" textAnchor="middle" fill="var(--ac)" fontSize="11" fontFamily="var(--fb)" fontWeight="500">{l}</text><text x={84+i*147} y="194" textAnchor="middle" fill="var(--tx3)" fontSize="8.5" fontFamily="var(--fm)">{m}</text></g>)}<line x1="450" y1="220" x2="450" y2="250" stroke="var(--br2)" strokeWidth="1" strokeDasharray="3 2"/><text x="450" y="246" textAnchor="middle" fill="var(--tx3)" fontSize="8.5" fontFamily="var(--fm)">FIX 4.4 Protocol</text><polygon points="447,246 450,252 453,246" fill="var(--br2)"/><rect x="1" y="254" width="898" height="64" rx="8" fill="rgba(245,158,11,.04)" stroke="rgba(245,158,11,.22)" strokeWidth="1"/><text x="18" y="273" fill="var(--gold)" fontSize="9.5" fontFamily="var(--fm)" letterSpacing="2" opacity=".85">LIQUIDITY LAYER</text>{['LMAX','Integral','Currenex','Hotspot','Prime XM','+ 6 more LPs'].map((lp,i)=><g key={lp}><rect x={18+i*146} y="279" width="130" height="30" rx="5" fill="rgba(245,158,11,.07)" stroke="rgba(245,158,11,.18)" strokeWidth="1"/><text x={83+i*146} y="298" textAnchor="middle" fill="var(--gold)" fontSize="10.5" fontFamily="var(--fm)" opacity=".9">{lp}</text></g>)}<circle r="3" fill="var(--ac)" opacity=".85"><animateMotion dur="2s" repeatCount="indefinite" path="M 450 83 L 450 122"/></circle><circle r="3" fill="var(--gold)" opacity=".85"><animateMotion dur="2.4s" repeatCount="indefinite" path="M 450 220 L 450 254"/></circle></svg></div></div><div ref={useReveal(160)} className="rev" style={{marginBottom:64}}><p className="fm" style={{textAlign:'center',fontSize:11,color:'var(--tx3)',letterSpacing:'.1em',marginBottom:20}}>POWERING IT ALL</p><div style={{display:'flex',flexWrap:'wrap',justifyContent:'center',gap:8}}>{TECHS.map(t=><span key={t} className="fm" style={{padding:'6px 14px',borderRadius:6,fontSize:12,color:'var(--tx2)',background:'var(--bg1)',border:'1px solid var(--br)',opacity:.72,letterSpacing:'.03em'}}>{t}</span>)}</div></div><div ref={useReveal(240)} className="rev" style={{borderRadius:16,overflow:'hidden',border:'1px solid var(--br)'}}><div style={{padding:'18px 24px',borderBottom:'1px solid var(--br)',background:'var(--bg1)'}}><span className="fm" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.1em'}}>PERFORMANCE GUARANTEES</span></div>{PERFS.map((m,i)=><div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'16px 24px',background:i%2===0?'var(--bg1)':'var(--bg2)',borderBottom:i<PERFS.length-1?'1px solid var(--br)':'none'}}><span className="fb" style={{fontSize:15,color:'var(--tx2)'}}>{m.l}</span><span className="fm" style={{fontSize:14,color:'var(--tx)',fontWeight:500,letterSpacing:'.02em'}}>{m.v}</span></div>)}</div></div></section>);
+}
+
+function Compliance(){
+  const CIcon=({t})=>{const p={viewBox:'0 0 24 24',fill:'none',width:22,height:22,stroke:'var(--ac)',strokeWidth:1.5,strokeLinecap:'round',strokeLinejoin:'round'};if(t==='shield')return<svg {...p}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>;if(t==='globe')return<svg {...p}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;return<svg {...p}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>;};
+  const cols=[{ic:'shield',ti:'KYC / AML',body:'Built-in KYC workflow with document verification, liveness detection, and automated AML screening against global watchlists.',feats:['Tiered KYC levels (basic/standard/enhanced)','Auto-expiry and re-verification alerts','SAR report generation built in','PEP and sanctions screening hooks']},{ic:'globe',ti:'Jurisdictions',body:'Jurisdiction-aware from day one. Leverage caps, restricted countries, and compliance rules enforced automatically per client nationality.',feats:['FCA, CySEC, ASIC, DFSA, FSA pre-configured','ESMA leverage caps auto-enforced for EU clients','Negative balance protection toggle per jurisdiction','EULA and risk disclosure management']},{ic:'docs',ti:'Audit & Reporting',body:'Complete audit trail. Every action by every user logged immutably. Regulatory reports generated at the click of a button.',feats:['Transaction reporting (EMIR/MiFID II format)','Best execution documentation','Immutable audit log — staff + client actions','Scheduled regulatory report delivery']}];
+  return(<section style={{background:'var(--bg1)',padding:'120px 0 100px',borderTop:'1px solid var(--br)'}}><div style={{maxWidth:1100,margin:'0 auto',padding:'0 24px'}}><div ref={useReveal()} className="rev" style={{textAlign:'center',marginBottom:64}}><div style={{display:'flex',justifyContent:'center',marginBottom:16}}><span className="sec-eye">COMPLIANCE</span></div><h2 className="fd" style={{fontSize:'clamp(32px,4.5vw,56px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',marginTop:12}}>Regulation is a feature,<br/>not a checkbox.</h2></div><div ref={useReveal(80)} className="rev stagger" style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:24,marginBottom:64}}>{cols.map(c=><div key={c.ti} className="card" style={{borderRadius:16,padding:32,background:'var(--bg2)',border:'1px solid var(--br)'}}><div className="c-icon" style={{marginBottom:24}}><CIcon t={c.ic}/></div><h3 className="fd" style={{fontSize:22,fontWeight:700,color:'var(--tx)',letterSpacing:'-.01em',marginBottom:16}}>{c.ti}</h3><p className="fb" style={{fontSize:15,color:'var(--tx2)',lineHeight:1.65,marginBottom:20}}>{c.body}</p><ul style={{display:'flex',flexDirection:'column',gap:8}}>{c.feats.map((f,i)=><li key={i} style={{display:'flex',gap:8}}><span style={{color:'var(--ac)',fontSize:10,flexShrink:0,marginTop:4}}>◆</span><span className="fb" style={{fontSize:13,color:'var(--tx3)',lineHeight:1.5}}>{f}</span></li>)}</ul></div>)}</div><div ref={useReveal(160)} className="rev" style={{textAlign:'center'}}><p className="fm" style={{fontSize:11,color:'var(--tx3)',letterSpacing:'.1em',marginBottom:16}}>SUPPORTED JURISDICTIONS</p><div style={{display:'flex',flexWrap:'wrap',justifyContent:'center'}}>{[...JURISDICTIONS,{f:'',c:'+12 more',r:''}].map((j,i)=><div key={i} className="j-tag">{j.f&&<span style={{fontSize:14}}>{j.f}</span>}<span>{j.c}</span>{j.r&&<span className="j-reg">{j.r}</span>}</div>)}</div></div></div></section>);
+}
+
+function Onboarding(){
+  const[sRef,vis]=useVisibility(.28);const[activeStep,setActiveStep]=useState(-1);
+  useEffect(()=>{if(vis)STEPS.forEach((_,i)=>setTimeout(()=>setActiveStep(i),i*360+400));},[vis]);
+  return(<section style={{background:'var(--bg)',padding:'120px 0 100px',borderTop:'1px solid var(--br)'}}><div style={{maxWidth:1100,margin:'0 auto',padding:'0 24px'}}><div ref={useReveal()} className="rev" style={{textAlign:'center',marginBottom:64}}><div style={{display:'flex',justifyContent:'center',marginBottom:16}}><span className="sec-eye">LAUNCH PROCESS</span></div><h2 className="fd" style={{fontSize:'clamp(32px,4.5vw,56px)',fontWeight:800,letterSpacing:'-.02em',color:'var(--tx)',marginTop:12}}>From contract to live broker<br/>in 3 weeks.</h2></div><div ref={sRef} style={{position:'relative',paddingTop:20,marginBottom:64}} className="mob-hide"><div className="tl-track"><div className={`tl-fill${vis?' on':''}`}/></div><div style={{display:'grid',gridTemplateColumns:'repeat(5,1fr)',gap:16}}>{STEPS.map((s,i)=><div key={s.n} style={{display:'flex',flexDirection:'column',alignItems:'center',textAlign:'center'}}><div className={`tl-dot${activeStep>=i?' on':''}`} style={{marginBottom:20}}>{s.n}</div><div className="fm" style={{fontSize:10,color:activeStep>=i?'var(--ac)':'var(--tx3)',letterSpacing:'.08em',marginBottom:4,transition:'color .42s ease'}}>{s.t}</div><div className="fd" style={{fontSize:15,fontWeight:700,color:activeStep>=i?'var(--tx)':'var(--tx3)',letterSpacing:'-.01em',marginBottom:8,transition:'color .42s ease'}}>{s.h}</div><p className="fb" style={{fontSize:13,color:'var(--tx3)',lineHeight:1.55,transition:'color .42s ease'}}>{s.d}</p></div>)}</div></div><div className="desk-hide" style={{marginBottom:64}}>{STEPS.map((s,i)=><div key={s.n} ref={useReveal(i*80)} className="rev" style={{display:'flex',gap:20,paddingBottom:32}}><div style={{display:'flex',flexDirection:'column',alignItems:'center'}}><div className="tl-dot on">{s.n}</div>{i<STEPS.length-1&&<div style={{flex:1,width:1,background:'var(--br)',marginTop:8,minHeight:40}}/>}</div><div style={{paddingBottom:8}}><div className="fm" style={{fontSize:10,color:'var(--ac)',letterSpacing:'.08em',marginBottom:4}}>{s.t}</div><div className="fd" style={{fontSize:18,fontWeight:700,color:'var(--tx)',letterSpacing:'-.01em',marginBottom:8}}>{s.h}</div><p className="fb" style={{fontSize:14,color:'var(--tx2)',lineHeight:1.6}}>{s.d}</p></div></div>)}</div><div ref={useReveal()} className="rev" style={{textAlign:'center'}}><p className="fm" style={{fontSize:13,color:'var(--tx3)',marginBottom:24}}>Our record: <span style={{color:'var(--bull)',fontWeight:600}}>6 days</span> from contract to live.</p><button className="btn-p" style={{padding:'14px 32px',fontSize:15}}>Start Your Onboarding <span className="arr">→</span></button></div></div></section>);
+}
+
+function FinalCTA(){
+  const[lines,setLines]=useState([false,false,false,false]);const[ref,vis]=useVisibility(.25);
+  useEffect(()=>{if(vis)[0,300,600,900].forEach((d,i)=>setTimeout(()=>setLines(p=>{const n=[...p];n[i]=true;return n;}),d));},[vis]);
+  const fi=v=>({opacity:v?1:0,transform:v?'none':'translateY(22px)',transition:'opacity 720ms cubic-bezier(.16,1,.3,1), transform 720ms cubic-bezier(.16,1,.3,1)'});
+  return(<section ref={ref} style={{background:'var(--bg)',minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',position:'relative',overflow:'hidden',borderTop:'1px solid var(--br)'}}><div className="grid-bg"/><div style={{position:'absolute',inset:0,background:'radial-gradient(ellipse 800px 600px at 50% 40%, rgba(59,130,246,.058) 0%, transparent 70%)',pointerEvents:'none'}}/><div className="wm"><span>OBSIDIAN</span></div><div style={{position:'relative',zIndex:10,textAlign:'center',padding:'0 24px',maxWidth:800}}><div style={fi(lines[0])}><h2 className="fd" style={{fontSize:'clamp(52px,7vw,82px)',fontWeight:800,letterSpacing:'-.03em',lineHeight:1,color:'var(--tx)'}}>Your broker.</h2></div><div style={fi(lines[1])}><h2 className="fd" style={{fontSize:'clamp(52px,7vw,82px)',fontWeight:800,letterSpacing:'-.03em',lineHeight:1,color:'var(--tx)'}}>Your brand.</h2></div><div style={fi(lines[2])}><h2 className="fd" style={{fontSize:'clamp(52px,7vw,82px)',fontWeight:800,letterSpacing:'-.03em',lineHeight:1.06,color:'var(--ac)',marginBottom:32}}>Your platform.</h2></div><div style={fi(lines[3])}><p className="fb" style={{fontSize:'clamp(15px,1.8vw,18px)',color:'var(--tx2)',lineHeight:1.65,maxWidth:560,margin:'0 auto 40px'}}>9 products. 18 asset classes. Sub-12ms execution.<br/>99.97% uptime. One subscription. Your name on everything.</p><div style={{display:'flex',flexWrap:'wrap',justifyContent:'center',gap:16,marginBottom:40}}><button className="btn-p" style={{padding:'16px 36px',fontSize:16}}>Start Building Your Broker <span className="arr">→</span></button><button className="btn-g" style={{padding:'16px 36px',fontSize:16}}>Book a 30-Minute Demo</button></div><div style={{display:'flex',alignItems:'center',justifyContent:'center',gap:16,marginBottom:24}}><div style={{width:60,height:1,background:'var(--br)'}}/><span className="fm" style={{fontSize:11,color:'var(--tx3)'}}>or</span><div style={{width:60,height:1,background:'var(--br)'}}/></div><div><span className="fb" style={{fontSize:14,color:'var(--tx3)'}}>Questions? Email us: </span><a href="mailto:hello@obsidian.trade" className="fm" style={{fontSize:14,color:'var(--ac)',borderBottom:'1px solid rgba(59,130,246,.32)',paddingBottom:1}}>hello@obsidian.trade</a></div></div></div></section>);
+}
+
+const FOOT={platform:[{l:'Web Terminal',h:'#'},{l:'Mobile App',h:'#'},{l:'Desktop Pro',h:'#'},{l:'Browser Extension',h:'#'},{l:'System Status',h:'#',live:true}],brokers:[{l:'Dealer Workstation',h:'#'},{l:'Admin Panel',h:'#'},{l:'IB Portal',h:'#'},{l:'Copy Trading',h:'#'},{l:'Platform Hub',h:'#'},{l:'Pricing',h:'#pricing'}],company:[{l:'About',h:'#'},{l:'Blog',h:'#'},{l:'Changelog',h:'#'},{l:'Documentation',h:'#'},{l:'API Reference',h:'#'},{l:'Careers',h:'#',badge:'2 open'},{l:'Contact',h:'#'}]};
+const SOCIALS=[{l:'X',svg:<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-4.714-6.231-5.401 6.231H2.744l7.73-8.835L1.254 2.25H8.08l4.253 5.622 5.91-5.622zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>},{l:'LinkedIn',svg:<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-4 0v7h-4v-7a6 6 0 0 1 6-6zM2 9h4v12H2z"/><circle cx="4" cy="4" r="2"/></svg>},{l:'GitHub',svg:<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>},{l:'YouTube',svg:<svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M22.54 6.42a2.78 2.78 0 0 0-1.95-1.96C18.88 4 12 4 12 4s-6.88 0-8.59.46a2.78 2.78 0 0 0-1.95 1.96A29 29 0 0 0 1 12a29 29 0 0 0 .46 5.58A2.78 2.78 0 0 0 3.41 19.6C5.12 20 12 20 12 20s6.88 0 8.59-.46a2.78 2.78 0 0 0 1.95-1.95A29 29 0 0 0 23 12a29 29 0 0 0-.46-5.58z"/><polygon points="9.75 15.02 15.5 12 9.75 8.98 9.75 15.02" fill="#06080A"/></svg>}];
+
+function Footer(){
+  return(<footer style={{background:'var(--bg1)',borderTop:'1px solid var(--br)'}}><div style={{maxWidth:1200,margin:'0 auto',padding:'64px 24px 48px'}}><div style={{display:'grid',gridTemplateColumns:'1.2fr 1fr 1fr 1fr',gap:40,marginBottom:56}}><div><div style={{display:'flex',alignItems:'center',gap:10,marginBottom:16}}><span className="logo-dot"/><span className="fd" style={{fontSize:15,fontWeight:700,color:'var(--tx)'}}>OBSIDIAN</span></div><p className="fb" style={{fontSize:14,color:'var(--tx2)',lineHeight:1.65,maxWidth:220,marginBottom:24}}>The next-generation trading platform infrastructure.</p><div style={{display:'flex',gap:8}}>{SOCIALS.map(s=><button key={s.l} className="f-social" title={s.l}>{s.svg}</button>)}</div></div>{[{ti:'Platform',links:FOOT.platform},{ti:'For Brokers',links:FOOT.brokers},{ti:'Company',links:FOOT.company}].map(col=><div key={col.ti}><div className="fd" style={{fontSize:13,fontWeight:600,color:'var(--tx)',letterSpacing:'.02em',marginBottom:20}}>{col.ti}</div><div style={{width:24,height:1,background:'var(--br2)',marginBottom:16}}/>{col.links.map(l=><a key={l.l} href={l.h} className="f-link">{l.l}{l.live&&<span className="live-dot" style={{width:5,height:5}}/>}{l.badge&&<span className="fm" style={{fontSize:9,color:'var(--bull)',background:'rgba(16,217,150,.1)',padding:'1px 5px',borderRadius:3,border:'1px solid rgba(16,217,150,.22)'}}>{l.badge}</span>}</a>)}</div>)}</div><div style={{height:1,background:'var(--br)',marginBottom:20}}/><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',flexWrap:'wrap',gap:16}}><span className="fb" style={{fontSize:13,color:'var(--tx3)'}}>© 2026 Obsidian Platform Ltd. All rights reserved.</span><div style={{display:'flex',gap:20,flexWrap:'wrap'}}>{['Privacy Policy','Terms of Service','Cookie Policy','Legal'].map(l=><a key={l} href="#" className="fb" style={{fontSize:13,color:'var(--tx3)'}}>{l}</a>)}</div><button className="fb" style={{fontSize:13,color:'var(--tx3)',background:'transparent',border:'1px solid var(--br)',borderRadius:6,padding:'6px 12px',cursor:'none',display:'flex',alignItems:'center',gap:6}}>🇬🇧 English <span style={{opacity:.5}}>▾</span></button></div><div style={{marginTop:24,paddingTop:24,borderTop:'1px solid var(--br)'}}><p className="fb" style={{fontSize:11,color:'var(--tx3)',lineHeight:1.6,opacity:.65,maxWidth:820}}>Trading CFDs involves significant risk of loss. Obsidian is a technology provider only. Regulatory compliance obligations rest with the licensed broker. Obsidian Platform Ltd is not a financial advisor or broker.</p></div></div></footer>);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ROOT APP
+══════════════════════════════════════════════════════════════ */
+function App(){
+  return(<>
+    <CursorController/>
+    <Nav/>
+    <main>
+      <Hero/>
+      <Demo/>
+      <GlobeSection/>
+      <DualAudience/>
+      <Ecosystem/>
+      <ProofStrip/>
+      <OrderBookSection/>
+      <ScrollStories/>
+      <IBMirror/>
+      <Social/>
+      <Pricing/>
+      <TechStack/>
+      <Compliance/>
+      <Onboarding/>
+      <FinalCTA/>
+    </main>
+    <Footer/>
+  </>);
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>
