@@ -10,15 +10,51 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
+    "baseUrl": ".",
+    "paths": {
+      "@/features/*": ["features/*"],
+      "@/shared/*": ["shared/*"],
+      "@nesttrade/backend/*": ["../../apps/backend/src/*"],
+      "@nesttrade/backend-auth": ["../../apps/backend/src/modules/auth/index.ts"],
+      "@nesttrade/backend-users": ["../../apps/backend/src/modules/users/index.ts"],
+      "@nesttrade/backend-rbac": ["../../apps/backend/src/modules/rbac/index.ts"],
+      "@nesttrade/backend-market": ["../../apps/backend/src/modules/market/index.ts"],
+      "@nesttrade/backend-accounts": ["../../apps/backend/src/modules/accounts/index.ts"],
+      "@nesttrade/backend-demo-accounts": ["../../apps/backend/src/modules/demo-accounts/index.ts"],
+      "@nesttrade/backend-oms": ["../../apps/backend/src/modules/oms/index.ts"],
+      "@nesttrade/backend-realtime": ["../../apps/backend/src/modules/realtime/prana-stream/index.ts"],
+      "@nesttrade/backend-notifications": ["../../apps/backend/src/modules/notifications/index.ts"],
+      "@nesttrade/backend-admin": ["../../apps/backend/src/modules/admin/index.ts"],
+      "@nesttrade/backend-tenancy": ["../../apps/backend/src/modules/tenancy/index.ts"],
+      "@nesttrade/backend-broker-hierarchy": ["../../apps/backend/src/modules/broker-hierarchy/index.ts"],
+      "@nesttrade/backend-execution-gateway": ["../../apps/backend/src/modules/execution-gateway/index.ts"],
+      "@nesttrade/backend-compliance": ["../../apps/backend/src/modules/compliance/index.ts"],
+      "@nesttrade/backend-onboarding": ["../../apps/backend/src/modules/onboarding/index.ts"],
+      "@nesttrade/backend-risk-policy": ["../../apps/backend/src/modules/risk-policy/index.ts"],
+      "@nesttrade/backend-settlement": ["../../apps/backend/src/modules/settlement/index.ts"],
+      "@nesttrade/backend-reconciliation": ["../../apps/backend/src/modules/reconciliation/index.ts"],
+      "@nesttrade/backend-corporate-actions": ["../../apps/backend/src/modules/corporate-actions/index.ts"],
+      "@nesttrade/backend-limits-controls": ["../../apps/backend/src/modules/limits-and-controls/index.ts"],
+      "@nesttrade/backend-saas-control-plane": ["../../apps/backend/src/modules/saas-control-plane/index.ts"],
+      "@nesttrade/backend-dealing": ["../../apps/backend/src/modules/dealing/index.ts"],
+      "@nesttrade/backend-support": ["../../apps/backend/src/modules/support/index.ts"],
+      "@nesttrade/backend-partners": ["../../apps/backend/src/modules/partners/index.ts"],
+      "@nesttrade/backend-developer-platform": ["../../apps/backend/src/modules/developer-platform/index.ts"],
+      "@nesttrade/ui-kit": ["../../libs/ui-kit/src/index.ts"],
+      "@nesttrade/web-auth": ["../../libs/web-auth/src/index.ts"],
+      "@nesttrade/web-api-client": ["../../libs/web-api-client/src/index.ts"],
+      "@nesttrade/web-feature-flags": ["../../libs/web-feature-flags/src/index.ts"],
+      "@nesttrade/mobile-ui-kit": ["../../libs/mobile-ui-kit/src/index.ts"],
+      "@nesttrade/mobile-auth": ["../../libs/mobile-auth/src/index.ts"],
+      "@nesttrade/mobile-api-client": ["../../libs/mobile-api-client/src/index.ts"],
+      "@nesttrade/web-shell": ["../../libs/web-shell/src/index.ts"],
+      "@nesttrade/desktop-shell": ["../../libs/desktop-shell/src/index.ts"]
+    },
     "plugins": [
       {
         "name": "next"
@@ -35,10 +71,5 @@
     "next-env.d.ts",
     ".next/types/**/*.ts"
   ],
-  "exclude": [
-    "node_modules",
-    "jest.config.ts",
-    "**/*.spec.ts",
-    "**/*.test.ts"
-  ]
+  "exclude": ["node_modules", "jest.config.ts", "**/*.spec.ts", "**/*.test.ts"]
 }
