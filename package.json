@@ -61,6 +61,8 @@
     "helmet": "^8.1.0",
     "ioredis": "^5.7.0",
     "json2csv": "^6.0.0-alpha.2",
+    "lightweight-charts": "^4.2.0",
+    "lucide-react": "^0.469.0",
     "nanoid": "^5.1.5",
     "next": "~15.2.4",
     "otplib": "^12.0.1",
