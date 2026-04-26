@@ -1,0 +1,7 @@
+{
+  "database": "dolt",
+  "backend": "dolt",
+  "dolt_mode": "embedded",
+  "dolt_database": "NestTrade",
+  "project_id": "0bfdd4f6-97cb-4062-accf-5fb69366d5b7"
+}
