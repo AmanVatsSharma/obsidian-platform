@@ -18,7 +18,7 @@
  *   - 'use client' — uses useEffect, useState, useRef
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-04-26
  */
 
 'use client';
@@ -44,7 +44,7 @@ const CMD_ITEMS: CommandItem[] = [
   { label: 'Client Groups',       sub: 'Clients',             href: '/client-groups' },
   { label: 'Instruments',         sub: 'Trading',             href: '/instruments' },
   { label: 'Pricing Rules',       sub: 'Trading',             href: '/pricing-rules' },
-  { label: 'Trading Sessions',    sub: 'Trading',             href: '/sessions' },
+  { label: 'Trading Sessions',    sub: 'Trading',             href: '/trading-sessions' },
   { label: 'Order Management',    sub: 'Trading',             href: '/orders' },
   { label: 'Risk Dashboard',      sub: 'Risk & Compliance',   href: '/risk-dashboard' },
   { label: 'Exposure Limits',     sub: 'Risk & Compliance',   href: '/exposure-limits' },
