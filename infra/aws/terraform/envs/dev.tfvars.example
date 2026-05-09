@@ -1,0 +1,7 @@
+# NestTrade Dev Environment
+# Copy to dev.tfvars and fill values
+
+environment       = "dev"
+aws_region        = "ap-south-1"
+vpc_cidr          = "10.0.0.0/16"
+availability_zones = ["ap-south-1a", "ap-south-1b"]

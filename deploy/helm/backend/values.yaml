@@ -1,0 +1,28 @@
+# NestTrade Backend - Default values
+# Author: BharatERP
+# Last-updated: 2025-02-19
+
+replicaCount: 1
+
+image:
+  repository: nesttrade/backend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 3000
+
+ingress:
+  enabled: false
+
+env:
+  NODE_ENV: production
+
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 256Mi
