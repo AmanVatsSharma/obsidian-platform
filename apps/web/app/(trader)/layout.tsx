@@ -1,5 +1,20 @@
+/**
+ * @file layout.tsx
+ * @module web
+ * @description Trader route group shell using Obsidian UI AppShell and navigation
+ * @author BharatERP
+ * @created 2026-04-03
+ */
+
 import Link from 'next/link';
-import { buildSectionTitle, type UiNavItem } from '@nesttrade/ui-kit';
+import {
+  AppShell,
+  ContentFrame,
+  ObsidianTooltip,
+  PageHeader,
+  type UiNavItem,
+  buildSectionTitle,
+} from '@obsidian/obsidian-ui';
 
 const traderNavItems: UiNavItem[] = [
   { label: 'Workstation', href: '/workstation', description: 'Chart, DOM, order ticket, and watchlists' },
@@ -11,19 +26,35 @@ const traderNavItems: UiNavItem[] = [
 ];
 
 export default function TraderLayout({ children }: { children: React.ReactNode }) {
+  const topBar = (
+    <ContentFrame variant="wide" className="py-3">
+      <PageHeader
+        title={buildSectionTitle('Trader Workspace')}
+        description="Portfolio, orders, funds, settings, and onboarding."
+      />
+    </ContentFrame>
+  );
+
+  const sidebar = (
+    <nav className="flex flex-col gap-1 p-obs" aria-label="Trader navigation">
+      {traderNavItems.map((item) => (
+        <ObsidianTooltip key={item.href} content={item.description ?? item.label}>
+          <Link
+            href={item.href}
+            className="rounded-obs px-3 py-2 text-sm text-obsidian-primary hover:bg-obsidian-muted"
+          >
+            {item.label}
+          </Link>
+        </ObsidianTooltip>
+      ))}
+    </nav>
+  );
+
   return (
-    <div style={{ padding: 24, display: 'grid', gap: 20 }}>
-      <header style={{ display: 'grid', gap: 8 }}>
-        <h1>{buildSectionTitle('Trader Workspace')}</h1>
-        <nav style={{ display: 'flex', flexWrap: 'wrap', gap: 12 }}>
-          {traderNavItems.map((item) => (
-            <Link key={item.href} href={item.href}>
-              {item.label}
-            </Link>
-          ))}
-        </nav>
-      </header>
-      <main>{children}</main>
-    </div>
+    <AppShell topBar={topBar} sidebar={sidebar} mainAriaLabel="Trader workspace content">
+      <ContentFrame variant="wide" className="py-obs-2">
+        {children}
+      </ContentFrame>
+    </AppShell>
   );
 }

@@ -8,7 +8,7 @@
  *
  * Depends on:
  *   - ./nav-config         — NAV_GROUPS
- *   - @nesttrade/obsidian-ui — cn()
+ *   - @obsidian/obsidian-ui — cn()
  *   - next/navigation      — usePathname()
  *   - lucide-react         — icons
  *
@@ -35,7 +35,7 @@ import {
   Megaphone, PieChart, Shield, TrendingUp, Users, Users2, UserCheck,
   Wallet, Webhook, Zap, Settings, RefreshCw, UserCog,
 } from 'lucide-react';
-import { cn } from '@nesttrade/obsidian-ui';
+import { cn } from '@obsidian/obsidian-ui';
 import { NAV_GROUPS } from './nav-config';
 import { useBrokerData } from '../../lib/mock-data-context';
 

@@ -21,7 +21,7 @@
 
 import { useState } from 'react';
 import { X } from 'lucide-react';
-import { cn } from '@nesttrade/obsidian-ui';
+import { cn } from '@obsidian/obsidian-ui';
 import { useBrokerData } from '../../lib/mock-data-context';
 import type { NotificationType } from '../../lib/types';
 

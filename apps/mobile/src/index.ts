@@ -6,4 +6,4 @@
  * @created 2026-02-19
  */
 
-export const MOBILE_APP_NAME = 'NestTrade Mobile';
+export const MOBILE_APP_NAME = 'Obsidian Mobile';

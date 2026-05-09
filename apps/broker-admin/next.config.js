@@ -9,7 +9,7 @@
  *   - none
  *
  * Key invariants:
- *   - transpilePackages required for @nesttrade/obsidian-ui (ESM lib)
+ *   - transpilePackages required for @obsidian/obsidian-ui (ESM lib)
  *   - API rewrites proxy to backend at :3000 — disabled in static export mode
  *   - STATIC_EXPORT=true → output:'export', images.unoptimized, trailingSlash:true
  *
@@ -26,8 +26,8 @@ const isStaticExport = process.env.STATIC_EXPORT === 'true';
 /** @type {import('@nx/next/plugins/with-nx').WithNxOptions} */
 const nextConfig = {
   nx: {},
-  transpilePackages: ['@nesttrade/obsidian-ui'],
-  allowedDevOrigins: ['http://localhost:4500'],
+  transpilePackages: ['@obsidian/obsidian-ui'],
+  allowedDevOrigins: ['http://localhost:4500', '*.localhost', '*.lvh.me'],
 
   // Static export mode — active when STATIC_EXPORT=true
   ...(isStaticExport

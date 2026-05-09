@@ -1,5 +1,7 @@
 'use client';
 import { useState, useEffect, useCallback, useRef } from 'react';
+import { ToastProvider } from '../shared/Toast';
+import { ConfirmProvider } from '../shared/ConfirmDialog';
 import { broker, notifications as notifData } from '../../lib/mockData';
 
 // ─── NAV CONFIG ───────────────────────────────────────────────────────────────
@@ -110,6 +112,8 @@ function avatarColor(str = '') {
 // ─── TOP BAR ──────────────────────────────────────────────────────────────────
 function TopBar({ collapsed, onToggleSidebar, unreadCount, onNotif, notifOpen, onCmd }) {
   return (
+    // <ConfirmProvider>
+    // <ToastProvider>
     <div className="topbar">
       <div className={`topbar__brand ${collapsed ? 'collapsed' : ''}`}>
         <div className="topbar__logo">A</div>
@@ -570,6 +574,42 @@ function ModuleRenderer({ moduleId, onNavigate }) {
       const ReportBuilder = require('../reports/ReportBuilder').default;
       return <ReportBuilder />;
     }
+    // Finance — all remaining modules
+    if (moduleId === 'commissions') {
+      const IBCommissions = require('../finance/IBCommissions').default;
+      return <IBCommissions />;
+    }
+    if (moduleId === 'bonuses') {
+      const BonusManagement = require('../finance/BonusManagement').default;
+      return <BonusManagement />;
+    }
+    if (moduleId === 'pnl') {
+      const PnLStatement = require('../finance/PnLStatement').default;
+      return <PnLStatement />;
+    }
+    // Trading modules
+    if (moduleId === 'pricing-rules') {
+      const PricingRules = require('../trading/PricingRules').default;
+      return <PricingRules />;
+    }
+    if (moduleId === 'sessions') {
+      const TradingSessions = require('../trading/TradingSessions').default;
+      return <TradingSessions />;
+    }
+    if (moduleId === 'orders') {
+      const OrderManagement = require('../trading/OrderManagement').default;
+      return <OrderManagement />;
+    }
+    // Risk
+    if (moduleId === 'exposure') {
+      const ExposureLimits = require('../risk/ExposureLimits').default;
+      return <ExposureLimits />;
+    }
+    // Clients
+    if (moduleId === 'client-groups') {
+      const ClientGroups = require('../clients/ClientGroups').default;
+      return <ClientGroups />;
+    }
   } catch {
     // Module not yet built → fallthrough to stub
   }
@@ -605,6 +645,8 @@ export default function Shell() {
   }, []);
 
   return (
+    <ToastProvider>
+    <ConfirmProvider>
     <div className="admin-root">
       <TopBar
         collapsed={collapsed}
@@ -643,5 +685,7 @@ export default function Shell() {
         onNavigate={handleNavigate}
       />
     </div>
+    </ConfirmProvider>
+    </ToastProvider>
   );
 }

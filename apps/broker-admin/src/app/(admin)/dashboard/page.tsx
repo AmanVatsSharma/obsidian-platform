@@ -35,7 +35,7 @@ import {
   YAxis,
 } from 'recharts';
 import { Activity, AlertTriangle, DollarSign, TrendingUp, UserCheck, Users } from 'lucide-react';
-import { cn } from '@nesttrade/obsidian-ui';
+import { cn } from '@obsidian/obsidian-ui';
 import { useBrokerData } from '../../../lib/mock-data-context';
 import type { ActivityEvent } from '../../../lib/types';
 

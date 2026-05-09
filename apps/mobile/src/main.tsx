@@ -9,5 +9,5 @@
 import type { ReactElement } from 'react';
 
 export function App(): ReactElement {
-  return <div>NestTrade Mobile</div>;
+  return <div>Obsidian Mobile</div>;
 }

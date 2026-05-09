@@ -10,6 +10,7 @@ const nextConfig = {
   // Use this to set Nx-specific options
   // See: https://nx.dev/recipes/next/next-config-setup
   nx: {},
+  transpilePackages: ['@obsidian/obsidian-ui'],
   allowedDevOrigins: ['http://localhost:4200'],
   async rewrites(){
     return [

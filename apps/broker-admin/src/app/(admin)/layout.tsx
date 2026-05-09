@@ -1,7 +1,8 @@
 /**
  * File:        apps/broker-admin/src/app/(admin)/layout.tsx
  * Module:      broker-admin · Admin Group Layout
- * Purpose:     Shell wrapper for all (admin) routes — sidebar + topbar + main scroll area
+ * Purpose:     Shell wrapper for all (admin) routes — sidebar + topbar + main scroll area.
+ *              Wraps the shell in AuthGuard to redirect unauthenticated users to /login.
  *
  * Exports:
  *   - AdminLayout() — layout component for the (admin) route group
@@ -11,13 +12,15 @@
  *   - ../../shared/topbar/topbar           — BrokerTopbar
  *   - ../../shared/command-palette/...    — CommandPalette
  *   - ../../shared/notifications/...     — NotificationsPanel
+ *   - ../../lib/auth/auth-guard           — AuthGuard
  *
  * Key invariants:
  *   - 'use client' — manages open/close state for palette + notifications
  *   - ⌘K global hotkey registered here (single listener for entire admin shell)
+ *   - AuthGuard returns null until hydration then redirects unauthenticated users
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-05-09
  */
 
 'use client';
@@ -27,6 +30,7 @@ import { BrokerSidebar } from '../../shared/sidebar/sidebar';
 import { BrokerTopbar } from '../../shared/topbar/topbar';
 import { CommandPalette } from '../../shared/command-palette/command-palette';
 import { NotificationsPanel } from '../../shared/notifications/notifications-panel';
+import { AuthGuard } from '../../lib/auth/auth-guard';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -50,21 +54,23 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   }, []);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[var(--bg-base)]">
-      <BrokerSidebar />
+    <AuthGuard>
+      <div className="flex h-screen overflow-hidden bg-[var(--bg-base)]">
+        <BrokerSidebar />
 
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <BrokerTopbar
-          onOpenCommandPalette={openCmd}
-          onOpenNotifications={openNotif}
-        />
-        <main className="flex-1 overflow-y-auto bg-[var(--bg-base)]">
-          {children}
-        </main>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          <BrokerTopbar
+            onOpenCommandPalette={openCmd}
+            onOpenNotifications={openNotif}
+          />
+          <main className="flex-1 overflow-y-auto bg-[var(--bg-base)]">
+            {children}
+          </main>
+        </div>
+
+        <CommandPalette open={cmdOpen} onClose={closeCmd} />
+        <NotificationsPanel open={notifOpen} onClose={closeNotif} />
       </div>
-
-      <CommandPalette open={cmdOpen} onClose={closeCmd} />
-      <NotificationsPanel open={notifOpen} onClose={closeNotif} />
-    </div>
+    </AuthGuard>
   );
 }

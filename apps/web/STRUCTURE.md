@@ -6,7 +6,7 @@
 
 **Dependency direction:** `app` → `features` → `shared` → `libs` (`@nesttrade/*`). Avoid `features` → `features` unless mediated by `shared` or an explicit integration module.
 
-Path aliases: `@/features/*`, `@/shared/*` (see `tsconfig.json`).
+Path aliases: `@/features/*`, `@/shared/*` (see `tsconfig.json`). Shared design system: **`@nesttrade/obsidian-ui`** (`libs/obsidian-ui`); Tailwind preset is imported with a **relative** path in `tailwind.config.ts` (PostCSS does not resolve TS paths).
 
 If you change where `app/` lives, delete `apps/web/.next` before the next build so generated types do not point at stale paths.
 

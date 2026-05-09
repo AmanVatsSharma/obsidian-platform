@@ -26,7 +26,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search } from 'lucide-react';
-import { cn } from '@nesttrade/obsidian-ui';
+import { cn } from '@obsidian/obsidian-ui';
 
 interface CommandItem {
   label: string;

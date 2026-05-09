@@ -2,25 +2,27 @@
  * File:        apps/broker-admin/src/app/(admin)/clients/page.tsx
  * Module:      broker-admin · Clients
  * Purpose:     Searchable, filterable, sortable client table with slide-in drawer for
- *              account overview, positions, transactions, notes, and quick-actions
+ *              account overview, positions, transactions, notes, and quick-actions.
+ *              Client list and actions are backed by real API via useClientsApi().
  *
  * Exports:
  *   - ClientsPage — default page export
  *
  * Depends on:
- *   - @/lib/mock-data-context — useBrokerData() for approveKyc, suspendClient, etc.
- *   - @/lib/mock-data — MOCK_ORDERS, MOCK_TRANSACTIONS for drawer detail
+ *   - @/lib/api/hooks/use-clients — useClientsApi() for real API data
+ *   - @/lib/mock-data             — MOCK_ORDERS, MOCK_TRANSACTIONS for drawer detail
  *
  * Side-effects:
- *   - none (all actions are context mutations, no external calls)
+ *   - Calls GET /admin/users, PATCH /admin/users/:id, POST /admin/users/:id/deactivate|reactivate
  *
  * Key invariants:
  *   - 'use client' — filter state, drawer open state
  *   - Drawer overlays the page via fixed position; body scroll is locked when open
  *   - useMemo gates: clients → filtered → sorted; only re-computes on filter/sort change
+ *   - Actions passed as props to ClientDrawer — no direct useBrokerData() in the drawer
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-05-09
  */
 
 'use client';
@@ -31,7 +33,7 @@ import {
   X, CheckCircle2, Ban, FileText, StickyNote, AlertTriangle,
   TrendingUp, TrendingDown, Wallet, BarChart2, Shield, Phone, Mail,
 } from 'lucide-react';
-import { useBrokerData } from '@/lib/mock-data-context';
+import { useClientsApi } from '@/lib/api/hooks/use-clients';
 import { MOCK_ORDERS, MOCK_TRANSACTIONS } from '@/lib/mock-data';
 import type { Client, ClientStatus, ClientType, KYCStatus } from '@/lib/types';
 
@@ -83,8 +85,16 @@ function typeBadgeClass(t: ClientType) {
 
 // ─── CLIENT DRAWER ─────────────────────────────────────────────────────────────
 
-function ClientDrawer({ client, onClose }: { client: Client; onClose: () => void }) {
-  const { approveKyc, rejectKyc, suspendClient, unsuspendClient } = useBrokerData();
+interface ClientDrawerProps {
+  client: Client;
+  onClose: () => void;
+  approveKyc: (id: string) => void;
+  rejectKyc: (id: string) => void;
+  suspendClient: (id: string) => void;
+  unsuspendClient: (id: string) => void;
+}
+
+function ClientDrawer({ client, onClose, approveKyc, rejectKyc, suspendClient, unsuspendClient }: ClientDrawerProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'positions' | 'transactions' | 'notes' | 'kyc'>('overview');
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
 
@@ -433,7 +443,7 @@ function SortTh({
 // ─── PAGE ──────────────────────────────────────────────────────────────────────
 
 export default function ClientsPage() {
-  const { clients } = useBrokerData();
+  const { clients, isLoading, error, approveKyc, rejectKyc, suspendClient, unsuspendClient } = useClientsApi();
 
   const [search, setSearch]         = useState('');
   const [filterStatus, setStatus]   = useState<ClientStatus | 'All'>('All');
@@ -489,7 +499,13 @@ export default function ClientsPage() {
         <div className="module-header">
           <div>
             <h1 className="module-title">All Clients</h1>
-            <p className="module-subtitle">{filtered.length} of {clients.length} clients shown</p>
+            <p className="module-subtitle">
+              {isLoading
+                ? 'Loading…'
+                : error
+                ? <span className="text-[var(--bear)]">{error}</span>
+                : `${filtered.length} of ${clients.length} clients shown`}
+            </p>
           </div>
           <div className="flex items-center gap-2">
             {selected.size > 0 && (
@@ -624,7 +640,14 @@ export default function ClientsPage() {
 
       {/* Slide-in Drawer */}
       {selectedClient && (
-        <ClientDrawer client={selectedClient} onClose={() => setSelected(null)} />
+        <ClientDrawer
+          client={selectedClient}
+          onClose={() => setSelected(null)}
+          approveKyc={approveKyc}
+          rejectKyc={rejectKyc}
+          suspendClient={suspendClient}
+          unsuspendClient={unsuspendClient}
+        />
       )}
     </>
   );

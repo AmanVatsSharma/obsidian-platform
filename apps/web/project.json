@@ -9,6 +9,7 @@
     "dev": {
       "executor": "@nx/next:server",
       "options": {
+        "buildTarget": "web:build",
         "dev": true,
         "port": 4200
       }
@@ -35,7 +36,9 @@
           "apps/web/features/**/*.{ts,tsx,js,jsx}",
           "apps/web/shared/**/*.{ts,tsx,js,jsx}",
           "apps/web/index.d.ts",
-          "apps/web/next.config.js"
+          "apps/web/next.config.js",
+          "apps/web/tailwind.config.ts",
+          "apps/web/postcss.config.js"
         ]
       }
     }

@@ -21,7 +21,7 @@
       "@/app/*":              ["src/app/*"],
       "@/lib/*":              ["src/lib/*"],
       "@/shared/*":           ["src/shared/*"],
-      "@nesttrade/obsidian-ui": ["../../libs/obsidian-ui/src/index.ts"]
+      "@obsidian/obsidian-ui": ["../../libs/obsidian-ui/src/index.ts"]
     }
   },
   "include": [

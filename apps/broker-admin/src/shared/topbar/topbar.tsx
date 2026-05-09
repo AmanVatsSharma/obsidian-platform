@@ -8,7 +8,7 @@
  *
  * Depends on:
  *   - ../../lib/mock-data-context — useBrokerData
- *   - @nesttrade/obsidian-ui     — useObsidian (theme toggle)
+ *   - @obsidian/obsidian-ui     — useObsidian (theme toggle)
  *   - lucide-react               — icons
  *
  * Side-effects:
@@ -23,7 +23,7 @@
 
 import { useEffect, useState } from 'react';
 import { Bell, ChevronDown, HelpCircle, LogOut, Moon, Search, Settings, Sun } from 'lucide-react';
-import { cn, useObsidian } from '@nesttrade/obsidian-ui';
+import { cn, useObsidian } from '@obsidian/obsidian-ui';
 import { useBrokerData } from '../../lib/mock-data-context';
 
 function useClock() {
