@@ -14,6 +14,7 @@ import { UserRoleEntity } from './entities/user-role.entity';
 import { RolePermissionEntity } from './entities/role-permission.entity';
 import { RbacService } from './rbac.service';
 import { PermissionsGuard } from './guards/permissions.guard';
+import { PlatformOwnerGuard } from './guards/platform-owner.guard';
 import { RolesGuard } from './guards/roles.guard';
 import { TenantGuard } from './guards/tenant.guard';
 import { RbacSeeder } from './rbac.seeder';
@@ -30,7 +31,7 @@ import { AdminPermissionsController } from './controllers/admin-permissions.cont
     ]),
   ],
   controllers: [AdminRolesController, AdminPermissionsController],
-  providers: [RbacService, PermissionsGuard, RolesGuard, TenantGuard, RbacSeeder],
-  exports: [RbacService, PermissionsGuard, RolesGuard, TenantGuard],
+  providers: [RbacService, PermissionsGuard, PlatformOwnerGuard, RolesGuard, TenantGuard, RbacSeeder],
+  exports: [RbacService, PermissionsGuard, PlatformOwnerGuard, RolesGuard, TenantGuard],
 })
 export class RbacModule {}

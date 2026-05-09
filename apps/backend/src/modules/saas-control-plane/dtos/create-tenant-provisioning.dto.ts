@@ -6,7 +6,7 @@
  * @created 2026-02-17
  */
 
-import { IsNotEmpty, IsObject, IsString, IsUUID, Matches } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
 
 export class CreateTenantProvisioningDto {
   @IsUUID()
@@ -16,8 +16,13 @@ export class CreateTenantProvisioningDto {
   @IsNotEmpty()
   requestedBy!: string;
 
+  @IsOptional()
+  @IsEmail()
+  brokerAdminEmail?: string;
+
+  @IsOptional()
   @IsObject()
-  resources!: Record<string, unknown>;
+  resources?: Record<string, unknown>;
 }
 
 export class UpsertEntitlementPlanDto {

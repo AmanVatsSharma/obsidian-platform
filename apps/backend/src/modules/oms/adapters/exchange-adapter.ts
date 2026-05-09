@@ -7,7 +7,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { ExecutionGatewayService } from '@nesttrade/backend-execution-gateway';
+import { ExecutionGatewayService } from '@obsidian/backend-execution-gateway';
 
 export type TimeInForce = 'DAY' | 'IOC' | 'GTC' | 'FOK';
 

@@ -16,5 +16,8 @@ export * from './decorators/permissions.decorator';
 export * from './decorators/roles.decorator';
 export * from './decorators/tenant.decorator';
 export * from './guards/permissions.guard';
+export * from './guards/platform-owner.guard';
 export * from './guards/roles.guard';
 export * from './guards/tenant.guard';
+export * from './constants/role.constants';
+export * from './constants/permission.constants';

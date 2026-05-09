@@ -33,8 +33,16 @@ Env vars: None specific
 
 Tests: Skipped per instruction
 
+New files (2026-05-09):
+- constants/role.constants.ts      — ROLE enum (PLATFORM_OWNER, BROKER_ADMIN='admin', BROKER_OWNER, TRADER, VIEWER, SUPPORT_AGENT)
+- constants/permission.constants.ts — PERMISSION enum + PLATFORM_PERMS + BROKER_DEFAULT_PERMS arrays
+- guards/platform-owner.guard.ts   — two-check gate: req.user.tenantId==='platform' AND userHasAnyRole('platform', userId, [ROLE.PLATFORM_OWNER])
+
+Note: ROLE.BROKER_ADMIN maps to string 'admin' to match existing DB rows — no migration needed.
+
 Change-log:
 - 2025-09-18 IST: Initial scaffold
 - 2025-09-19 IST: Added entities (roles, permissions, user_roles, role_permissions), guards, decorators, and seeder gated by SEED_RBAC_TENANT_ID
 - 2025-09-19 IST: Added admin controllers for roles/permissions, CRUD DTOs, wired into module
 - 2025-09-19 IST: Secured admin endpoints with JwtAuthGuard
+- 2026-05-09 IST: Added ROLE/PERMISSION constants, PlatformOwnerGuard. Exported all from index.ts.

@@ -1,9 +1,31 @@
 /**
- * @file src/modules/notifications/services/notification.service.ts
- * @module notifications
- * @description Notification dispatch service with channel stubs and preferences
- * @auth  BharatERP
- * @created 2025-01-09
+ * File:        apps/backend/src/modules/notifications/services/notification.service.ts
+ * Module:      notifications
+ * Purpose:     Notification dispatch — creates DB record, then attempts real
+ *              channel dispatch (SES email, SNS SMS, in-app). Updates record
+ *              status to 'sent' or 'failed' based on outcome.
+ *
+ * Exports:
+ *   - NotificationService.send(opts) → void   — dispatch to allowed channels
+ *   - NotificationService.list(userId, limit) → NotificationEntity[]
+ *   - NotificationService.updatePreferences(userId, dto) → NotificationPreferenceEntity
+ *
+ * Depends on:
+ *   - AwsSesService (via SharedModule @Global) — email dispatch
+ *   - AwsSnsService (via SharedModule @Global) — SMS dispatch
+ *
+ * Side-effects:
+ *   - DB write per channel (NotificationEntity)
+ *   - AWS SES call when email provided + credentials configured
+ *   - AWS SNS call when phone provided + credentials configured
+ *
+ * Key invariants:
+ *   - Record created as 'pending', then updated to 'sent'/'failed' — never saved as 'sent' directly
+ *   - Dispatch errors are caught and status updated to 'failed' — never propagated to caller
+ *   - email/phone in opts are optional: if absent, channel is saved as in-app only
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-04-24
  */
 
 import { Injectable } from '@nestjs/common';
@@ -15,6 +37,8 @@ import { AppLoggerService } from '../../../shared/logger';
 import { getRequestContext } from '../../../shared/request-context';
 import { UpdateNotificationPreferencesDto } from '../dtos/update-notification-preferences.dto';
 import { NotificationTemplateService } from './notification-template.service';
+import { AwsSesService } from '../../../shared/aws/ses.service';
+import { AwsSnsService } from '../../../shared/aws/sns.service';
 
 type Channel = 'email' | 'sms' | 'push' | 'in-app';
 
@@ -27,6 +51,8 @@ export class NotificationService {
     private readonly prefs: Repository<NotificationPreferenceEntity>,
     private readonly logger: AppLoggerService,
     private readonly templates: NotificationTemplateService,
+    private readonly ses: AwsSesService,
+    private readonly sns: AwsSnsService,
   ) {
     this.logger.setContext(NotificationService.name);
   }
@@ -74,6 +100,9 @@ export class NotificationService {
     channels?: Channel[];
     category?: string;
     inAppOnly?: boolean;
+    /** Caller-supplied contact info — if absent, email/SMS channels are skipped */
+    email?: string;
+    phone?: string;
   }): Promise<void> {
     const ctx = getRequestContext();
     if (!ctx?.tenantId) return;
@@ -93,18 +122,41 @@ export class NotificationService {
         userId: options.userId,
         type: options.type,
         channel,
-        status: 'sent',
+        status: 'pending',
         title: options.title,
         body,
       });
-      await this.notifications.save(record);
-      // Stubbed dispatch: integrate SES/SNS/FCM later.
-      this.logger.debug('Notification dispatched (stub)', {
-        channel,
-        userId: options.userId,
-        type: options.type,
-      });
+      const saved = await this.notifications.save(record);
+      await this.dispatchChannel(saved, options);
     }
+  }
+
+  private async dispatchChannel(
+    record: NotificationEntity,
+    options: { title: string; email?: string; phone?: string },
+  ): Promise<void> {
+    try {
+      if (record.channel === 'email' && options.email) {
+        await this.ses.sendEmail({
+          to: options.email,
+          subject: options.title,
+          html: `<p>${record.body}</p>`,
+          text: record.body,
+        });
+      } else if (record.channel === 'sms' && options.phone) {
+        await this.sns.sendSms(options.phone, record.body);
+      }
+      // push and in-app: no external call — status is 'sent' immediately
+      record.status = 'sent';
+    } catch (err) {
+      this.logger.error(
+        `Notification dispatch failed channel=${record.channel} id=${record.id}`,
+        (err as Error)?.message ?? String(err),
+      );
+      record.status = 'failed';
+    }
+    await this.notifications.save(record);
+    this.logger.debug('Notification dispatched', { channel: record.channel, status: record.status });
   }
 
   private filterChannels(channels: Channel[], prefs?: NotificationPreferenceEntity | null): Channel[] {

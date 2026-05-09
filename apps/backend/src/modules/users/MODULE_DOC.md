@@ -65,3 +65,4 @@ Change-log:
 - 2025-09-24 IST: Added admin endpoints with RBAC (`users:read|write`), pagination/search; enterprise user fields; new migration 1700000000008; tests and docs updated; index.ts re-exports added
 - 2025-09-24 IST: Added deactivation/reactivation endpoints; migration 1700000000009; Swagger docs on controllers
 - 2025-01-09 IST: Added self-service profile update and email/mobile verification endpoints
+- 2026-05-09 IST: Added kycStatus field to UpdateUserDto (@IsIn ['pending','verified','rejected']). Added kycStatus update path in UsersService.update(). Enables broker admin to approve/reject KYC via PATCH /admin/users/:id.

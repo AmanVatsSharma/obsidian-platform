@@ -4,6 +4,7 @@
  * @description Refresh token entity with rotation and reuse detection
  * @author BharatERP
  * @created 2025-09-18
+ * @last-updated 2026-04-24
  */
 
 import {
@@ -11,17 +12,19 @@ import {
   CreateDateColumn,
   Entity,
   Index,
-  ManyToOne,
   PrimaryGeneratedColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { UserEntity } from '../../users/entities/user.entity';
 
 @Entity('refresh_tokens')
 @Index('idx_refresh_user', ['userId'])
+@Index('idx_refresh_tenant_user', ['tenantId', 'userId'])
 export class RefreshTokenEntity {
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
   id!: string;
+
+  @Column({ name: 'tenant_id', type: 'varchar', length: 64 })
+  tenantId!: string;
 
   @Column({ name: 'user_id', type: 'uuid' })
   userId!: string;

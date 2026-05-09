@@ -11,6 +11,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { AppLoggerService } from '../../../shared/logger';
 import { RiskPolicyEntity } from '../entities/risk-policy.entity';
 import { TenantRiskPolicyEntity } from '../entities/tenant-risk-policy.entity';
+import { TenantEntity } from '../../tenancy/entities/tenant.entity';
 import { RiskPolicyService } from '../services/risk-policy.service';
 
 describe('RiskPolicyService', () => {
@@ -24,6 +25,7 @@ describe('RiskPolicyService', () => {
         RiskPolicyService,
         { provide: getRepositoryToken(RiskPolicyEntity), useValue: policiesRepo },
         { provide: getRepositoryToken(TenantRiskPolicyEntity), useValue: assignmentsRepo },
+        { provide: getRepositoryToken(TenantEntity), useValue: { findOne: jest.fn().mockResolvedValue(null) } },
         { provide: AppLoggerService, useValue: { setContext: jest.fn(), debug: jest.fn() } },
       ],
     }).compile();

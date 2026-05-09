@@ -10,3 +10,4 @@ export * from './contracts';
 export * from './publisher.interface';
 export * from './consumer.interface';
 export * from './messaging.module';
+export * from './redis.publisher';

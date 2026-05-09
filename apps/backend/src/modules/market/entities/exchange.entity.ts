@@ -4,6 +4,7 @@
  * @description Exchange entity (e.g., NSE, NASDAQ) with basic metadata
  * @author BharatERP
  * @created 2025-09-19
+ * @last-updated 2026-05-08
  */
 
 import {
@@ -34,6 +35,9 @@ export class ExchangeEntity {
 
   @Column({ name: 'timezone', type: 'varchar', length: 64, nullable: true })
   timezone?: string | null;
+
+  @Column({ name: 'data_provider_code', type: 'varchar', length: 32, nullable: true })
+  dataProviderCode?: string | null; // e.g. 'KITE', 'GENERIC_REST'; null falls back to GENERIC_REST
 
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;

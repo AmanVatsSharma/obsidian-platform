@@ -31,6 +31,9 @@ import { EXCHANGE_ADAPTER } from '../adapters/exchange-adapter';
 import { DEMO_EXCHANGE_ADAPTER } from '../adapters/demo-exchange.adapter';
 import { AccountsService } from '../../accounts/services/accounts.service';
 import { NotificationService } from '../../notifications/services/notification.service';
+import { RiskPolicyService } from '../../risk-policy/services/risk-policy.service';
+import { LimitsAndControlsService } from '../../limits-and-controls/services/limits-and-controls.service';
+import { BrokerExchangeConfigService } from '../../broker-hierarchy/services/broker-exchange-config.service';
 
 jest.mock('../../../shared/request-context', () => ({
   getRequestContext: () => ({ tenantId: 't1', requestId: 'r1', userId: 'u1' }),
@@ -44,7 +47,7 @@ describe('OMS flow', () => {
         PositionsService,
         MarginEngineService,
         { provide: DataSource, useValue: { transaction: async (_iso: any, fn: any) => fn({ query: async () => {}, getRepository: (_e: any) => ({ findOne: jest.fn().mockResolvedValue(null), save: jest.fn().mockImplementation(async (x:any)=> ({ id: x.id || 'gen', ...x })), create: (x:any)=>x }) }) } },
-        { provide: getRepositoryToken(OrderEntity), useValue: {} },
+        { provide: getRepositoryToken(OrderEntity), useValue: { count: jest.fn().mockResolvedValue(0) } },
         { provide: getRepositoryToken(ExecutionEntity), useValue: {} },
         { provide: getRepositoryToken(OrderAuditEntity), useValue: {} },
         { provide: getRepositoryToken(PositionLedgerEntryEntity), useValue: { createQueryBuilder: () => ({ select: ()=>({ addSelect: ()=>({ addSelect: ()=>({ where: ()=>({ groupBy: ()=>({ getRawMany: async ()=> [] }) }) }) }) }) }) } },
@@ -59,6 +62,9 @@ describe('OMS flow', () => {
         { provide: DEMO_EXCHANGE_ADAPTER, useValue: { placeOrder: jest.fn().mockResolvedValue({ status: 'ACCEPTED', providerOrderId: 'demo-1' }), modifyOrder: jest.fn().mockResolvedValue({ status: 'ACCEPTED' }), cancelOrder: jest.fn().mockResolvedValue({ status: 'CANCELLED' }) } },
         { provide: AccountsService, useValue: { getById: jest.fn().mockResolvedValue({ id: 'a1', accountType: 'LIVE' }) } },
         { provide: NotificationService, useValue: { send: jest.fn() } },
+        { provide: RiskPolicyService, useValue: { enforcePreTrade: jest.fn().mockResolvedValue(undefined) } },
+        { provide: LimitsAndControlsService, useValue: { enforcePreTrade: jest.fn().mockResolvedValue(undefined) } },
+        { provide: BrokerExchangeConfigService, useValue: { isExchangeEnabledForTenant: jest.fn().mockResolvedValue(true) } },
         { provide: InstrumentsService, useValue: { listByIds: async () => [{ id: 'i1', type: 'EQUITY', exchangeCode: 'NSE', symbol: 'ABC' }] } },
         { provide: PriceFeedService, useValue: { getSnapshot: () => [{ price: 100 }] } },
         { provide: FxService, useValue: { convert: async (x:string)=> x } },

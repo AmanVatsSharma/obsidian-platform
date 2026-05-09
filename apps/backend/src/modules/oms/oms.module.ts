@@ -35,7 +35,10 @@ import {
   DEMO_EXCHANGE_ADAPTER,
   DemoExchangeAdapter,
 } from './adapters/demo-exchange.adapter';
-import { ExecutionGatewayModule } from '@nesttrade/backend-execution-gateway';
+import { ExecutionGatewayModule } from '@obsidian/backend-execution-gateway';
+import { RiskPolicyModule } from '@obsidian/backend-risk-policy';
+import { LimitsAndControlsModule } from '@obsidian/backend-limits-controls';
+import { BrokerHierarchyModule } from '../broker-hierarchy/broker-hierarchy.module';
 
 @Module({
   imports: [
@@ -44,6 +47,9 @@ import { ExecutionGatewayModule } from '@nesttrade/backend-execution-gateway';
     PranaStreamModule,
     MarketModule,
     ExecutionGatewayModule,
+    RiskPolicyModule,
+    LimitsAndControlsModule,
+    BrokerHierarchyModule,
     forwardRef(() => AccountsModule),
     TypeOrmModule.forFeature([
       BuyingPowerRuleEntity,
@@ -64,6 +70,7 @@ import { ExecutionGatewayModule } from '@nesttrade/backend-execution-gateway';
     { provide: EXCHANGE_ADAPTER, useClass: OmsExecutionGatewayAdapter },
     { provide: DEMO_EXCHANGE_ADAPTER, useClass: DemoExchangeAdapter },
   ],
+  // BrokerExchangeConfigService is exported from BrokerHierarchyModule and injected into OrderService
   exports: [RiskConfigService, OrderService, MarginEngineService, TypeOrmModule],
 })
 export class OmsModule {}

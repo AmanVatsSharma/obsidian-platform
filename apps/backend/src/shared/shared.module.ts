@@ -9,12 +9,13 @@
 import { Global, Module } from '@nestjs/common';
 import { AppLoggerService } from './logger';
 import { AwsSnsService } from './aws/sns.service';
+import { AwsSesService } from './aws/ses.service';
 import { RedisService } from './redis/redis.service';
 import { FxService } from './fx/fx.service';
 
 @Global()
 @Module({
-  providers: [AppLoggerService, AwsSnsService, RedisService, FxService],
-  exports: [AppLoggerService, AwsSnsService, RedisService, FxService],
+  providers: [AppLoggerService, AwsSnsService, AwsSesService, RedisService, FxService],
+  exports: [AppLoggerService, AwsSnsService, AwsSesService, RedisService, FxService],
 })
 export class SharedModule {}

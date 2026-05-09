@@ -1,18 +1,40 @@
 /**
  * @file src/modules/risk-policy/services/risk-policy.service.ts
  * @module risk-policy
- * @description Risk policy service for jurisdiction controls and tenant assignments
+ * @description Risk policy service for jurisdiction controls, tenant assignments, and pre-trade enforcement
  * @author BharatERP
  * @created 2026-02-17
+ * @last-updated 2026-04-24
+ *
+ * Exports:
+ *   - RiskPolicyService.enforcePreTrade(params) → void   — throws RISK_LIMIT_BREACH if policy violated
+ *   - RiskPolicyService.createPolicy(dto)                — CRUD
+ *   - RiskPolicyService.assignPolicy(dto)                — CRUD
+ *   - RiskPolicyService.listPolicies(tenantId)           — CRUD
+ *
+ * Key invariants:
+ *   - tenantId param in enforcePreTrade is the slug (varchar), not UUID
+ *     → resolved to UUID via TenantEntity before querying risk_policies
+ *   - If no risk policy is assigned to the tenant, enforcement is skipped (fail-open)
  */
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppLoggerService } from '../../../shared/logger';
+import { AppError } from '../../../common/errors/app-error';
 import { AssignRiskPolicyDto, CreateRiskPolicyDto } from '../dtos/create-risk-policy.dto';
 import { RiskPolicyEntity } from '../entities/risk-policy.entity';
 import { TenantRiskPolicyEntity } from '../entities/tenant-risk-policy.entity';
+import { TenantEntity } from '../../tenancy/entities/tenant.entity';
+
+export interface PreTradeRiskParams {
+  tenantId: string;      // slug (varchar code)
+  instrumentId: string;
+  quantity: number;
+  price: number | null;
+  leverage?: number;
+}
 
 @Injectable()
 export class RiskPolicyService {
@@ -21,9 +43,47 @@ export class RiskPolicyService {
     private readonly policies: Repository<RiskPolicyEntity>,
     @InjectRepository(TenantRiskPolicyEntity)
     private readonly assignments: Repository<TenantRiskPolicyEntity>,
+    @InjectRepository(TenantEntity)
+    private readonly tenants: Repository<TenantEntity>,
     private readonly logger: AppLoggerService,
   ) {
     this.logger.setContext(RiskPolicyService.name);
+  }
+
+  async enforcePreTrade(params: PreTradeRiskParams): Promise<void> {
+    const tenant = await this.tenants.findOne({ where: { code: params.tenantId } });
+    if (!tenant) return; // Unknown tenant slug — let auth layer handle
+
+    const assignment = await this.assignments.findOne({ where: { tenantId: tenant.id } });
+    if (!assignment) return; // No policy configured for this tenant — fail-open
+
+    const policy = await this.policies.findOne({ where: { id: assignment.riskPolicyId } });
+    if (!policy) return;
+
+    const notional = params.quantity * (params.price ?? 0);
+    const maxNotional = Number(policy.maxOrderNotional);
+    if (maxNotional > 0 && notional > maxNotional) {
+      throw new AppError(
+        'RISK_LIMIT_BREACH',
+        `Order notional ${notional} exceeds policy limit ${maxNotional}`,
+      );
+    }
+
+    if (policy.restrictedProducts?.includes(params.instrumentId)) {
+      throw new AppError(
+        'RISK_LIMIT_BREACH',
+        `Instrument ${params.instrumentId} is restricted by tenant risk policy`,
+      );
+    }
+
+    if (params.leverage && Number(policy.maxLeverage) > 0 && params.leverage > Number(policy.maxLeverage)) {
+      throw new AppError(
+        'RISK_LIMIT_BREACH',
+        `Requested leverage ${params.leverage}x exceeds policy limit ${policy.maxLeverage}x`,
+      );
+    }
+
+    this.logger.debug('enforcePreTrade:passed', { tenantId: params.tenantId, notional });
   }
 
   async createPolicy(dto: CreateRiskPolicyDto): Promise<RiskPolicyEntity> {

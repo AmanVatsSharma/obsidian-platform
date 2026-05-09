@@ -82,7 +82,7 @@ export class AuthService {
     } catch (e) {
       this.logger.warn('Redis unavailable to store OTP; enable OTP_DEV_MODE in dev to verify without Redis');
     }
-    const message = `Your NestTrade login OTP is ${otp}. Valid for 5 minutes.`;
+    const message = `Your Obsidian OTP is ${otp}. Valid for 5 minutes. Do not share this code.`;
 
     if (process.env.NODE_ENV !== 'production') {
       this.logger.warn(`[DEV-ONLY] OTP for ${dto.mobileE164}: ${otp}`);
@@ -137,6 +137,7 @@ export class AuthService {
     const hashed = await argon2.hash(refreshToken, { type: argon2.argon2id });
     const expiresAt = new Date(Date.now() + this.parseTtlMs(this.refreshTtl));
     await this.tokens.save({
+      tenantId: dto.tenantId,
       userId: user.id,
       tokenId,
       hashedToken: hashed,
@@ -167,7 +168,22 @@ export class AuthService {
     req?: any,
   ): Promise<TokenPair & { tokenId: string }> {
     this.logger.debug('rotateRefresh() called');
-    const stored = await this.tokens.findOne({ where: { userId, tokenId } });
+
+    // Extract tenantId from token payload first so it can be used for DB lookup
+    let tenantId: string | undefined;
+    try {
+      const [, payload] = presentedToken.split('.');
+      const parsed = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+      tenantId = parsed?.tid;
+    } catch (_) {
+      tenantId = undefined;
+    }
+
+    // Scope the lookup to the tenant from the token — prevents cross-tenant replay
+    const where = tenantId
+      ? { userId, tokenId, tenantId }
+      : { userId, tokenId };
+    const stored = await this.tokens.findOne({ where });
     if (!stored) throw new UnauthorizedException('Refresh token not found');
     if (stored.revokedAt)
       throw new UnauthorizedException('Refresh token revoked');
@@ -178,17 +194,6 @@ export class AuthService {
 
     await this.tokens.update({ id: stored.id }, { revokedAt: new Date() });
     const newTokenId = randomUUID();
-    // preserve tenant id from old token if present in payload
-    let tenantId: string | undefined;
-    try {
-      const [, payload] = presentedToken.split('.');
-      const parsed = JSON.parse(
-        Buffer.from(payload, 'base64').toString('utf8'),
-      );
-      tenantId = parsed?.tid;
-    } catch (_) {
-      tenantId = undefined;
-    }
     const accessToken = await this.jwt.signAsync(
       { sub: userId, tid: tenantId },
       { secret: process.env.JWT_ACCESS_SECRET!, expiresIn: this.accessTtl },
@@ -200,6 +205,7 @@ export class AuthService {
     const hashed = await argon2.hash(refreshToken, { type: argon2.argon2id });
     const expiresAt = new Date(Date.now() + this.parseTtlMs(this.refreshTtl));
     await this.tokens.save({
+      tenantId: tenantId ?? '',
       userId,
       tokenId: newTokenId,
       hashedToken: hashed,

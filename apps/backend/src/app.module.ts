@@ -13,39 +13,43 @@ import { ConfigModule } from '@nestjs/config';
 import { buildConfigModuleOptions } from './shared/config/app.config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { buildTypeOrmConfig } from './shared/database/typeorm.config';
-import { UsersModule } from '@nesttrade/backend-users';
-import { AuthModule } from '@nesttrade/backend-auth';
-import { RbacModule } from '@nesttrade/backend-rbac';
-import { MarketModule } from '@nesttrade/backend-market';
-import { AccountsModule } from '@nesttrade/backend-accounts';
-import { DemoAccountsModule } from '@nesttrade/backend-demo-accounts';
-import { OmsModule } from '@nesttrade/backend-oms';
+import { UsersModule } from '@obsidian/backend-users';
+import { AuthModule } from '@obsidian/backend-auth';
+import { RbacModule } from '@obsidian/backend-rbac';
+import { MarketModule } from '@obsidian/backend-market';
+import { AccountsModule } from '@obsidian/backend-accounts';
+import { DemoAccountsModule } from '@obsidian/backend-demo-accounts';
+import { OmsModule } from '@obsidian/backend-oms';
 import { RequestContextMiddleware } from './shared/request-id.middleware';
-import { PranaStreamModule } from '@nesttrade/backend-realtime';
+import { SubdomainResolverMiddleware } from './modules/tenancy/middleware/subdomain-resolver.middleware';
+import { PranaStreamModule } from '@obsidian/backend-realtime';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
-import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
-import { NotificationsModule } from '@nesttrade/backend-notifications';
-import { AdminModule } from '@nesttrade/backend-admin';
+import { TenantThrottlerGuard } from './shared/guards/tenant-throttler.guard';
+import { NotificationsModule } from '@obsidian/backend-notifications';
+import { AdminModule } from '@obsidian/backend-admin';
 import { ObservabilityModule } from './shared/observability/observability.module';
-import { TenancyModule } from '@nesttrade/backend-tenancy';
-import { BrokerHierarchyModule } from '@nesttrade/backend-broker-hierarchy';
-import { ExecutionGatewayModule } from '@nesttrade/backend-execution-gateway';
-import { ComplianceModule } from '@nesttrade/backend-compliance';
-import { OnboardingModule } from '@nesttrade/backend-onboarding';
-import { RiskPolicyModule } from '@nesttrade/backend-risk-policy';
-import { SettlementModule } from '@nesttrade/backend-settlement';
-import { ReconciliationModule } from '@nesttrade/backend-reconciliation';
-import { CorporateActionsModule } from '@nesttrade/backend-corporate-actions';
-import { LimitsAndControlsModule } from '@nesttrade/backend-limits-controls';
-import { SaasControlPlaneModule } from '@nesttrade/backend-saas-control-plane';
+import { TenancyModule } from '@obsidian/backend-tenancy';
+import { BrokerHierarchyModule } from '@obsidian/backend-broker-hierarchy';
+import { ExecutionGatewayModule } from '@obsidian/backend-execution-gateway';
+import { ComplianceModule } from '@obsidian/backend-compliance';
+import { OnboardingModule } from '@obsidian/backend-onboarding';
+import { RiskPolicyModule } from '@obsidian/backend-risk-policy';
+import { SettlementModule } from '@obsidian/backend-settlement';
+import { ReconciliationModule } from '@obsidian/backend-reconciliation';
+import { CorporateActionsModule } from '@obsidian/backend-corporate-actions';
+import { LimitsAndControlsModule } from '@obsidian/backend-limits-controls';
+import { SaasControlPlaneModule } from '@obsidian/backend-saas-control-plane';
 import { MessagingModule } from './shared/messaging/messaging.module';
 import { OutboxModule } from './shared/outbox/outbox.module';
-import { DealingModule } from '@nesttrade/backend-dealing';
-import { SupportModule } from '@nesttrade/backend-support';
-import { PartnersModule } from '@nesttrade/backend-partners';
-import { DeveloperPlatformModule } from '@nesttrade/backend-developer-platform';
+import { AuditModule } from './shared/audit/audit.module';
+import { DealingModule } from '@obsidian/backend-dealing';
+import { SupportModule } from '@obsidian/backend-support';
+import { PartnersModule } from '@obsidian/backend-partners';
+import { DeveloperPlatformModule } from '@obsidian/backend-developer-platform';
+import { PlatformTenantSeeder } from './shared/bootstrap/platform-tenant-seeder';
 
 @Module({
   imports: [
@@ -83,13 +87,15 @@ import { DeveloperPlatformModule } from '@nesttrade/backend-developer-platform';
     DeveloperPlatformModule,
     MessagingModule,
     OutboxModule,
+    AuditModule,
     ObservabilityModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: ThrottlerGuard }],
+  providers: [AppService, { provide: APP_GUARD, useClass: TenantThrottlerGuard }, PlatformTenantSeeder],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(RequestContextMiddleware).forRoutes('*');
+    // SubdomainResolver runs first — sets x-tenant-id from Host before context is bound
+    consumer.apply(SubdomainResolverMiddleware, RequestContextMiddleware).forRoutes('*');
   }
 }

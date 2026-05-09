@@ -11,12 +11,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
 import { OnboardingController } from './controllers/onboarding.controller';
 import { OnboardingProfileEntity } from './entities/onboarding-profile.entity';
+import { KycDocumentEntity } from './entities/kyc-document.entity';
 import { OnboardingService } from './services/onboarding.service';
+import { KycDocumentService } from './services/kyc-document.service';
 
 @Module({
-  imports: [SharedModule, TypeOrmModule.forFeature([OnboardingProfileEntity])],
+  imports: [SharedModule, TypeOrmModule.forFeature([OnboardingProfileEntity, KycDocumentEntity])],
   controllers: [OnboardingController],
-  providers: [OnboardingService],
-  exports: [OnboardingService],
+  providers: [OnboardingService, KycDocumentService],
+  exports: [OnboardingService, KycDocumentService],
 })
 export class OnboardingModule {}

@@ -12,10 +12,11 @@ import { SharedModule } from '../../shared/shared.module';
 import { LimitsAndControlsController } from './controllers/limits-and-controls.controller';
 import { LimitControlEntity } from './entities/limit-control.entity';
 import { LimitExceptionEntity } from './entities/limit-exception.entity';
+import { TenantEntity } from '../tenancy/entities/tenant.entity';
 import { LimitsAndControlsService } from './services/limits-and-controls.service';
 
 @Module({
-  imports: [SharedModule, TypeOrmModule.forFeature([LimitControlEntity, LimitExceptionEntity])],
+  imports: [SharedModule, TypeOrmModule.forFeature([LimitControlEntity, LimitExceptionEntity, TenantEntity])],
   controllers: [LimitsAndControlsController],
   providers: [LimitsAndControlsService],
   exports: [LimitsAndControlsService],

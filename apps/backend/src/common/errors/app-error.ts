@@ -17,7 +17,10 @@ export type ErrorCode =
   | 'INSUFFICIENT_MARGIN'
   | 'EXCHANGE_DOWN'
   | 'DUPLICATE_ORDER'
-  | 'DEMO_ACCOUNT_OPERATION';
+  | 'DEMO_ACCOUNT_OPERATION'
+  | 'RISK_LIMIT_BREACH'
+  | 'COMPLIANCE_BREACH'
+  | 'EXCHANGE_NOT_ENABLED';
 
 export class AppError extends Error {
   readonly code: ErrorCode;

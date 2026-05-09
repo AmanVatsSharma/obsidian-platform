@@ -41,7 +41,7 @@ async function bootstrap() {
   const swaggerEnabled = (process.env.SWAGGER_ENABLED || 'true') === 'true';
   if (swaggerEnabled) {
     const config = new DocumentBuilder()
-      .setTitle('NestTrade API')
+      .setTitle('Obsidian API')
       .setDescription('REST API for Auth, RBAC, Market, Accounts, OMS')
       .setVersion('1.0.0')
       .addBearerAuth({ type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, 'JWT')

@@ -12,11 +12,13 @@ import { SharedModule } from '../../shared/shared.module';
 import { ComplianceController } from './controllers/compliance.controller';
 import { CompliancePolicyEntity } from './entities/compliance-policy.entity';
 import { ComplianceService } from './services/compliance.service';
+import { DfsaAdapter } from './adapters/dfsa.adapter';
+import { FcaAdapter } from './adapters/fca.adapter';
 
 @Module({
   imports: [SharedModule, TypeOrmModule.forFeature([CompliancePolicyEntity])],
   controllers: [ComplianceController],
-  providers: [ComplianceService],
+  providers: [ComplianceService, DfsaAdapter, FcaAdapter],
   exports: [ComplianceService],
 })
 export class ComplianceModule {}

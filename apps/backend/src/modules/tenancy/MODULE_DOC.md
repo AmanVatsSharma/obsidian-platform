@@ -34,3 +34,4 @@ Provides tenant lifecycle and legal-entity scaffolding for global broker SaaS op
 
 ## Changelog
 - 2026-02-17 IST: Added tenancy scaffold with entities, DTO validation, controller, service, exports, and module documentation.
+- 2026-05-09 IST: Added TenancyService.findByCode(code) helper. Added PlatformOwnerGuard on write endpoints (POST tenants, GET tenants, POST legal-entities, GET legal-entities, POST brand-config). GET brand-config remains public.

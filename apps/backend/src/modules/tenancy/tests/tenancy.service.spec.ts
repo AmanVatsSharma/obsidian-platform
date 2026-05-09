@@ -11,6 +11,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { AppLoggerService } from '../../../shared/logger';
 import { LegalEntityEntity } from '../entities/legal-entity.entity';
 import { TenantEntity } from '../entities/tenant.entity';
+import { TenantBrandConfigEntity } from '../entities/tenant-brand-config.entity';
 import { TenancyService } from '../services/tenancy.service';
 
 describe('TenancyService', () => {
@@ -26,6 +27,11 @@ describe('TenancyService', () => {
     save: jest.fn(),
     find: jest.fn(),
   };
+  const brandConfigRepo = {
+    findOne: jest.fn().mockResolvedValue(null),
+    create: jest.fn().mockImplementation((x: any) => x),
+    save: jest.fn().mockImplementation(async (x: any) => ({ id: 'bc-1', ...x })),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -33,6 +39,7 @@ describe('TenancyService', () => {
         TenancyService,
         { provide: getRepositoryToken(TenantEntity), useValue: tenantsRepo },
         { provide: getRepositoryToken(LegalEntityEntity), useValue: legalRepo },
+        { provide: getRepositoryToken(TenantBrandConfigEntity), useValue: brandConfigRepo },
         { provide: AppLoggerService, useValue: { setContext: jest.fn(), debug: jest.fn() } },
       ],
     }).compile();

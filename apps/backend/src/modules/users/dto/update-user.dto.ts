@@ -8,9 +8,9 @@
 
 import {
   IsBoolean,
+  IsIn,
   IsOptional,
   IsString,
-  Matches,
   MaxLength,
 } from 'class-validator';
 
@@ -30,4 +30,8 @@ export class UpdateUserDto {
 
   @IsOptional()
   profile?: Record<string, unknown>;
+
+  @IsOptional()
+  @IsIn(['pending', 'verified', 'rejected'])
+  kycStatus?: 'pending' | 'verified' | 'rejected';
 }

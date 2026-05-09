@@ -22,6 +22,9 @@ import { EXCHANGE_ADAPTER } from '../adapters/exchange-adapter';
 import { DEMO_EXCHANGE_ADAPTER } from '../adapters/demo-exchange.adapter';
 import { AccountsService } from '../../accounts/services/accounts.service';
 import { NotificationService } from '../../notifications/services/notification.service';
+import { RiskPolicyService } from '../../risk-policy/services/risk-policy.service';
+import { LimitsAndControlsService } from '../../limits-and-controls/services/limits-and-controls.service';
+import { BrokerExchangeConfigService } from '../../broker-hierarchy/services/broker-exchange-config.service';
 
 jest.mock('../../../shared/request-context', () => ({
   getRequestContext: () => ({ tenantId: 't1', requestId: 'r1', userId: 'u1' }),
@@ -53,7 +56,7 @@ describe('OrderService', () => {
       providers: [
         OrderService,
         { provide: DataSource, useValue: { transaction: async (_iso: any, fn: any) => fn({ query: async () => {}, getRepository: (_e: any) => ({ findOne: jest.fn().mockResolvedValue(null), save: jest.fn().mockResolvedValue({ id: 'o1', clientOrderId: 'cli-1', accountId: 'a1' }), create: (x: any) => x }) }) } },
-        { provide: getRepositoryToken(OrderEntity), useValue: { create: (x: any) => x, save: jest.fn(), findOne: jest.fn() } },
+        { provide: getRepositoryToken(OrderEntity), useValue: { create: (x: any) => x, save: jest.fn(), findOne: jest.fn(), count: jest.fn().mockResolvedValue(0) } },
         { provide: getRepositoryToken(ExecutionEntity), useValue: {} },
         { provide: getRepositoryToken(OrderAuditEntity), useValue: {} },
         { provide: RiskConfigService, useValue: { getBuyingPowerMultiplier: jest.fn().mockResolvedValue(1) } },
@@ -64,6 +67,9 @@ describe('OrderService', () => {
         { provide: AccountsService, useValue: accountsService },
         { provide: NotificationService, useValue: { send: jest.fn() } },
         { provide: MarginEngineService, useValue: { estimate: jest.fn().mockResolvedValue({ totalRequired: '100.00000000', initialMargin: '90', maintenanceMargin: '80', brokerage: '10', buyingPower: '0', canPlace: true, reasons: [], appliedRules: {} }) } },
+        { provide: RiskPolicyService, useValue: { enforcePreTrade: jest.fn().mockResolvedValue(undefined) } },
+        { provide: LimitsAndControlsService, useValue: { enforcePreTrade: jest.fn().mockResolvedValue(undefined) } },
+        { provide: BrokerExchangeConfigService, useValue: { isExchangeEnabledForTenant: jest.fn().mockResolvedValue(true) } },
         AppLoggerService,
       ],
     }).compile();

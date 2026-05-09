@@ -1,9 +1,25 @@
 /**
- * @file src/modules/tenancy/services/tenancy.service.ts
- * @module tenancy
- * @description Business service for tenant and legal-entity lifecycle scaffolding
- * @author BharatERP
- * @created 2026-02-17
+ * File:        apps/backend/src/modules/tenancy/services/tenancy.service.ts
+ * Module:      tenancy
+ * Purpose:     Business service for tenant lifecycle, legal-entity, and brand config.
+ *
+ * Exports:
+ *   - TenancyService.createTenant(dto) → TenantEntity
+ *   - TenancyService.listTenants() → TenantEntity[]
+ *   - TenancyService.createLegalEntity(dto) → LegalEntityEntity
+ *   - TenancyService.listLegalEntities(tenantId?) → LegalEntityEntity[]
+ *   - TenancyService.getBrandConfig(slugOrDomain) → TenantBrandConfigEntity | null
+ *   - TenancyService.upsertBrandConfig(tenantId, dto) → TenantBrandConfigEntity
+ *
+ * Depends on:
+ *   - TenantBrandConfigEntity — brand config table
+ *
+ * Side-effects: DB writes
+ * Key invariants:
+ *   - getBrandConfig resolves by tenant.code (slug) first, then brandConfig.customDomain
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-09
  */
 
 import { Injectable } from '@nestjs/common';
@@ -13,8 +29,10 @@ import { AppError } from '../../../common/errors/app-error';
 import { AppLoggerService } from '../../../shared/logger';
 import { CreateLegalEntityDto } from '../dtos/create-legal-entity.dto';
 import { CreateTenantDto } from '../dtos/create-tenant.dto';
+import { UpsertBrandConfigDto } from '../dtos/upsert-brand-config.dto';
 import { LegalEntityEntity } from '../entities/legal-entity.entity';
 import { TenantEntity } from '../entities/tenant.entity';
+import { TenantBrandConfigEntity } from '../entities/tenant-brand-config.entity';
 
 @Injectable()
 export class TenancyService {
@@ -23,6 +41,8 @@ export class TenancyService {
     private readonly tenants: Repository<TenantEntity>,
     @InjectRepository(LegalEntityEntity)
     private readonly legalEntities: Repository<LegalEntityEntity>,
+    @InjectRepository(TenantBrandConfigEntity)
+    private readonly brandConfigs: Repository<TenantBrandConfigEntity>,
     private readonly logger: AppLoggerService,
   ) {
     this.logger.setContext(TenancyService.name);
@@ -75,5 +95,32 @@ export class TenancyService {
     });
     this.logger.debug('listLegalEntities:end', { count: items.length });
     return items;
+  }
+
+  async findByCode(code: string): Promise<TenantEntity | null> {
+    return this.tenants.findOne({ where: { code } });
+  }
+
+  async getBrandConfig(slugOrDomain: string): Promise<TenantBrandConfigEntity | null> {
+    this.logger.debug('getBrandConfig:start', { slugOrDomain });
+    const tenant = await this.tenants.findOne({ where: { code: slugOrDomain } });
+    if (tenant) {
+      return this.brandConfigs.findOne({ where: { tenantId: tenant.id } });
+    }
+    return this.brandConfigs.findOne({ where: { customDomain: slugOrDomain } });
+  }
+
+  async upsertBrandConfig(tenantId: string, dto: UpsertBrandConfigDto): Promise<TenantBrandConfigEntity> {
+    this.logger.debug('upsertBrandConfig:start', { tenantId });
+    const existing = await this.brandConfigs.findOne({ where: { tenantId } });
+    const merged = this.brandConfigs.create({
+      ...(existing ?? {}),
+      tenantId,
+      ...dto,
+      features: { ...(existing?.features ?? {}), ...(dto.features ?? {}) },
+    });
+    const saved = await this.brandConfigs.save(merged);
+    this.logger.debug('upsertBrandConfig:end', { tenantId });
+    return saved;
   }
 }

@@ -33,6 +33,9 @@ import { AppError } from '../../../common/errors/app-error';
 import { MarginEngineService } from './margin-engine.service';
 import { RealtimePublisherService } from '../../realtime/prana-stream/services/realtime-publisher.service';
 import { AccountsService } from '../../accounts/services/accounts.service';
+import { RiskPolicyService } from '../../risk-policy/services/risk-policy.service';
+import { LimitsAndControlsService } from '../../limits-and-controls/services/limits-and-controls.service';
+import { BrokerExchangeConfigService } from '../../broker-hierarchy/services/broker-exchange-config.service';
 
 @Injectable()
 export class OrderService {
@@ -50,6 +53,9 @@ export class OrderService {
     @Inject(DEMO_EXCHANGE_ADAPTER) private readonly demoExchange: ExchangeAdapter,
     private readonly accountsService: AccountsService,
     private readonly notifications: NotificationService,
+    private readonly riskPolicy: RiskPolicyService,
+    private readonly limitsControls: LimitsAndControlsService,
+    private readonly brokerExchangeConfig: BrokerExchangeConfigService,
   ) {
     this.logger.setContext(OrderService.name);
   }
@@ -89,6 +95,18 @@ export class OrderService {
         return existing;
       }
 
+      // Exchange access guard: instrumentId format is EXCHANGE:SYMBOL (e.g. NSE:INFY)
+      const exchangeCode = dto.instrumentId.split(':')[0]?.toUpperCase();
+      if (exchangeCode) {
+        const allowed = await this.brokerExchangeConfig.isExchangeEnabledForTenant(
+          ctx!.tenantId!,
+          exchangeCode,
+        );
+        if (!allowed) {
+          throw new AppError('EXCHANGE_NOT_ENABLED', `Exchange ${exchangeCode} is not enabled for this broker`);
+        }
+      }
+
       // Pre-trade margin estimation
       const estimate = await this.marginEngine.estimate({
         accountId: dto.accountId,
@@ -101,6 +119,28 @@ export class OrderService {
       });
       this.logger.debug('margin estimate', estimate);
       const required = estimate.totalRequired;
+
+      // Pre-trade risk policy and limits enforcement
+      const tenantId = ctx!.tenantId!;
+      const qty = Number(dto.quantity);
+      const px = dto.price != null ? Number(dto.price) : null;
+      const notional = qty * (px ?? 0);
+      const openOrderCount = await this.orders.count({
+        where: { tenantId, accountId: dto.accountId, status: 'PLACED' },
+      });
+      await this.riskPolicy.enforcePreTrade({
+        tenantId,
+        instrumentId: dto.instrumentId,
+        quantity: qty,
+        price: px,
+      });
+      await this.limitsControls.enforcePreTrade({
+        tenantId,
+        accountId: dto.accountId,
+        instrumentId: dto.instrumentId,
+        notional,
+        openOrderCount,
+      });
 
       // Create hold if needed (idempotent via ref)
       let holdRef: string | undefined;

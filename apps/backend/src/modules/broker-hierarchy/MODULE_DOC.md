@@ -42,3 +42,4 @@ platform-owner -> broker-admin -> dealer.
 
 ## Changelog
 - 2026-02-17 IST: Added broker hierarchy scaffolding with entities, DTOs, service/controller flows, tests, and module documentation.
+- 2026-05-09 IST: Added BrokerHierarchyService.findBrokerByCode(tenantId, brokerCode) and listAllBrokers(). Added PlatformOwnerGuard on POST /broker-hierarchy/brokers. Other endpoints retain tenant-scoped PermissionsGuard.

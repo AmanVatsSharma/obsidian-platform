@@ -11,6 +11,7 @@ import { getRepositoryToken } from '@nestjs/typeorm';
 import { AppLoggerService } from '../../../shared/logger';
 import { LimitControlEntity } from '../entities/limit-control.entity';
 import { LimitExceptionEntity } from '../entities/limit-exception.entity';
+import { TenantEntity } from '../../tenancy/entities/tenant.entity';
 import { LimitsAndControlsService } from '../services/limits-and-controls.service';
 
 describe('LimitsAndControlsService', () => {
@@ -24,6 +25,7 @@ describe('LimitsAndControlsService', () => {
         LimitsAndControlsService,
         { provide: getRepositoryToken(LimitControlEntity), useValue: controls },
         { provide: getRepositoryToken(LimitExceptionEntity), useValue: exceptions },
+        { provide: getRepositoryToken(TenantEntity), useValue: { findOne: jest.fn().mockResolvedValue(null) } },
         { provide: AppLoggerService, useValue: { setContext: jest.fn(), debug: jest.fn() } },
       ],
     }).compile();

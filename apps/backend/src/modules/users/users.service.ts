@@ -90,6 +90,8 @@ export class UsersService {
       (toUpdate as any).isEmailVerified = dto.isEmailVerified;
     if (dto.profile !== undefined)
       (toUpdate as any).profile = dto.profile as any;
+    if (dto.kycStatus !== undefined)
+      (toUpdate as any).kycStatus = dto.kycStatus;
     await this.repo.update({ id }, toUpdate);
     const updated = await this.repo.findOneByOrFail({ id });
     return updated;

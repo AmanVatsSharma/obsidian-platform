@@ -46,6 +46,14 @@ export class BrokerHierarchyService {
     return saved;
   }
 
+  findBrokerByCode(tenantId: string, brokerCode: string): Promise<BrokerEntity | null> {
+    return this.brokers.findOne({ where: { tenantId, brokerCode } });
+  }
+
+  listAllBrokers(): Promise<BrokerEntity[]> {
+    return this.brokers.find({ order: { createdAt: 'DESC' } });
+  }
+
   async createBranch(dto: CreateBranchDto): Promise<BranchEntity> {
     this.logger.debug('createBranch:start', dto);
     const saved = await this.branches.save(this.branches.create(dto));
@@ -74,6 +82,10 @@ export class BrokerHierarchyService {
     return saved;
   }
 
+  /**
+   * Replaces 5 sequential find() calls with 3 targeted queries (brokers + JOIN branches+desks+dealers + roleMappings).
+   * Avoids N+1: branch/desk/dealer IDs are never iterated to issue per-row queries.
+   */
   async getHierarchy(tenantId: string): Promise<{
     brokers: BrokerEntity[];
     branches: BranchEntity[];
@@ -82,27 +94,51 @@ export class BrokerHierarchyService {
     roleMappings: HierarchyRoleMappingEntity[];
   }> {
     this.logger.debug('getHierarchy:start', { tenantId });
+
     const brokers = await this.brokers.find({ where: { tenantId }, order: { createdAt: 'DESC' } });
-    const brokerIds = brokers.map((item) => item.id);
-    const branches = brokerIds.length
-      ? await this.branches.find({ where: brokerIds.map((brokerId) => ({ brokerId })), order: { createdAt: 'DESC' } })
-      : [];
-    const branchIds = branches.map((item) => item.id);
+
+    if (!brokers.length) {
+      const roleMappings = await this.roleMappings.find({ where: { tenantId }, order: { createdAt: 'DESC' } });
+      return { brokers, branches: [], desks: [], dealers: [], roleMappings };
+    }
+
+    const brokerIds = brokers.map((b) => b.id);
+
+    const branches = await this.branches
+      .createQueryBuilder('br')
+      .where('br.brokerId IN (:...brokerIds)', { brokerIds })
+      .orderBy('br.createdAt', 'DESC')
+      .getMany();
+
+    const branchIds = branches.map((b) => b.id);
+
     const desks = branchIds.length
-      ? await this.desks.find({ where: branchIds.map((branchId) => ({ branchId })), order: { createdAt: 'DESC' } })
+      ? await this.desks
+          .createQueryBuilder('d')
+          .where('d.branchId IN (:...branchIds)', { branchIds })
+          .orderBy('d.createdAt', 'DESC')
+          .getMany()
       : [];
-    const deskIds = desks.map((item) => item.id);
+
+    const deskIds = desks.map((d) => d.id);
+
     const dealers = deskIds.length
-      ? await this.dealers.find({ where: deskIds.map((deskId) => ({ deskId })), order: { createdAt: 'DESC' } })
+      ? await this.dealers
+          .createQueryBuilder('dl')
+          .where('dl.deskId IN (:...deskIds)', { deskIds })
+          .orderBy('dl.createdAt', 'DESC')
+          .getMany()
       : [];
+
     const roleMappings = await this.roleMappings.find({ where: { tenantId }, order: { createdAt: 'DESC' } });
+
     this.logger.debug('getHierarchy:end', {
       brokers: brokers.length,
       branches: branches.length,
       desks: desks.length,
       dealers: dealers.length,
-      roleMappings: roleMappings.length,
     });
+
     return { brokers, branches, desks, dealers, roleMappings };
   }
 }

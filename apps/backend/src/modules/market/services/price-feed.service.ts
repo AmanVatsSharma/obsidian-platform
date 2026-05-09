@@ -1,16 +1,48 @@
 /**
- * @file src/modules/market/services/price-feed.service.ts
- * @module market
- * @description Batching price feed to external aggregator (1 req/sec, 1000 symbols per call)
- * @author BharatERP
- * @created 2025-09-19
+ * File:        apps/backend/src/modules/market/services/price-feed.service.ts
+ * Module:      market
+ * Purpose:     Exchange-aware price feed — routes quote requests to the correct
+ *              DataProviderAdapter based on each exchange's dataProviderCode, then
+ *              broadcasts normalized Quote objects to all subscribers.
+ *
+ * Exports:
+ *   - PriceFeedService          — injectable service
+ *   - PriceFeedService.subscribe()    — register subscriber for a list of instruments
+ *   - PriceFeedService.unsubscribe()  — remove subscriber
+ *   - PriceFeedService.getSnapshot()  — read latest cached quotes
+ *   - PriceFeedService.onQuotes$()    — Observable stream of batched quote updates
+ *
+ * Depends on:
+ *   - DataProviderRegistry     — resolves provider by code
+ *   - InstrumentsService       — looks up exchange code for an instrument to find provider
+ *   - ExchangeEntity repo      — loads dataProviderCode per exchange
+ *
+ * Side-effects:
+ *   - setInterval-based 1 Hz polling loop (started on module init, cleared on destroy)
+ *   - Outbound HTTP per registered data provider
+ *
+ * Key invariants:
+ *   - Instruments with no matched exchange fall back to GENERIC_REST provider
+ *   - Provider errors are logged but do not crash the polling loop
+ *   - Quote keys are always 'EXCHANGE:SYMBOL' (uppercase)
+ *
+ * Read order:
+ *   1. pollOnce()   — core dispatch loop
+ *   2. subscribe()  — how callers register
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-08
  */
 
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
-import { AppLoggerService } from '../../../shared/logger';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { Observable, Subject } from 'rxjs';
+import { AppLoggerService } from '../../../shared/logger';
+import { DataProviderRegistry } from '../providers/data-provider.registry';
+import { ExchangeEntity } from '../entities/exchange.entity';
 
-type Quote = {
+export type Quote = {
   symbol: string;
   exchange: string;
   price: number;
@@ -19,22 +51,24 @@ type Quote = {
 
 @Injectable()
 export class PriceFeedService implements OnModuleInit, OnModuleDestroy {
-  private readonly subscribers: Map<string, Set<string>> = new Map(); // key: "exchange:symbol" -> set of subscriber ids
+  private readonly subscribers: Map<string, Set<string>> = new Map();
   private readonly latestQuotes: Map<string, Quote> = new Map();
   private timer: NodeJS.Timeout | null = null;
   private readonly quotesSubject: Subject<Quote[]> = new Subject<Quote[]>();
 
-  constructor(private readonly logger: AppLoggerService) {
+  constructor(
+    private readonly logger: AppLoggerService,
+    private readonly providerRegistry: DataProviderRegistry,
+    @InjectRepository(ExchangeEntity)
+    private readonly exchangeRepo: Repository<ExchangeEntity>,
+  ) {
     this.logger.setContext(PriceFeedService.name);
   }
 
   onModuleInit(): void {
-    this.logger.debug('Starting price feed polling loop');
+    this.logger.debug('Starting exchange-aware price feed polling loop');
     this.timer = setInterval(
-      () =>
-        this.pollOnce().catch((e) =>
-          this.logger.error('pollOnce failed', (e as Error).stack),
-        ),
+      () => this.pollOnce().catch((e) => this.logger.error('pollOnce failed', (e as Error).stack)),
       1000,
     );
   }
@@ -44,10 +78,7 @@ export class PriceFeedService implements OnModuleInit, OnModuleDestroy {
     this.timer = null;
   }
 
-  subscribe(
-    subscriberId: string,
-    instruments: Array<{ exchange: string; symbol: string }>,
-  ): void {
+  subscribe(subscriberId: string, instruments: Array<{ exchange: string; symbol: string }>): void {
     this.logger.debug('subscribe', { subscriberId, count: instruments.length });
     for (const { exchange, symbol } of instruments) {
       const key = `${exchange}:${symbol}`;
@@ -56,30 +87,21 @@ export class PriceFeedService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  unsubscribe(
-    subscriberId: string,
-    instruments?: Array<{ exchange: string; symbol: string }>,
-  ): void {
-    this.logger.debug('unsubscribe', {
-      subscriberId,
-      count: instruments?.length ?? 'all',
-    });
+  unsubscribe(subscriberId: string, instruments?: Array<{ exchange: string; symbol: string }>): void {
+    this.logger.debug('unsubscribe', { subscriberId, count: instruments?.length ?? 'all' });
     if (!instruments) {
       for (const set of this.subscribers.values()) set.delete(subscriberId);
       return;
     }
     for (const { exchange, symbol } of instruments) {
-      const key = `${exchange}:${symbol}`;
-      const set = this.subscribers.get(key);
+      const set = this.subscribers.get(`${exchange}:${symbol}`);
       if (set) set.delete(subscriberId);
     }
   }
 
   getSnapshot(symbols: Array<{ exchange: string; symbol: string }>): Quote[] {
     return symbols
-      .map(({ exchange, symbol }) =>
-        this.latestQuotes.get(`${exchange}:${symbol}`),
-      )
+      .map(({ exchange, symbol }) => this.latestQuotes.get(`${exchange}:${symbol}`))
       .filter((q): q is Quote => !!q);
   }
 
@@ -88,42 +110,45 @@ export class PriceFeedService implements OnModuleInit, OnModuleDestroy {
   }
 
   private async pollOnce(): Promise<void> {
-    // Deduplicate up to 1000 symbols per request; more than 1000 -> batch across seconds naturally
     const allKeys = Array.from(this.subscribers.keys());
     if (allKeys.length === 0) return;
-    const keysToFetch = allKeys.slice(0, 1000);
-    const payload = keysToFetch.map((k) => {
-      const [exchange, symbol] = k.split(':');
-      return { exchange, symbol };
+
+    const instruments = allKeys.slice(0, 1000).map((k) => {
+      const [exchange, ...symbolParts] = k.split(':');
+      return { exchange, symbol: symbolParts.join(':') };
     });
 
-    this.logger.debug('Polling aggregator', { count: payload.length });
-    const url = process.env.MARKET_DATA_URL as string;
-    if (!url) {
-      this.logger.warn('MARKET_DATA_URL not configured; skipping poll');
-      return;
+    // Group instruments by their exchange's dataProviderCode
+    const exchanges = await this.exchangeRepo.find();
+    const providerMap = new Map<string, string>(); // exchangeCode → providerCode
+    for (const ex of exchanges) {
+      providerMap.set(ex.code, ex.dataProviderCode ?? 'GENERIC_REST');
     }
-    try {
-      const res = await fetch(`${url}/quotes:batch`, {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ symbols: payload }),
-      });
-      if (!res.ok) {
-        this.logger.warn('Aggregator returned non-200', res.statusText);
-        return;
+
+    const byProvider = new Map<string, Array<{ exchange: string; symbol: string }>>();
+    for (const inst of instruments) {
+      const providerCode = providerMap.get(inst.exchange) ?? 'GENERIC_REST';
+      if (!byProvider.has(providerCode)) byProvider.set(providerCode, []);
+      byProvider.get(providerCode)!.push(inst);
+    }
+
+    const allQuotes: Quote[] = [];
+    for (const [providerCode, batch] of byProvider.entries()) {
+      const adapter = this.providerRegistry.resolve(providerCode);
+      if (!adapter) {
+        this.logger.warn('No adapter registered for provider', { providerCode });
+        continue;
       }
-      const data = (await res.json()) as Quote[];
-      const ts = Date.now();
-      for (const q of data) {
-        const key = `${q.exchange}:${q.symbol}`;
-        this.latestQuotes.set(key, { ...q, ts });
+      const providerQuotes = await adapter.fetchQuotes(batch);
+      for (const q of providerQuotes) {
+        const quote: Quote = { symbol: q.symbol, exchange: q.exchange, price: q.ltp, ts: q.ts };
+        this.latestQuotes.set(`${q.exchange}:${q.symbol}`, quote);
+        allQuotes.push(quote);
       }
-      if (data.length > 0) {
-        this.quotesSubject.next(data);
-      }
-    } catch (e) {
-      this.logger.error('Aggregator request failed', (e as Error).stack);
+    }
+
+    if (allQuotes.length > 0) {
+      this.quotesSubject.next(allQuotes);
     }
   }
 }

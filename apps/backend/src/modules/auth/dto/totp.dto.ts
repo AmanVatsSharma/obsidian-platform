@@ -11,7 +11,7 @@ import { IsString, MaxLength } from 'class-validator';
 export class TotpEnableDto {
   @IsString()
   @MaxLength(64)
-  issuer!: string; // e.g., NestTrade
+  issuer!: string; // e.g., Obsidian
 
   @IsString()
   @MaxLength(64)
