@@ -13,10 +13,12 @@ import { PartnersController } from './controllers/partners.controller';
 import { PartnerEntity } from './entities/partner.entity';
 import { PartnerIntegrationEntity } from './entities/partner-integration.entity';
 import { PartnersService } from './services/partners.service';
+import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
   imports: [
     SharedModule,
+    RbacModule,
     TypeOrmModule.forFeature([PartnerEntity, PartnerIntegrationEntity]),
   ],
   controllers: [PartnersController],

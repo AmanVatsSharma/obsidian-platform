@@ -13,10 +13,12 @@ import { DeveloperPlatformController } from './controllers/developer-platform.co
 import { ApiKeyEntity } from './entities/api-key.entity';
 import { DeveloperAppEntity } from './entities/developer-app.entity';
 import { DeveloperPlatformService } from './services/developer-platform.service';
+import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
   imports: [
     SharedModule,
+    RbacModule,
     TypeOrmModule.forFeature([ApiKeyEntity, DeveloperAppEntity]),
   ],
   controllers: [DeveloperPlatformController],

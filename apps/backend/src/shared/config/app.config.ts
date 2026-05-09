@@ -71,6 +71,7 @@ export function buildConfigModuleOptions(): ConfigModuleOptions {
   return {
     isGlobal: true,
     cache: true,
+    envFilePath: ['apps/backend/.env', '.env'],
     validate: (env: Record<string, unknown>) => envSchema.parse(env),
     expandVariables: true,
   };

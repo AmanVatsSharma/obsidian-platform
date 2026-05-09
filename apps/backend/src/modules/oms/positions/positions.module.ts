@@ -16,6 +16,7 @@ import { PositionLedgerEntryEntity } from '../../accounts/entities/position-ledg
 import { PositionsService } from './services/positions.service';
 import { PositionsController } from './controllers/positions.controller';
 import { RbacModule } from '../../rbac/rbac.module';
+import { OrderEventsService } from '../services/order-events.service';
 
 @Module({
   imports: [
@@ -26,8 +27,8 @@ import { RbacModule } from '../../rbac/rbac.module';
     TypeOrmModule.forFeature([PositionLedgerEntryEntity, PositionSnapshotEntity]),
   ],
   controllers: [PositionsController],
-  providers: [PositionsService],
-  exports: [PositionsService],
+  providers: [PositionsService, OrderEventsService],
+  exports: [PositionsService, OrderEventsService],
 })
 export class PositionsModule {}
 

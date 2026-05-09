@@ -13,10 +13,12 @@ import { SupportController } from './controllers/support.controller';
 import { SupportCommentEntity } from './entities/support-comment.entity';
 import { SupportTicketEntity } from './entities/support-ticket.entity';
 import { SupportService } from './services/support.service';
+import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
   imports: [
     SharedModule,
+    RbacModule,
     TypeOrmModule.forFeature([SupportTicketEntity, SupportCommentEntity]),
   ],
   controllers: [SupportController],

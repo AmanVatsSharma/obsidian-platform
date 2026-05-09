@@ -21,6 +21,6 @@ import { SubdomainResolverMiddleware } from './middleware/subdomain-resolver.mid
   imports: [SharedModule, RbacModule, TypeOrmModule.forFeature([TenantEntity, LegalEntityEntity, TenantBrandConfigEntity])],
   controllers: [TenancyController],
   providers: [TenancyService, SubdomainResolverMiddleware],
-  exports: [TenancyService, SubdomainResolverMiddleware],
+  exports: [TenancyService, SubdomainResolverMiddleware, TypeOrmModule],
 })
 export class TenancyModule {}

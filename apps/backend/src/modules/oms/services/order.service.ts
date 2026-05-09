@@ -20,7 +20,6 @@ import { AppLoggerService } from '../../../shared/logger';
 import { getRequestContext } from '../../../shared/request-context';
 import { RiskConfigService } from '../services/risk-config.service';
 import { LedgerService } from '../../accounts/services/ledger.service';
-import { Observable, Subject } from 'rxjs';
 import {
   CancelOrderRequest,
   ExchangeAdapter,
@@ -36,6 +35,7 @@ import { AccountsService } from '../../accounts/services/accounts.service';
 import { RiskPolicyService } from '../../risk-policy/services/risk-policy.service';
 import { LimitsAndControlsService } from '../../limits-and-controls/services/limits-and-controls.service';
 import { BrokerExchangeConfigService } from '../../broker-hierarchy/services/broker-exchange-config.service';
+import { OrderEventsService } from './order-events.service';
 
 @Injectable()
 export class OrderService {
@@ -56,14 +56,13 @@ export class OrderService {
     private readonly riskPolicy: RiskPolicyService,
     private readonly limitsControls: LimitsAndControlsService,
     private readonly brokerExchangeConfig: BrokerExchangeConfigService,
+    private readonly orderEvents: OrderEventsService,
   ) {
     this.logger.setContext(OrderService.name);
   }
 
-  private readonly eventsSubject: Subject<{ type: string; payload: any }> = new Subject();
-
-  onEvents$(): Observable<{ type: string; payload: any }> {
-    return this.eventsSubject.asObservable();
+  onEvents$() {
+    return this.orderEvents.onEvents$();
   }
 
   async place(dto: PlaceOrderDto): Promise<OrderEntity> {
@@ -198,7 +197,7 @@ export class OrderService {
       await manager.getRepository(OrderAuditEntity).save(
         manager.getRepository(OrderAuditEntity).create({ tenantId: ctx!.tenantId!, orderId: saved.id, action: 'PLACE', data: dto as any }),
       );
-      this.eventsSubject.next({ type: 'order.placed', payload: saved });
+      this.orderEvents.publish({ type: 'order.placed', payload: saved });
       this.realtime.publishOrderUpdate(ctx!.userId ?? saved.accountId, {
         order: saved,
       });
@@ -230,7 +229,7 @@ export class OrderService {
       await this.ledger.releaseHold(order.accountId, { externalRefId: order.holdRef });
     }
     await this.audits.save(this.audits.create({ tenantId: ctx!.tenantId!, orderId: order.id, action: 'CANCEL', data: dto as any }));
-    this.eventsSubject.next({ type: 'order.cancelled', payload: order });
+    this.orderEvents.publish({ type: 'order.cancelled', payload: order });
     this.realtime.publishOrderUpdate(ctx!.userId ?? order.accountId, { order });
     return order;
   }
@@ -266,7 +265,7 @@ export class OrderService {
         data: dto as any,
       }),
     );
-    this.eventsSubject.next({ type: 'order.modified', payload: order });
+    this.orderEvents.publish({ type: 'order.modified', payload: order });
     this.realtime.publishOrderUpdate(ctx!.userId ?? order.accountId, { order });
     return order;
   }
@@ -317,7 +316,7 @@ export class OrderService {
         await manager.getRepository(OrderEntity).save(order);
         await manager.getRepository(OrderAuditEntity).save(manager.getRepository(OrderAuditEntity).create({ tenantId: ctx!.tenantId!, orderId: order.id, action: 'EXECUTION', data: dto as any }));
       }
-      this.eventsSubject.next({ type: 'execution.added', payload: { execution: saved, orderId: dto.orderId } });
+      this.orderEvents.publish({ type: 'execution.added', payload: { execution: saved, orderId: dto.orderId } });
       if (order) {
         this.realtime.publishOrderUpdate(ctx!.userId ?? order.accountId, {
           order,

@@ -14,7 +14,7 @@ import { TenantGuard } from '../../../rbac/guards/tenant.guard';
 import { PositionsService } from '../services/positions.service';
 import { ApiBearerAuth, ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppLoggerService } from '../../../../shared/logger';
-import { OrderService } from '../../services/order.service';
+import { OrderEventsService } from '../../services/order-events.service';
 
 @ApiTags('Positions')
 @Controller('positions')
@@ -22,7 +22,7 @@ import { OrderService } from '../../services/order.service';
 export class PositionsController {
   constructor(
     private readonly service: PositionsService,
-    private readonly events: OrderService,
+    private readonly events: OrderEventsService,
     private readonly logger: AppLoggerService,
   ) {
     this.logger.setContext(PositionsController.name);

@@ -1,9 +1,26 @@
 /**
- * @file src/shared/observability/controllers/health.controller.ts
- * @module shared-observability
- * @description Health endpoints using Terminus
- * @author BharatERP
- * @created 2025-01-09
+ * File:        apps/backend/src/shared/observability/controllers/health.controller.ts
+ * Module:      shared · Observability
+ * Purpose:     Terminus health endpoint; Redis check is skipped when REDIS_URL is not configured
+ *
+ * Exports:
+ *   - HealthController — GET /health (public route)
+ *
+ * Depends on:
+ *   - @nestjs/terminus — HealthCheckService, TypeOrmHealthIndicator
+ *   - RedisHealthIndicator — optional; skipped when client absent
+ *
+ * Side-effects:
+ *   - Executes DB ping on every GET /health call
+ *
+ * Key invariants:
+ *   - Redis check only runs when process.env.REDIS_URL is set
+ *
+ * Read order:
+ *   1. check() — entry point
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-09
  */
 
 import { Controller, Get } from '@nestjs/common';
@@ -21,10 +38,11 @@ export class HealthController {
   @Get()
   @HealthCheck()
   async check() {
-    return this.health.check([
-      () => this.db.pingCheck('database'),
-      () => this.redis.isHealthy('redis'),
-    ]);
+    const checks = [() => this.db.pingCheck('database')];
+    if (process.env.REDIS_URL) {
+      checks.push(() => this.redis.isHealthy('redis'));
+    }
+    return this.health.check(checks);
   }
 }
 

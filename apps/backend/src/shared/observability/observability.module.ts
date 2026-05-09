@@ -11,11 +11,12 @@ import { TerminusModule } from '@nestjs/terminus';
 import { HealthController } from './controllers/health.controller';
 import { MetricsController } from './controllers/metrics.controller';
 import { PromClientService } from './services/prom-client.service';
+import { RedisHealthIndicator } from './services/redis-health.indicator';
 
 @Module({
   imports: [TerminusModule],
   controllers: [HealthController, MetricsController],
-  providers: [PromClientService],
+  providers: [PromClientService, RedisHealthIndicator],
   exports: [PromClientService],
 })
 export class ObservabilityModule {}

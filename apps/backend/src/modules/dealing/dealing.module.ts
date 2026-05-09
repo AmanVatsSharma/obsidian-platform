@@ -13,10 +13,12 @@ import { DealingController } from './controllers/dealing.controller';
 import { DealEntity } from './entities/deal.entity';
 import { DealingQuoteEntity } from './entities/dealing-quote.entity';
 import { DealingService } from './services/dealing.service';
+import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
   imports: [
     SharedModule,
+    RbacModule,
     TypeOrmModule.forFeature([DealEntity, DealingQuoteEntity]),
   ],
   controllers: [DealingController],

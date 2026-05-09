@@ -16,10 +16,12 @@ import { OrderEntity } from '../oms/entities/order.entity';
 import { AccountEntity } from '../accounts/entities/account.entity';
 import { UserEntity } from '../users/entities/user.entity';
 import { AdminDashboardService } from './services/admin-dashboard.service';
+import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
   imports: [
     SharedModule,
+    RbacModule,
     TypeOrmModule.forFeature([OrderAuditEntity, OrderEntity, AccountEntity, UserEntity]),
   ],
   controllers: [AdminDashboardController, AdminAuditController],

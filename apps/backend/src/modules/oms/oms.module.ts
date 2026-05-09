@@ -26,6 +26,7 @@ import { UserLeverageOverrideEntity } from './entities/user-leverage-override.en
 import { MarginController } from './controllers/margin.controller';
 import { AccountsModule } from '../accounts/accounts.module';
 import { forwardRef } from '@nestjs/common';
+import { OrderEventsService } from './services/order-events.service';
 import { PositionsModule } from './positions/positions.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { PranaStreamModule } from '../realtime/prana-stream/prana-stream.module';
@@ -39,6 +40,7 @@ import { ExecutionGatewayModule } from '@obsidian/backend-execution-gateway';
 import { RiskPolicyModule } from '@obsidian/backend-risk-policy';
 import { LimitsAndControlsModule } from '@obsidian/backend-limits-controls';
 import { BrokerHierarchyModule } from '../broker-hierarchy/broker-hierarchy.module';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -50,6 +52,7 @@ import { BrokerHierarchyModule } from '../broker-hierarchy/broker-hierarchy.modu
     RiskPolicyModule,
     LimitsAndControlsModule,
     BrokerHierarchyModule,
+    NotificationsModule,
     forwardRef(() => AccountsModule),
     TypeOrmModule.forFeature([
       BuyingPowerRuleEntity,
@@ -67,11 +70,12 @@ import { BrokerHierarchyModule } from '../broker-hierarchy/broker-hierarchy.modu
     RiskConfigService,
     OrderService,
     MarginEngineService,
+    OrderEventsService,
     { provide: EXCHANGE_ADAPTER, useClass: OmsExecutionGatewayAdapter },
     { provide: DEMO_EXCHANGE_ADAPTER, useClass: DemoExchangeAdapter },
   ],
   // BrokerExchangeConfigService is exported from BrokerHierarchyModule and injected into OrderService
-  exports: [RiskConfigService, OrderService, MarginEngineService, TypeOrmModule],
+  exports: [RiskConfigService, OrderService, MarginEngineService, OrderEventsService, TypeOrmModule],
 })
 export class OmsModule {}
 
