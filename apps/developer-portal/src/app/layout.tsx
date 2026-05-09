@@ -9,7 +9,7 @@
 import './global.css';
 
 export const metadata = {
-  title: 'NestTrade Developer Portal',
+  title: 'Obsidian Developer Portal',
   description: 'API docs and developer resources',
 };
 

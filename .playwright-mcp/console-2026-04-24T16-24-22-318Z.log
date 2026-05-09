@@ -1,0 +1,359 @@
+[    3026ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:24914
+[    4072ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:4900/favicon.ico:0
+[    5229ms] [ERROR] A tree hydrated but some attributes of the server rendered HTML didn't match the client properties. This won't be patched up. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+%s%s https://react.dev/link/hydration-mismatch 
+
+  ...
+    <ErrorBoundary errorComponent={undefined} errorStyles={undefined} errorScripts={undefined}>
+      <LoadingBoundary loading={null}>
+        <HTTPAccessFallbackBoundary notFound={[...]} forbidden={undefined} unauthorized={undefined}>
+          <HTTPAccessFallbackErrorBoundary pathname="/" notFound={[...]} forbidden={undefined} unauthorized={undefined} ...>
+            <RedirectBoundary>
+              <RedirectErrorBoundary router={{...}}>
+                <InnerLayoutRouter url="/" tree={[...]} cacheNode={{lazyData:null, ...}} segmentPath={[...]}>
+                  <IndexPage>
+                    <Nav>
+                    <IndexPage>
+                      <main>
+                        <Hero>
+                        <section>
+                        <DualAudience>
+                        <ProofStrip>
+                        <GlobeSection>
+                        <OrderBookSection>
+                          <section style={{position:"...", ...}}>
+                            <div style={{maxWidth:1200, ...}}>
+                              <div ref={{current:null}} style={{display:"grid", ...}} className="tab-col">
+                                <div>
+                                <div
+                                  style={{
++                                   position: "relative"
+-                                   position: "relative"
++                                   width: "100%"
+-                                   width: "100%"
++                                   maxWidth: 640
++                                   margin: "0 auto"
++                                   borderRadius: 12
++                                   overflow: "hidden"
++                                   border: "1px solid var(--border)"
++                                   background: "var(--bg-panel)"
++                                   aspectRatio: "16/9"
+-                                   max-width: "640px"
+-                                   margin-top: "0px"
+-                                   margin-right: "auto"
+-                                   margin-bottom: "0px"
+-                                   margin-left: "auto"
+-                                   border-top-left-radius: "12px"
+-                                   border-top-right-radius: "12px"
+-                                   border-bottom-right-radius: "12px"
+-                                   border-bottom-left-radius: "12px"
+-                                   overflow-x: "hidden"
+-                                   overflow-y: "hidden"
+-                                   border-top-color: ""
+-                                   border-top-style: ""
+-                                   border-top-width: ""
+-                                   border-right-color: ""
+-                                   border-right-style: ""
+-                                   border-right-width: ""
+-                                   border-bottom-color: ""
+-                                   border-bottom-style: ""
+-                                   border-bottom-width: ""
+-                                   border-left-color: ""
+-                                   border-left-style: ""
+-                                   border-left-width: ""
+-                                   border-image-source: ""
+-                                   border-image-slice: ""
+-                                   border-image-width: ""
+-                                   border-image-outset: ""
+-                                   border-image-repeat: ""
+-                                   background-image: ""
+-                                   background-position-x: ""
+-                                   background-position-y: ""
+-                                   background-size: ""
+-                                   background-repeat: ""
+-                                   background-attachment: ""
+-                                   background-origin: ""
+-                                   background-clip: ""
+-                                   background-color: ""
+                                  }}
+                                >
+                        ...
+                    ...
+                  ...
+ @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/globals/intercept-console-error.js:49
+[    9182ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9244ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9339ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9481ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9506ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9526ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9538ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9590ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9601ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9610ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9624ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9644ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9661ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9702ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9717ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9742ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9787ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[    9994ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10065ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10099ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10140ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10330ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10417ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10619ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10654ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10674ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10723ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10790ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10802ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10828ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10848ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10913ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10923ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   10974ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   11028ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   11081ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   11088ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   11224ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   11265ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   11451ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12336ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12408ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12427ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12452ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12469ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12504ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12542ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12581ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12604ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   12620ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   13637ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   13986ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14033ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14073ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14103ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14146ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14189ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14196ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14226ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14253ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14417ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   14579ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15127ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15136ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15212ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15238ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15297ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15679ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15758ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15770ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15794ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15814ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15959ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15974ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   15993ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16063ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16084ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16176ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16235ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16259ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16362ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16370ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16389ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16450ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16458ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16518ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16537ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16586ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16608ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16650ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16665ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16754ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16775ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16879ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16903ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   16985ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17012ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17111ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17134ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17148ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17251ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17365ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17477ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17515ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17544ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17577ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   17613ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18167ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18356ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18374ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18422ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18441ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18477ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18627ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18658ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18681ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18739ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18773ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18825ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18863ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   18948ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19140ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19166ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19182ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19223ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19253ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19272ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19289ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19420ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19434ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19455ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19465ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19479ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19540ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19580ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19592ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19608ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19619ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19673ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19680ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19691ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19724ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19791ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19805ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19822ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19835ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19856ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19882ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19940ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19963ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   19985ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20014ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20086ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20124ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20145ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20156ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20200ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20223ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20247ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20263ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20277ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20304ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20316ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20327ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20369ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20420ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20432ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20470ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20488ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20508ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20523ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20543ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20555ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20569ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20584ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20630ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20640ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20654ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20669ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20684ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20698ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20711ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20724ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20741ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20753ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20769ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20785ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20797ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20813ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20834ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20846ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20861ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20876ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20923ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20939ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20956ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20966ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20983ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   20998ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21025ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21047ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21064ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21089ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21109ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21132ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21152ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21173ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21194ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21205ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21223ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21234ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21250ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21285ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21316ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21358ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21378ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21426ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21439ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21449ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21461ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21477ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21490ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21507ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21523ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21535ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21550ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21564ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21575ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21591ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21616ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21629ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21643ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21661ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21711ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21729ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21738ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21758ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21771ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21783ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21806ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21829ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21851ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21876ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21890ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21905ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21922ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21972ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   21995ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22015ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22099ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22123ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22131ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22170ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22191ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22214ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22243ms] [WARNING] WebGL: INVALID_OPERATION: uniform1f: location is not from the associated program @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[   22245ms] [WARNING] WebGL: too many errors, no more errors will be reported to the console for this context. @ webpack-internal:///(app-pages-browser)/../../node_modules/three/build/three.module.js:5640
+[  101068ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:241
+[  102717ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:241
+[  102824ms] [LOG] [Fast Refresh] done in 108ms @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:73
+[  104791ms] [LOG] [Fast Refresh] done in 2074ms @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:73
+[  109963ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:241
+[  110690ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:241
+[  111035ms] [LOG] [Fast Refresh] done in 344ms @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:73
+[  112743ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:241
+[  113172ms] [LOG] [Fast Refresh] done in 429ms @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:73
+[  115078ms] [LOG] [Fast Refresh] done in 2335ms @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:73

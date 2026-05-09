@@ -8,6 +8,7 @@ const { composePlugins, withNx } = require('@nx/next');
  **/
 const nextConfig = {
   nx: {},
+  transpilePackages: ['@obsidian/obsidian-ui'],
   allowedDevOrigins: ['http://localhost:4700'],
   async rewrites() {
     return [

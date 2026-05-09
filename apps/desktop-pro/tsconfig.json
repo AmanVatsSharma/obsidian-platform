@@ -1,1 +1,28 @@
-{"extends":"../../tsconfig.base.json","compilerOptions":{"strict":true,"noEmit":true},"include":["src/**/*.ts","src/**/*.tsx"],"exclude":["node_modules","**/*.spec.ts","**/*.test.ts"]}
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "baseUrl": ".",
+    "paths": {
+      "@renderer/*": ["renderer/src/*"],
+      "@obsidian/trading-ui": ["../../libs/trading-ui/src/index.ts"],
+      "@obsidian/obsidian-ui": ["../../libs/obsidian-ui/src/index.ts"],
+      "@obsidian/desktop-shell": ["../../libs/desktop-shell/src/index.ts"]
+    }
+  },
+  "include": [
+    "electron/**/*.ts",
+    "renderer/**/*.ts",
+    "renderer/**/*.tsx",
+    "*.ts"
+  ],
+  "exclude": ["node_modules", "dist", "**/*.spec.ts", "**/*.test.ts"]
+}

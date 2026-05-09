@@ -1,1 +1,45 @@
-{"name":"desktop-pro","$schema":"../../node_modules/nx/schemas/project-schema.json","sourceRoot":"apps/desktop-pro/src","projectType":"application","tags":["type:app","scope:desktop","layer:entrypoint"],"targets":{"lint":{"executor":"@nx/eslint:lint","options":{"lintFilePatterns":["apps/desktop-pro/**/*.{ts,tsx,js,jsx}"]}}}}
+{
+  "name": "desktop-pro",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/desktop-pro",
+  "projectType": "application",
+  "tags": ["type:app", "scope:desktop", "layer:entrypoint"],
+  "targets": {
+    "serve": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "electron-vite dev",
+        "cwd": "apps/desktop-pro"
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "electron-vite build",
+        "cwd": "apps/desktop-pro"
+      }
+    },
+    "package:mac": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "electron-builder --mac",
+        "cwd": "apps/desktop-pro"
+      },
+      "dependsOn": ["build"]
+    },
+    "package:win": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "electron-builder --win",
+        "cwd": "apps/desktop-pro"
+      },
+      "dependsOn": ["build"]
+    },
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["apps/desktop-pro/**/*.{ts,tsx,js,jsx}"]
+      }
+    }
+  }
+}

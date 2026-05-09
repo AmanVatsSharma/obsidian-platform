@@ -1,0 +1,172 @@
+/**
+ * @file tokens.css
+ * @module obsidian-ui
+ * @description CSS custom properties for the Obsidian Design System — dark terminal (default)
+ *              and light "paper terminal" variant. Light theme activates via [data-theme="light"]
+ *              on <html>, set by ObsidianProvider. Google Fonts are injected per-app via next/font.
+ * @author BharatERP
+ * @last-updated 2026-04-25
+ */
+
+:root {
+  /* ─── BACKGROUNDS (6-step terminal-dark) ──────────────────────────── */
+  --bg-base:     #06080A;   /* deepest — window bg */
+  --bg-surface:  #0C0E12;   /* sidebar, status bar */
+  --bg-panel:    #0F1216;   /* card, panel body */
+  --bg-elevated: #141820;   /* headers, inputs, elevated surfaces */
+  --bg-hover:    #1A1F28;   /* row hover */
+  --bg-active:   #1E2530;   /* pressed, selected */
+
+  /* ─── BORDERS ──────────────────────────────────────────────────────── */
+  --border:    #1C2028;   /* default hairline */
+  --border-md: #252C38;   /* mid-strength */
+  --border-hi: #2E3847;   /* hovered, accented */
+
+  /* ─── FOREGROUND / TEXT ─────────────────────────────────────────────── */
+  --fg1: #E2E8F0;   /* primary text */
+  --fg2: #8B95A3;   /* secondary text */
+  --fg3: #4A5568;   /* muted / labels */
+  --fg4: #2D3748;   /* disabled */
+
+  /* ─── SEMANTIC COLORS ───────────────────────────────────────────────── */
+  --bull:        #10D996;
+  --bull-dim:    rgba(16,217,150,.10);
+  --bull-glow:   rgba(16,217,150,.20);
+  --bear:        #FF3B5C;
+  --bear-dim:    rgba(255,59,92,.10);
+  --bear-glow:   rgba(255,59,92,.20);
+  --accent:      #3B82F6;
+  --accent-dim:  rgba(59,130,246,.08);
+  --accent-glow: rgba(59,130,246,.20);
+  --warn:        #F59E0B;
+  --warn-dim:    rgba(245,158,11,.12);
+  --purple:      #A855F7;
+  --gold:        #EAB308;
+
+  /* ─── FONTS (next/font injects real values per-app; these are fallbacks) */
+  --font-display: 'Syne', sans-serif;
+  --font-ui:      'DM Sans', sans-serif;
+  --font-data:    'IBM Plex Mono', monospace;
+
+  /* ─── RADII ─────────────────────────────────────────────────────────── */
+  --r-sm: 4px;    /* tags, pills, inline controls */
+  --r-md: 6px;    /* buttons, inputs */
+  --r-lg: 8px;    /* cards, panels */
+  --r-xl: 12px;   /* modals, drawers */
+
+  /* ─── SHADOWS ────────────────────────────────────────────────────────── */
+  --shadow-panel:       0 0 0 1px var(--border), 0 4px 24px rgba(0,0,0,.4);
+  --shadow-float:       0 0 0 1px var(--border-md), 0 8px 40px rgba(0,0,0,.6);
+  --shadow-glow-bull:   0 0 20px rgba(16,217,150,.15);
+  --shadow-glow-bear:   0 0 20px rgba(255,59,92,.15);
+  --shadow-glow-accent: 0 0 20px rgba(59,130,246,.20);
+
+  /* ─── SPACING ────────────────────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* ─── MOTION ─────────────────────────────────────────────────────────── */
+  --ease:      cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast:  120ms;
+  --dur:       180ms;
+  --dur-slow:  300ms;
+
+  /* ─── BACKWARD-COMPAT ALIASES ────────────────────────────────────────
+   * Existing components resolve Tailwind utilities through --obs-* vars.
+   * These aliases forward them to the new dark-terminal tokens so no
+   * component code changes are required.
+   * ─────────────────────────────────────────────────────────────────── */
+  --obs-surface-canvas:       var(--bg-base);
+  --obs-surface-elevated:     var(--bg-elevated);
+  --obs-surface-muted:        var(--bg-panel);
+  --obs-surface-inverse:      var(--bg-active);
+  --obs-text-primary:         var(--fg1);
+  --obs-text-secondary:       var(--fg2);
+  --obs-text-muted:           var(--fg3);
+  --obs-text-on-inverse:      var(--fg1);
+  --obs-border-default:       var(--border);
+  --obs-border-strong:        var(--border-hi);
+  --obs-action-primary:       var(--accent);
+  --obs-action-primary-hover: #2563EB;
+  --obs-action-primary-fg:    #ffffff;
+  --obs-danger:               var(--bear);
+  --obs-ring:                 var(--accent);
+  --obs-radius-sm:            var(--r-sm);
+  --obs-radius-md:            var(--r-md);
+  --obs-radius-lg:            var(--r-xl);
+  --obs-space-unit:           0.25rem;
+  --obs-font-sans:            var(--font-ui);
+  --obs-font-mono:            var(--font-data);
+  --obs-shadow-sm:            var(--shadow-panel);
+  --obs-shadow-md:            var(--shadow-float);
+}
+
+/* ─── LIGHT THEME ────────────────────────────────────────────────────────────
+ * "Paper terminal" — warm neutrals, print-crisp hairlines, denser ink.
+ * Applied by ObsidianProvider when resolvedTheme === 'light' via
+ * document.documentElement.dataset.theme = 'light'.
+ * Dark palette stays the default (:root); no class needed for dark mode.
+ * Semantic colors are darkened for WCAG AA contrast on white backgrounds.
+ * ──────────────────────────────────────────────────────────────────────────── */
+:root[data-theme="light"],
+[data-theme="light"] {
+  /* Backgrounds — paper white → warm platinum */
+  --bg-base:     #FBFAF7;   /* canvas, page bg — warm off-white */
+  --bg-surface:  #F4F2ED;   /* sidebar, status bar */
+  --bg-panel:    #FFFFFF;   /* card, panel body */
+  --bg-elevated: #F0EDE6;   /* headers, inputs */
+  --bg-hover:    #ECE9E1;   /* row hover */
+  --bg-active:   #E4E0D6;   /* pressed / selected */
+
+  /* Borders — printed hairlines */
+  --border:      #E0DCD2;
+  --border-md:   #C9C3B5;
+  --border-hi:   #A8A193;
+
+  /* Foreground — deep ink on paper */
+  --fg1: #0F1216;   /* primary (near-black) */
+  --fg2: #4A5260;   /* secondary */
+  --fg3: #7A8290;   /* muted */
+  --fg4: #B5BBC4;   /* disabled */
+
+  /* Semantic colors — deepened for contrast on white */
+  --bull:        #058E65;   /* deeper green — WCAG AA on #FFF */
+  --bull-dim:    rgba(5,142,101,0.10);
+  --bull-glow:   rgba(5,142,101,0.20);
+  --bear:        #D11E3F;   /* deeper red */
+  --bear-dim:    rgba(209,30,63,0.08);
+  --bear-glow:   rgba(209,30,63,0.18);
+  --accent:      #2563EB;   /* slightly deeper blue */
+  --accent-dim:  rgba(37,99,235,0.08);
+  --accent-glow: rgba(37,99,235,0.20);
+  --warn:        #B45309;   /* deeper amber */
+  --warn-dim:    rgba(180,83,9,0.10);
+  --purple:      #7C3AED;
+  --gold:        #A16207;
+
+  /* Shadows — soft, not glowy on paper */
+  --shadow-panel:       0 0 0 1px #E0DCD2, 0 1px 2px rgba(15,18,22,0.04), 0 6px 18px rgba(15,18,22,0.06);
+  --shadow-float:       0 0 0 1px #C9C3B5, 0 4px 12px rgba(15,18,22,0.08), 0 16px 40px rgba(15,18,22,0.10);
+  --shadow-glow-bull:   0 0 14px rgba(5,142,101,0.14);
+  --shadow-glow-bear:   0 0 14px rgba(209,30,63,0.14);
+  --shadow-glow-accent: 0 0 14px rgba(37,99,235,0.14);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+@media (forced-colors: active) {
+  :root {
+    --obs-ring: ButtonBorder;
+    --accent:   ButtonBorder;
+  }
+}

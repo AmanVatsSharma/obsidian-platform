@@ -1,0 +1,69 @@
+[    1025ms] [LOG] [Fast Refresh] rebuilding @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/react-dev-overlay/app/hot-reloader-client.js:241
+[    3525ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:24914
+[    4171ms] Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+  ...
+    <ClientPageRoot Component={function WorkstationPage} searchParams={{}} params={{}}>
+      <WorkstationPage params={Promise} searchParams={Promise}>
+        <TradingWorkstation mobileHref="/m/worksta...">
+          <div className="nt-worksta...">
+            <div className="dashboard-...">
+              <TradingTopBar>
+              <div className="dashboard-...">
+                <WatchlistPanel>
+                <div className="main-area">
+                  <div className="chart-dom-row">
+                    <div>
+                    <DepthOfMarket instrument={{symbol:"EU...", ...}}>
+                      <div className="dom-panel ...">
+                        <div>
+                        <div>
+                        <div className="dom-list">
+                          <div className="dom-row ask">
+                            <div
+                              className="dom-bar"
+                              style={{
++                               width: "62.66126059712496%"
+-                               width: "38.6994%"
+                              }}
+                            >
+                            <span>
+                            <span className="dom-vol">
++                             3.4
+-                             1.9
+                              ...
+                            ...
+                          ...
+                          ...
+                  ...
+                ...
+              ...
+    ...
+
+    at throwOnHydrationMismatch (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13311:11)
+    at completeWork (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:13916:26)
+    at runWithFiberInDEV (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:1511:30)
+    at completeUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15256:19)
+    at performUnitOfWork (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15137:11)
+    at workLoopConcurrentByScheduler (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15114:9)
+    at renderRootConcurrent (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:15089:15)
+    at performWorkOnRoot (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:14410:13)
+    at performWorkOnRootViaSchedulerTask (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/react-dom/cjs/react-dom-client.development.js:16275:7)
+    at MessagePort.performWorkUntilDeadline (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/compiled/scheduler/cjs/scheduler.development.js:45:48)
+    at span (<anonymous>)
+    at eval (webpack-internal:///(app-pages-browser)/./features/trading-terminal/components/depth-of-market.tsx:162:108)
+    at Array.map (<anonymous>)
+    at DepthOfMarket (webpack-internal:///(app-pages-browser)/./features/trading-terminal/components/depth-of-market.tsx:139:26)
+    at TradingWorkstation (webpack-internal:///(app-pages-browser)/./features/trading-terminal/components/trading-workstation.tsx:316:116)
+    at WorkstationPage (webpack-internal:///(app-pages-browser)/./app/(workstation)/workstation/page.tsx:34:87)
+    at ClientPageRoot (webpack-internal:///(app-pages-browser)/../../node_modules/next/dist/client/components/client-page.js:20:50)

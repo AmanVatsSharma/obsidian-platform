@@ -1,0 +1,17 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "jsx": "react-jsx",
+    "noEmit": true,
+    "esModuleInterop": true,
+    "moduleResolution": "bundler",
+    "types": ["jest", "@testing-library/jest-dom"]
+  },
+  "include": [
+    "jest.config.cjs",
+    "src/**/*.spec.ts",
+    "src/**/*.spec.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx"
+  ]
+}

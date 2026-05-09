@@ -1,16 +1,249 @@
-html,
-body {
-  margin: 0;
-  font-family: Inter, Arial, sans-serif;
-  background: #0f172a;
-  color: #e2e8f0;
+/**
+ * File:        apps/ib-portal/src/app/global.css
+ * Module:      ib-portal · Global Styles
+ * Purpose:     Tailwind base + Obsidian UI tokens + component classes + IB-portal-specific overrides
+ *
+ * Key invariants:
+ *   - All color values use var(--*) tokens — no hard-coded hex
+ *   - font-mono classes always include font-feature-settings: "tnum" 1 for tabular nums
+ *   - .ib-hero and .ib-sidebar-profile use CSS-variable gradients for light-mode compatibility
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-04-26
+ */
+
+@import '../../../../libs/obsidian-ui/src/styles/tokens.css';
+@import '../../../../libs/obsidian-ui/src/styles/obsidian-ui.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  *, *::before, *::after { box-sizing: border-box; }
+
+  html {
+    background-color: var(--bg-base);
+    color: var(--fg1);
+    font-family: var(--font-ui), ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::-webkit-scrollbar              { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track        { background: transparent; }
+  ::-webkit-scrollbar-thumb        { background: var(--border-md); border-radius: 2px; }
+  ::-webkit-scrollbar-thumb:hover  { background: var(--border-hi); }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
 }
 
-a {
-  color: #22d3ee;
-  text-decoration: none;
-}
+@layer components {
+  /* ─── KPI CARDS ─────────────────────────────────────────── */
+  .kpi-card {
+    @apply relative cursor-pointer overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-4 transition-colors duration-[120ms] hover:border-[var(--border-md)] hover:bg-[var(--bg-elevated)];
+  }
+  .kpi-label {
+    @apply font-display text-[9px] font-semibold tracking-[0.12em] text-fg3 uppercase;
+  }
+  .kpi-value {
+    @apply mt-1.5 font-mono text-[22px] font-bold leading-none text-fg1;
+    font-feature-settings: "tnum" 1;
+  }
+  .kpi-bottom {
+    @apply mt-2 flex items-end justify-between;
+  }
+  .kpi-delta {
+    @apply flex items-center gap-1 font-mono text-[11px] font-semibold;
+    font-feature-settings: "tnum" 1;
+  }
+  .kpi-sub {
+    @apply mt-0.5 font-sans text-[11px] text-fg3;
+  }
 
-main {
-  padding: 24px;
+  /* ─── MODULE HEADER ──────────────────────────────────────── */
+  .module-header {
+    @apply flex items-start justify-between border-b border-[var(--border)] px-6 py-4;
+  }
+  .module-title {
+    @apply font-display text-[13px] font-semibold tracking-[0.08em] text-fg1 uppercase;
+  }
+  .module-subtitle {
+    @apply mt-0.5 font-sans text-[12px] text-fg3;
+  }
+
+  /* ─── CARDS ─────────────────────────────────────────────── */
+  .card {
+    @apply rounded-lg border border-[var(--border)] bg-[var(--bg-panel)];
+  }
+  .card-header {
+    @apply flex items-center justify-between border-b border-[var(--border)] px-4 py-3;
+  }
+  .card-title {
+    @apply font-display text-[11px] font-semibold tracking-[0.1em] text-fg1 uppercase;
+  }
+
+  /* ─── TABLES ─────────────────────────────────────────────── */
+  .data-table {
+    @apply w-full border-collapse;
+  }
+  .data-table th {
+    @apply border-b border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2 text-left font-display text-[9px] font-semibold tracking-[0.1em] text-fg3 uppercase;
+  }
+  .data-table td {
+    @apply border-b border-[var(--border)] px-3 py-2.5 font-sans text-[12px] text-fg2;
+  }
+  .data-table tr:hover td {
+    @apply bg-[var(--bg-hover)] text-fg1;
+  }
+  .data-table .mono-cell {
+    @apply font-mono text-[12px];
+    font-feature-settings: "tnum" 1;
+  }
+
+  /* ─── BADGES / PILLS ─────────────────────────────────────── */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 font-mono text-[10px] font-semibold;
+    font-feature-settings: "tnum" 1;
+  }
+  .badge-bull    { @apply bg-bull/15 text-bull; }
+  .badge-bear    { @apply bg-bear/15 text-bear; }
+  .badge-warn    { @apply bg-warn/15 text-warn; }
+  .badge-accent  { @apply bg-accent/15 text-accent; }
+  .badge-gold    { @apply bg-gold/15 text-gold; }
+  .badge-purple  { @apply bg-purple/15 text-purple; }
+  .badge-muted   { @apply bg-[var(--bg-elevated)] text-fg3; }
+
+  /* Status badges */
+  .status-active    { @apply badge badge-bull; }
+  .status-dormant   { @apply badge badge-warn; }
+  .status-unverified { @apply badge badge-accent; }
+  .status-pending   { @apply badge badge-warn; }
+  .status-paid      { @apply badge badge-bull; }
+  .status-suspended { @apply badge badge-bear; }
+
+  /* Announcement tag badges */
+  .tag-new        { @apply badge bg-purple/15 text-purple; }
+  .tag-update     { @apply badge badge-accent; }
+  .tag-marketing  { @apply badge bg-[rgba(236,72,153,0.12)] text-[#F472B6]; }
+
+  /* ─── TIER BADGES ────────────────────────────────────────── */
+  .tier-badge {
+    @apply inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 font-mono text-[9px] font-bold tracking-[0.12em] uppercase;
+  }
+  .tier-silver  { @apply border-[rgba(148,163,184,0.3)] bg-[rgba(148,163,184,0.1)] text-[#94A3B8]; }
+  .tier-gold    { @apply border-warn/30 bg-warn/10 text-warn; }
+  .tier-platinum { @apply border-[rgba(226,232,240,0.3)] bg-[rgba(226,232,240,0.1)] text-fg1; }
+
+  /* ─── BUTTONS ────────────────────────────────────────────── */
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md font-sans text-[12px] font-medium transition-colors duration-[120ms] disabled:cursor-not-allowed disabled:opacity-40;
+  }
+  .btn-primary {
+    @apply btn bg-accent px-3 py-1.5 text-white hover:bg-accent/90;
+  }
+  .btn-ghost {
+    @apply btn border border-[var(--border)] bg-transparent px-3 py-1.5 text-fg2 hover:bg-[var(--bg-hover)] hover:text-fg1;
+  }
+  .btn-danger {
+    @apply btn bg-bear/10 border border-bear/30 px-3 py-1.5 text-bear hover:bg-bear/20;
+  }
+  .btn-bull {
+    @apply btn bg-bull/10 border border-bull/30 px-3 py-1.5 text-bull hover:bg-bull/20;
+  }
+  .btn-sm  { @apply px-2.5 py-1 text-[11px]; }
+  .btn-xs  { @apply px-2 py-0.5 text-[10px]; }
+
+  /* ─── INPUTS ─────────────────────────────────────────────── */
+  .input {
+    @apply h-8 w-full rounded-md border border-[var(--border)] bg-[var(--bg-elevated)] px-3 font-sans text-[12px] text-fg1 placeholder:text-fg3 outline-none transition-colors focus:border-accent/50 focus:ring-1 focus:ring-accent/20;
+  }
+  .input-sm { @apply h-7 text-[11px] px-2.5; }
+
+  /* ─── CHART TABS ─────────────────────────────────────────── */
+  .chart-tabs {
+    @apply flex gap-1 p-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border)] w-fit;
+  }
+  .chart-tab {
+    @apply rounded-sm px-2.5 py-1 font-sans text-[11px] text-fg3 transition-colors hover:text-fg2 cursor-pointer;
+  }
+  .chart-tab.active {
+    @apply bg-[var(--bg-panel)] text-fg1 border border-[var(--border-md)];
+  }
+
+  /* ─── SKELETON ───────────────────────────────────────────── */
+  .skeleton {
+    @apply animate-pulse rounded bg-[var(--bg-elevated)];
+  }
+
+  /* ─── P&L DELTA TEXT ─────────────────────────────────────── */
+  .delta-positive { @apply font-mono text-bull; font-feature-settings: "tnum" 1; }
+  .delta-negative { @apply font-mono text-bear; font-feature-settings: "tnum" 1; }
+  .delta-neutral  { @apply font-mono text-fg3;  font-feature-settings: "tnum" 1; }
+
+  /* ─── TABS (underline style) ─────────────────────────────── */
+  .tab-bar {
+    @apply flex gap-0.5 border-b border-[var(--border)] mb-6;
+  }
+  .tab-btn {
+    @apply font-sans text-[13px] font-medium px-4 py-2.5 bg-transparent border-none cursor-pointer text-fg2 border-b-2 border-transparent -mb-px transition-colors duration-[120ms] hover:text-fg1;
+  }
+  .tab-btn.active {
+    @apply text-accent border-b-2 border-accent;
+  }
+
+  /* ─── FILTER PILLS ───────────────────────────────────────── */
+  .filter-pill {
+    @apply rounded-full border border-[var(--border)] bg-transparent px-3 py-1 font-sans text-[12px] text-fg2 cursor-pointer transition-colors hover:border-[var(--border-hi)] hover:text-fg1;
+  }
+  .filter-pill.active {
+    @apply bg-accent/10 border-accent/40 text-accent;
+  }
+
+  /* ─── DRAWER ─────────────────────────────────────────────── */
+  .drawer-overlay {
+    @apply fixed inset-0 bg-black/50 z-[500];
+  }
+  .drawer {
+    @apply fixed right-0 top-0 h-full w-[420px] max-w-[90vw] bg-[var(--bg-surface)] border-l border-[var(--border-hi)] z-[501] overflow-y-auto p-7;
+  }
+
+  /* ─── MODAL ──────────────────────────────────────────────── */
+  .modal-overlay {
+    @apply fixed inset-0 bg-black/70 z-[1000] flex items-center justify-center backdrop-blur-sm;
+  }
+  .modal {
+    @apply bg-[var(--bg-surface)] border border-[var(--border-hi)] rounded-xl p-7 w-[420px] max-w-[90vw] relative;
+  }
+
+  /* ─── IB HERO CARD (gradient adapts to light mode) ──────── */
+  .ib-hero {
+    background: linear-gradient(135deg, #0C1220 0%, #080D16 60%, #0A0F14 100%);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+  }
+  [data-theme="light"] .ib-hero {
+    background: linear-gradient(135deg, var(--bg-panel) 0%, var(--bg-surface) 100%);
+    border-color: var(--border-md);
+  }
+
+  /* ─── IB SIDEBAR PROFILE ─────────────────────────────────── */
+  .ib-sidebar-profile {
+    background: linear-gradient(180deg, #0F1A2E 0%, #0C0E12 100%);
+  }
+  [data-theme="light"] .ib-sidebar-profile {
+    background: linear-gradient(180deg, var(--bg-elevated) 0%, var(--bg-panel) 100%);
+  }
+
+  /* ─── PROGRESS BAR ───────────────────────────────────────── */
+  .progress-track {
+    @apply h-1.5 rounded-full bg-[var(--bg-elevated)] overflow-hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--accent), var(--bull));
+    border-radius: 3px;
+    transition: width 0.8s var(--ease);
+  }
 }

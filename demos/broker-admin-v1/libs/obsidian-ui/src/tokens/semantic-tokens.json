@@ -1,0 +1,49 @@
+{
+  "description": "Obsidian Design System — dark-terminal token values. Single palette (no light/dark split). Mirrors CSS variables in styles/tokens.css.",
+  "palette": {
+    "backgrounds": {
+      "base":     "#06080A",
+      "surface":  "#0C0E12",
+      "panel":    "#0F1216",
+      "elevated": "#141820",
+      "hover":    "#1A1F28",
+      "active":   "#1E2530"
+    },
+    "borders": {
+      "default": "#1C2028",
+      "mid":     "#252C38",
+      "high":    "#2E3847"
+    },
+    "text": {
+      "primary":   "#E2E8F0",
+      "secondary": "#8B95A3",
+      "muted":     "#4A5568",
+      "disabled":  "#2D3748"
+    },
+    "semantic": {
+      "bull":    "#10D996",
+      "bear":    "#FF3B5C",
+      "accent":  "#3B82F6",
+      "warn":    "#F59E0B",
+      "purple":  "#A855F7",
+      "gold":    "#EAB308"
+    }
+  },
+  "radii": {
+    "sm":  "4px",
+    "md":  "6px",
+    "lg":  "8px",
+    "xl":  "12px"
+  },
+  "fonts": {
+    "display": "'Syne', sans-serif",
+    "ui":      "'DM Sans', sans-serif",
+    "data":    "'IBM Plex Mono', monospace"
+  },
+  "motion": {
+    "ease":     "cubic-bezier(0.4, 0, 0.2, 1)",
+    "durFast":  "120ms",
+    "dur":      "180ms",
+    "durSlow":  "300ms"
+  }
+}

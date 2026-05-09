@@ -1,29 +1,20 @@
 /**
- * @file page.tsx
- * @module ib-portal
- * @description IB portal home page
- * @author BharatERP
- * @created 2026-02-19
+ * File:        apps/ib-portal/src/app/page.tsx
+ * Module:      ib-portal · Root Page
+ * Purpose:     Redirect root path to /dashboard
+ *
+ * Exports:
+ *   - IndexPage() — redirects to /dashboard via next/navigation
+ *
+ * Side-effects:
+ *   - Performs a server-side permanent redirect to /dashboard
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-04-26
  */
 
-import Link from 'next/link';
+import { redirect } from 'next/navigation';
 
 export default function IndexPage() {
-  return (
-    <main style={{ display: 'grid', gap: 12 }}>
-      <h1>IB Portal</h1>
-      <p>Introducing broker portal and sub-broker management.</p>
-      <ul>
-        <li>
-          <Link href="/clients">Clients</Link>
-        </li>
-        <li>
-          <Link href="/commissions">Commissions</Link>
-        </li>
-        <li>
-          <Link href="/reports">Reports</Link>
-        </li>
-      </ul>
-    </main>
-  );
+  redirect('/dashboard');
 }

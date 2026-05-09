@@ -6,4 +6,4 @@
  * @created 2026-02-19
  */
 
-export const DESKTOP_APP_NAME = 'NestTrade Desktop Pro';
+export const DESKTOP_APP_NAME = 'Obsidian Desktop Pro';

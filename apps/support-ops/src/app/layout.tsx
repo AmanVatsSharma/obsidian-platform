@@ -9,7 +9,7 @@
 import './global.css';
 
 export const metadata = {
-  title: 'NestTrade Support Ops',
+  title: 'Obsidian Support Ops',
   description: 'Support operations and customer service surface',
 };
 

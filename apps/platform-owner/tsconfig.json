@@ -15,7 +15,17 @@
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
-    "plugins": [{ "name": "next" }]
+    "plugins": [{ "name": "next" }],
+    "baseUrl": ".",
+    "paths": {
+      "@/features/*": ["./src/features/*"],
+      "@/shared/*":   ["./src/shared/*"],
+      "@/lib/*":      ["./src/lib/*"],
+      "@obsidian/obsidian-ui": ["../../libs/obsidian-ui/src/index.ts"],
+      "@obsidian/obsidian-ui/styles.css": ["../../libs/obsidian-ui/src/styles/obsidian-ui.css"],
+      "@obsidian/obsidian-ui/tailwind-preset": ["../../libs/obsidian-ui/src/tailwind/preset.ts"],
+      "@obsidian/obsidian-ui/tokens/semantic.json": ["../../libs/obsidian-ui/src/tokens/semantic-tokens.json"]
+    }
   },
   "include": [
     "**/*.js",

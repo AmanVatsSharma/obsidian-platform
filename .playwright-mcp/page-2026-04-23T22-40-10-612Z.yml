@@ -1,0 +1,147 @@
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: OBSIDIAN
+      - generic [ref=e7]:
+        - generic [ref=e8]: LIVE
+        - button [ref=e10] [cursor=pointer]:
+          - img [ref=e11]
+        - generic [ref=e15]: AM
+    - generic [ref=e16]:
+      - generic [ref=e17]:
+        - generic [ref=e18]: Total Equity
+        - generic [ref=e19]: $29,189.75
+        - generic [ref=e20]:
+          - generic [ref=e21]:
+            - img [ref=e22]
+            - text: +$739.75 today
+          - generic [ref=e25]: +$739.75 unrealised
+        - img [ref=e27]
+        - generic [ref=e30]:
+          - generic [ref=e31]:
+            - generic [ref=e32]: Balance
+            - generic [ref=e33]: $28,450.00
+          - generic [ref=e34]:
+            - generic [ref=e35]: Free Margin
+            - generic [ref=e36]: $25,583.34
+          - generic [ref=e37]:
+            - generic [ref=e38]: Margin Lvl
+            - generic [ref=e39]: 809.45%
+          - generic [ref=e40]:
+            - generic [ref=e41]: Drawdown
+            - generic [ref=e42]: 3.24%
+      - generic [ref=e43]:
+        - generic [ref=e44]: London
+        - generic [ref=e46]: New York
+        - generic [ref=e48]: Tokyo
+        - generic [ref=e50]: Sydney
+      - generic [ref=e52]:
+        - generic [ref=e53]:
+          - generic [ref=e54]: Open Positions
+          - generic [ref=e55]: "6"
+          - generic [ref=e56]: active trades
+        - generic [ref=e57]:
+          - generic [ref=e58]: Today P&L
+          - generic [ref=e59]: +$1,245.80
+        - generic [ref=e60]:
+          - generic [ref=e61]: Pending Orders
+          - generic [ref=e62]: "4"
+          - generic [ref=e63]: waiting
+        - generic [ref=e64]:
+          - generic [ref=e65]: Win Rate
+          - generic [ref=e66]: 67%
+          - generic [ref=e67]: last 30 trades
+      - generic [ref=e68]:
+        - button "BUY 1.08458" [ref=e69] [cursor=pointer]:
+          - img [ref=e70]
+          - text: BUY
+          - generic [ref=e73]: "1.08458"
+        - button "SELL 1.08452" [ref=e74] [cursor=pointer]:
+          - img [ref=e75]
+          - text: SELL
+          - generic [ref=e78]: "1.08452"
+      - generic [ref=e79]: Watchlist
+      - generic [ref=e81]:
+        - generic [ref=e82] [cursor=pointer]:
+          - generic [ref=e83]: EUR/USD
+          - generic [ref=e84]: "1.08452"
+          - generic [ref=e85]: +0.11%
+        - generic [ref=e86] [cursor=pointer]:
+          - generic [ref=e87]: GBP/USD
+          - generic [ref=e88]: "1.27234"
+          - generic [ref=e89]: "-0.27%"
+        - generic [ref=e90] [cursor=pointer]:
+          - generic [ref=e91]: USD/JPY
+          - generic [ref=e92]: "149.782"
+          - generic [ref=e93]: +0.16%
+        - generic [ref=e94] [cursor=pointer]:
+          - generic [ref=e95]: USD/CHF
+          - generic [ref=e96]: "0.89234"
+          - generic [ref=e97]: "-0.26%"
+        - generic [ref=e98] [cursor=pointer]:
+          - generic [ref=e99]: AUD/USD
+          - generic [ref=e100]: "0.65123"
+          - generic [ref=e101]: +0.12%
+        - generic [ref=e102] [cursor=pointer]:
+          - generic [ref=e103]: USD/CAD
+          - generic [ref=e104]: "1.35678"
+          - generic [ref=e105]: +0.11%
+        - generic [ref=e106] [cursor=pointer]:
+          - generic [ref=e107]: NZD/USD
+          - generic [ref=e108]: "0.60234"
+          - generic [ref=e109]: "-0.18%"
+        - generic [ref=e110] [cursor=pointer]:
+          - generic [ref=e111]: BTC/USD
+          - generic [ref=e112]: "67834.5"
+          - generic [ref=e113]: +1.85%
+        - generic [ref=e114] [cursor=pointer]:
+          - generic [ref=e115]: ETH/USD
+          - generic [ref=e116]: "3456.78"
+          - generic [ref=e117]: "-1.29%"
+        - generic [ref=e118] [cursor=pointer]:
+          - generic [ref=e119]: SOL/USD
+          - generic [ref=e120]: "178.45"
+          - generic [ref=e121]: +3.28%
+      - generic [ref=e122]: Open Positions
+      - generic [ref=e123]:
+        - generic [ref=e124]:
+          - generic [ref=e125]: BUY
+          - generic [ref=e126]:
+            - generic [ref=e127]: EUR/USD
+            - generic [ref=e128]: 1 lots @ 1.08234
+          - generic [ref=e129]:
+            - generic [ref=e130]: +$218.00
+            - generic [ref=e131]: +0.20%
+        - generic [ref=e132]:
+          - generic [ref=e133]: SELL
+          - generic [ref=e134]:
+            - generic [ref=e135]: GBP/USD
+            - generic [ref=e136]: 0.5 lots @ 1.275
+          - generic [ref=e137]:
+            - generic [ref=e138]: +$133.00
+            - generic [ref=e139]: +0.21%
+        - generic [ref=e140]:
+          - generic [ref=e141]: BUY
+          - generic [ref=e142]:
+            - generic [ref=e143]: XAUUSD
+            - generic [ref=e144]: 0.1 lots @ 2340
+          - generic [ref=e145]:
+            - generic [ref=e146]: +$56.70
+            - generic [ref=e147]: +0.24%
+        - generic [ref=e148] [cursor=pointer]: View all 6 positions →
+  - navigation [ref=e150]:
+    - generic [ref=e151] [cursor=pointer]:
+      - img [ref=e153]
+      - generic [ref=e156]: Home
+    - generic [ref=e157] [cursor=pointer]:
+      - img [ref=e159]
+      - generic [ref=e160]: Markets
+    - generic [ref=e161] [cursor=pointer]:
+      - img [ref=e163]
+      - generic [ref=e166]: Trade
+    - generic [ref=e167] [cursor=pointer]:
+      - img [ref=e169]
+      - generic [ref=e172]: Portfolio
+    - generic [ref=e173] [cursor=pointer]:
+      - img [ref=e175]
+      - generic [ref=e178]: Account

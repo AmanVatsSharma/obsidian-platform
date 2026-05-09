@@ -1,0 +1,977 @@
+- generic [active] [ref=e1]:
+  - navigation [ref=e2]:
+    - link "OBSIDIAN" [ref=e3] [cursor=pointer]:
+      - /url: /
+      - generic [ref=e5]: OBSIDIAN
+    - generic [ref=e6]:
+      - button "Platform" [ref=e7] [cursor=pointer]
+      - button "Pricing" [ref=e8] [cursor=pointer]
+      - button "Brokers" [ref=e9] [cursor=pointer]
+      - button "Traders" [ref=e10] [cursor=pointer]
+      - button "Globe" [ref=e11] [cursor=pointer]
+      - button "Blog" [ref=e12] [cursor=pointer]
+    - generic [ref=e13]:
+      - button "Request Demo" [ref=e14]
+      - button "Get Started →" [ref=e15]:
+        - text: Get Started
+        - generic [ref=e16]: →
+  - generic [ref=e17]:
+    - generic [ref=e18]:
+      - generic [ref=e21]: OBSIDIAN
+      - button
+    - generic [ref=e22]:
+      - button "Platform" [ref=e23]
+      - button "Pricing" [ref=e24]
+      - button "Brokers" [ref=e25]
+      - button "Traders" [ref=e26]
+      - button "Globe" [ref=e27]
+      - button "Blog" [ref=e28]
+    - generic [ref=e29]:
+      - button "Get Started →" [ref=e30]:
+        - text: Get Started
+        - generic [ref=e31]: →
+      - button "Request Demo" [ref=e32]
+  - main [ref=e33]:
+    - generic [ref=e34]:
+      - generic [ref=e36]:
+        - generic [ref=e40]: LIVE PLATFORM — 14 BROKERS — 8,412 TRADERS
+        - generic [ref=e41]:
+          - heading "The trading platform" [level=1] [ref=e42]
+          - heading [level=1] [ref=e43]
+        - paragraph [ref=e46]: White-label the full-stack trading infrastructure. From matching engine to mobile app — launch your branded broker in weeks, not years.
+        - generic [ref=e47]:
+          - button "Start Building Your Broker →" [ref=e48]:
+            - text: Start Building Your Broker
+            - generic [ref=e49]: →
+          - button "▷ Watch Live Demo 2:34" [ref=e50]:
+            - generic [ref=e51]: ▷
+            - text: Watch Live Demo
+            - generic [ref=e52]: 2:34
+        - generic [ref=e53]:
+          - paragraph [ref=e54]: Trusted by regulated brokers in 18 countries
+          - generic [ref=e61]: + 11 more
+      - generic [ref=e63]:
+        - generic [ref=e64]:
+          - generic [ref=e65]: $0M
+          - generic [ref=e66]: Daily Volume
+          - generic [ref=e67]: processed
+        - generic [ref=e68]:
+          - generic [ref=e69]: "0"
+          - generic [ref=e70]: Trades Today
+          - generic [ref=e71]: on platform
+        - generic [ref=e72]:
+          - generic [ref=e73]: 0.00%
+          - generic [ref=e74]: Uptime (30d)
+          - generic [ref=e75]: guaranteed
+        - generic [ref=e76]:
+          - generic [ref=e77]: <0ms
+          - generic [ref=e78]: Order Latency
+          - generic [ref=e79]: avg execution
+      - generic [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]: EUR/USD
+          - generic [ref=e85]: "1.08452"
+          - generic [ref=e86]: ▲ +0.11%
+        - generic [ref=e87]:
+          - generic [ref=e88]: BTC/USD
+          - generic [ref=e89]: "67834.00"
+          - generic [ref=e90]: ▲ +1.85%
+        - generic [ref=e91]:
+          - generic [ref=e92]: XAU/USD
+          - generic [ref=e93]: "2345.67"
+          - generic [ref=e94]: ▲ +0.44%
+        - generic [ref=e95]:
+          - generic [ref=e96]: GBP/USD
+          - generic [ref=e97]: "1.27234"
+          - generic [ref=e98]: ▼ 0.27%
+        - generic [ref=e99]:
+          - generic [ref=e100]: US500
+          - generic [ref=e101]: "5234.5"
+          - generic [ref=e102]: ▲ +0.63%
+        - generic [ref=e103]:
+          - generic [ref=e104]: WTI/USD
+          - generic [ref=e105]: "78.23"
+          - generic [ref=e106]: ▲ +0.89%
+        - generic [ref=e107]:
+          - generic [ref=e108]: NAS100
+          - generic [ref=e109]: "18234.0"
+          - generic [ref=e110]: ▲ +1.12%
+        - generic [ref=e111]:
+          - generic [ref=e112]: USD/JPY
+          - generic [ref=e113]: "149.832"
+          - generic [ref=e114]: ▼ 0.15%
+        - generic [ref=e115]:
+          - generic [ref=e116]: ETH/USD
+          - generic [ref=e117]: "3412.5"
+          - generic [ref=e118]: ▲ +2.34%
+        - generic [ref=e119]:
+          - generic [ref=e120]: GBP/JPY
+          - generic [ref=e121]: "190.124"
+          - generic [ref=e122]: ▼ 0.09%
+        - generic [ref=e123]:
+          - generic [ref=e124]: EUR/USD
+          - generic [ref=e125]: "1.08452"
+          - generic [ref=e126]: ▲ +0.11%
+        - generic [ref=e127]:
+          - generic [ref=e128]: BTC/USD
+          - generic [ref=e129]: "67834.00"
+          - generic [ref=e130]: ▲ +1.85%
+        - generic [ref=e131]:
+          - generic [ref=e132]: XAU/USD
+          - generic [ref=e133]: "2345.67"
+          - generic [ref=e134]: ▲ +0.44%
+        - generic [ref=e135]:
+          - generic [ref=e136]: GBP/USD
+          - generic [ref=e137]: "1.27234"
+          - generic [ref=e138]: ▼ 0.27%
+        - generic [ref=e139]:
+          - generic [ref=e140]: US500
+          - generic [ref=e141]: "5234.5"
+          - generic [ref=e142]: ▲ +0.63%
+        - generic [ref=e143]:
+          - generic [ref=e144]: WTI/USD
+          - generic [ref=e145]: "78.23"
+          - generic [ref=e146]: ▲ +0.89%
+        - generic [ref=e147]:
+          - generic [ref=e148]: NAS100
+          - generic [ref=e149]: "18234.0"
+          - generic [ref=e150]: ▲ +1.12%
+        - generic [ref=e151]:
+          - generic [ref=e152]: USD/JPY
+          - generic [ref=e153]: "149.832"
+          - generic [ref=e154]: ▼ 0.15%
+        - generic [ref=e155]:
+          - generic [ref=e156]: ETH/USD
+          - generic [ref=e157]: "3412.5"
+          - generic [ref=e158]: ▲ +2.34%
+        - generic [ref=e159]:
+          - generic [ref=e160]: GBP/JPY
+          - generic [ref=e161]: "190.124"
+          - generic [ref=e162]: ▼ 0.09%
+    - generic [ref=e164]:
+      - generic [ref=e165]:
+        - generic [ref=e166]: THE PLATFORM
+        - heading "9 products. One subscription." [level=2] [ref=e167]:
+          - text: 9 products.
+          - text: One subscription.
+        - paragraph [ref=e168]: Every tool your broker needs — for your traders, your team, and your business. All connected. All branded as you.
+      - generic [ref=e169]:
+        - generic [ref=e170]:
+          - generic [ref=e172]: FOR TRADERS
+          - generic [ref=e174]:
+            - generic [ref=e175]: Obsidian
+            - heading "Web Terminal" [level=3] [ref=e176]
+          - paragraph [ref=e177]: The full trading experience in a browser tab. No install required.
+          - generic [ref=e178]:
+            - generic [ref=e179]:
+              - generic [ref=e180]: ✓
+              - generic [ref=e181]: TradingView Charts
+            - generic [ref=e182]:
+              - generic [ref=e183]: ✓
+              - generic [ref=e184]: Full DOM
+            - generic [ref=e185]:
+              - generic [ref=e186]: ✓
+              - generic [ref=e187]: 18 asset classes
+        - generic [ref=e188]:
+          - generic [ref=e190]: FOR TRADERS
+          - generic [ref=e192]:
+            - generic [ref=e193]: Obsidian Mobile
+            - heading "Mobile App" [level=3] [ref=e194]
+          - paragraph [ref=e195]: Full feature parity. Built for thumbs, not tolerance.
+          - generic [ref=e196]:
+            - generic [ref=e197]:
+              - generic [ref=e198]: ✓
+              - generic [ref=e199]: 8 screens
+            - generic [ref=e200]:
+              - generic [ref=e201]: ✓
+              - generic [ref=e202]: Swipe gestures
+            - generic [ref=e203]:
+              - generic [ref=e204]: ✓
+              - generic [ref=e205]: PWA installable
+        - generic [ref=e206]:
+          - generic [ref=e208]: FOR TRADERS
+          - generic [ref=e210]:
+            - generic [ref=e211]: Obsidian Pro
+            - heading "Desktop Pro" [level=3] [ref=e212]
+          - paragraph [ref=e213]: Multi-monitor. Native notifications. No throttling.
+          - generic [ref=e214]:
+            - generic [ref=e215]:
+              - generic [ref=e216]: ✓
+              - generic [ref=e217]: Workspace builder
+            - generic [ref=e218]:
+              - generic [ref=e219]: ✓
+              - generic [ref=e220]: Tray P&L
+            - generic [ref=e221]:
+              - generic [ref=e222]: ✓
+              - generic [ref=e223]: Offline charts
+        - generic [ref=e224]:
+          - generic [ref=e226]: FOR BROKERS
+          - generic [ref=e228]:
+            - generic [ref=e229]: Obsidian Desk
+            - heading "Dealer Workstation" [level=3] [ref=e230]
+          - paragraph [ref=e231]: The nerve center for your dealing desk team.
+          - generic [ref=e232]:
+            - generic [ref=e233]:
+              - generic [ref=e234]: ✓
+              - generic [ref=e235]: Live order flow
+            - generic [ref=e236]:
+              - generic [ref=e237]: ✓
+              - generic [ref=e238]: B/A-Book routing
+            - generic [ref=e239]:
+              - generic [ref=e240]: ✓
+              - generic [ref=e241]: Risk gauges
+        - generic [ref=e242]:
+          - generic [ref=e244]: FOR BROKERS
+          - generic [ref=e246]:
+            - generic [ref=e247]: Obsidian Command
+            - heading "Broker Admin" [level=3] [ref=e248]
+          - paragraph [ref=e249]: Every operational tool to run your broker from one screen.
+          - generic [ref=e250]:
+            - generic [ref=e251]:
+              - generic [ref=e252]: ✓
+              - generic [ref=e253]: CRM
+            - generic [ref=e254]:
+              - generic [ref=e255]: ✓
+              - generic [ref=e256]: KYC
+            - generic [ref=e257]:
+              - generic [ref=e258]: ✓
+              - generic [ref=e259]: Finance
+            - generic [ref=e260]:
+              - generic [ref=e261]: ✓
+              - generic [ref=e262]: Reports
+        - generic [ref=e263]:
+          - generic [ref=e265]: FOR BROKERS
+          - generic [ref=e267]:
+            - generic [ref=e268]: Obsidian Partners
+            - heading "IB Portal" [level=3] [ref=e269]
+          - paragraph [ref=e270]: Turn your affiliates into a distribution machine.
+          - generic [ref=e271]:
+            - generic [ref=e272]:
+              - generic [ref=e273]: ✓
+              - generic [ref=e274]: Commission tracking
+            - generic [ref=e275]:
+              - generic [ref=e276]: ✓
+              - generic [ref=e277]: Sub-IB trees
+            - generic [ref=e278]:
+              - generic [ref=e279]: ✓
+              - generic [ref=e280]: Mktg kit
+        - generic [ref=e281]:
+          - generic [ref=e283]: PLATFORM OWNER
+          - generic [ref=e285]:
+            - generic [ref=e286]: Obsidian Hub
+            - heading "Platform Hub" [level=3] [ref=e287]
+          - paragraph [ref=e288]: Manage every tenant from one command center.
+          - generic [ref=e289]:
+            - generic [ref=e290]:
+              - generic [ref=e291]: ✓
+              - generic [ref=e292]: Tenant billing
+            - generic [ref=e293]:
+              - generic [ref=e294]: ✓
+              - generic [ref=e295]: LP routing
+            - generic [ref=e296]:
+              - generic [ref=e297]: ✓
+              - generic [ref=e298]: Platform health
+        - generic [ref=e299]:
+          - generic [ref=e301]: TRADERS + BROKERS
+          - generic [ref=e303]:
+            - generic [ref=e304]: Obsidian Mirror
+            - heading "Copy Trading" [level=3] [ref=e305]
+          - paragraph [ref=e306]: Let your clients trade the best traders. Automatically.
+          - generic [ref=e307]:
+            - generic [ref=e308]:
+              - generic [ref=e309]: ✓
+              - generic [ref=e310]: Signal marketplace
+            - generic [ref=e311]:
+              - generic [ref=e312]: ✓
+              - generic [ref=e313]: Risk controls
+            - generic [ref=e314]:
+              - generic [ref=e315]: ✓
+              - generic [ref=e316]: Perf fees
+        - generic [ref=e317]:
+          - generic [ref=e319]: FOR TRADERS
+          - generic [ref=e321]:
+            - generic [ref=e322]: Obsidian Widget
+            - heading "Browser Extension" [level=3] [ref=e323]
+          - paragraph [ref=e324]: Live prices and quick trades while you browse the web.
+          - generic [ref=e325]:
+            - generic [ref=e326]:
+              - generic [ref=e327]: ✓
+              - generic [ref=e328]: Price alerts
+            - generic [ref=e329]:
+              - generic [ref=e330]: ✓
+              - generic [ref=e331]: Quick trade
+            - generic [ref=e332]:
+              - generic [ref=e333]: ✓
+              - generic [ref=e334]: Portfolio glance
+    - generic [ref=e336]:
+      - generic [ref=e338]:
+        - button "FOR BROKERS" [ref=e339]
+        - button "FOR TRADERS" [ref=e340]
+      - generic [ref=e341]:
+        - generic [ref=e342]:
+          - generic [ref=e343]: BROKER PROPOSITION
+          - heading "Your brand. Our infrastructure." [level=2] [ref=e344]:
+            - text: Your brand.
+            - text: Our infrastructure.
+          - generic [ref=e345]:
+            - generic [ref=e346]:
+              - generic [ref=e347]: ✓
+              - generic [ref=e348]: Full white-label — your brand, your domain, your colors
+            - generic [ref=e349]:
+              - generic [ref=e350]: ✓
+              - generic [ref=e351]: All 9 platform products included under one subscription
+            - generic [ref=e352]:
+              - generic [ref=e353]: ✓
+              - generic [ref=e354]: Built-in KYC, AML, and regulatory compliance tooling
+            - generic [ref=e355]:
+              - generic [ref=e356]: ✓
+              - generic [ref=e357]: Dealer workstation + admin panel + IB portal — day one
+            - generic [ref=e358]:
+              - generic [ref=e359]: ✓
+              - generic [ref=e360]: Multi-tier IB and affiliate management system
+            - generic [ref=e361]:
+              - generic [ref=e362]: ✓
+              - generic [ref=e363]: 24/7 infrastructure. 99.97% uptime SLA.
+          - button "Launch Your Broker →" [ref=e364]:
+            - text: Launch Your Broker
+            - generic [ref=e365]: →
+        - generic [ref=e367]:
+          - generic [ref=e369]:
+            - generic [ref=e370]: 47%
+            - generic [ref=e371]: of client volume
+            - generic [ref=e372]: via IBs avg
+          - generic [ref=e374]:
+            - generic [ref=e375]: $0
+            - generic [ref=e376]: commission delay
+            - generic [ref=e377]: guaranteed
+          - generic [ref=e379]:
+            - generic [ref=e380]: 3-tier
+            - generic [ref=e381]: network depth
+            - generic [ref=e382]: supported
+          - generic [ref=e383]:
+            - generic [ref=e384]: See it live in 30 minutes
+            - paragraph [ref=e385]: No sales team. Just a live demo of the full platform, configured for your brand.
+            - button "Book Demo →" [ref=e386]
+    - generic [ref=e388]:
+      - generic [ref=e389]:
+        - generic [ref=e390]: BY THE NUMBERS
+        - heading "The infrastructure that runs real brokers." [level=2] [ref=e391]:
+          - text: The infrastructure that runs
+          - text: real brokers.
+      - generic [ref=e392]:
+        - generic [ref=e393]:
+          - text: $0M
+          - generic [ref=e394]: Daily Volume
+          - generic [ref=e395]: Processed
+        - generic [ref=e396]:
+          - text: "0"
+          - generic [ref=e397]: Trades Today
+          - generic [ref=e398]: On Platform
+        - generic [ref=e399]:
+          - text: 0.00%
+          - generic [ref=e400]: Uptime 30-day
+          - generic [ref=e401]: Guaranteed
+        - generic [ref=e402]:
+          - text: <0ms
+          - generic [ref=e403]: Order Latency
+          - generic [ref=e404]: Avg Execution
+        - generic [ref=e405]:
+          - text: 0+
+          - generic [ref=e406]: Asset Classes
+          - generic [ref=e407]: Supported
+        - generic [ref=e408]:
+          - text: "0"
+          - generic [ref=e409]: Countries
+          - generic [ref=e410]: Supported
+      - generic [ref=e412]:
+        - generic [ref=e413]: "\""
+        - paragraph [ref=e414]: We launched our regulated FX broker in 6 weeks. Our previous vendor took 18 months and still couldn't give us a mobile app. Obsidian gave us 9 products on day one.
+        - generic [ref=e415]:
+          - generic [ref=e416]: MW
+          - generic [ref=e417]:
+            - generic [ref=e418]: Marcus Webb
+            - generic [ref=e419]: CEO, GlobalFX Pro
+            - generic [ref=e420]: Dubai, UAE
+        - generic [ref=e421]:
+          - button [ref=e422] [cursor=pointer]
+          - button [ref=e423] [cursor=pointer]
+          - button [ref=e424] [cursor=pointer]
+    - generic [ref=e427]:
+      - generic [ref=e428]:
+        - generic [ref=e430]: LIVE INFRASTRUCTURE
+        - heading "14 brokers. 47 countries. One infrastructure." [level=2] [ref=e432]:
+          - text: 14 brokers.
+          - text: 47 countries.
+          - text: One infrastructure.
+        - paragraph [ref=e434]: Every Obsidian-powered broker is live on the same global infrastructure. Sub-12ms execution in every timezone. Your clients trade. We handle the rest.
+        - generic [ref=e435]:
+          - generic [ref=e436]:
+            - generic [ref=e439]: Active broker locations
+            - generic [ref=e440]: 14 locations
+          - generic [ref=e441]:
+            - generic [ref=e444]: Countries with clients
+            - generic [ref=e445]: 47 countries
+          - generic [ref=e446]:
+            - generic [ref=e449]: Infrastructure uptime
+            - generic [ref=e450]: 99.97% SLA
+          - generic [ref=e451]:
+            - generic [ref=e454]: Avg order latency
+            - generic [ref=e455]: < 12ms global
+        - button "View Infrastructure Map →" [ref=e457]:
+          - text: View Infrastructure Map
+          - generic [ref=e458]: →
+      - generic [ref=e461]: Loading globe...
+    - generic [ref=e464]:
+      - generic [ref=e465]:
+        - generic [ref=e467]: MARKET DEPTH
+        - heading "The depth, live." [level=2] [ref=e469]:
+          - text: The depth,
+          - text: live.
+        - paragraph [ref=e471]: 10-level bid/ask ladder. Updated on every tick. See exactly where the market is sitting before you trade.
+        - generic [ref=e472]:
+          - generic [ref=e473]:
+            - generic [ref=e474]: ✓
+            - generic [ref=e475]: 10-level depth of market, live
+          - generic [ref=e476]:
+            - generic [ref=e477]: ✓
+            - generic [ref=e478]: Cumulative volume visualization
+          - generic [ref=e479]:
+            - generic [ref=e480]: ✓
+            - generic [ref=e481]: Price impact before you click
+          - generic [ref=e482]:
+            - generic [ref=e483]: ✓
+            - generic [ref=e484]: Integrates with 12+ liquidity providers
+        - generic [ref=e485]:
+          - generic [ref=e486]:
+            - generic [ref=e487]: BID
+            - generic [ref=e488]: "1.08452"
+          - generic [ref=e489]:
+            - generic [ref=e490]: SPREAD
+            - generic [ref=e491]: "0.2"
+          - generic [ref=e492]:
+            - generic [ref=e493]: ASK
+            - generic [ref=e494]: "1.08454"
+      - generic [ref=e497]: Loading order book...
+    - generic [ref=e499]:
+      - generic [ref=e500]:
+        - generic [ref=e501]: PLATFORM DEEP-DIVE
+        - heading "Every feature, production-grade." [level=2] [ref=e502]
+      - generic [ref=e503]:
+        - button "Charts & Analysis" [ref=e504] [cursor=pointer]
+        - button "Order Execution" [ref=e505] [cursor=pointer]
+        - button "Risk & Infrastructure" [ref=e506] [cursor=pointer]
+      - generic [ref=e507]:
+        - generic [ref=e509]:
+          - generic [ref=e510]: 📈
+          - generic [ref=e511]:
+            - generic [ref=e512]: 1m
+            - generic [ref=e513]: 5m
+            - generic [ref=e514]: 15m
+            - generic [ref=e515]: 1h
+            - generic [ref=e516]: 4h
+            - generic [ref=e517]: D
+        - generic [ref=e524]:
+          - generic [ref=e525]:
+            - generic [ref=e526]: 01 / 04
+            - heading "See everything." [level=3] [ref=e527]
+            - paragraph [ref=e528]: TradingView Lightweight Charts — the same engine used by Bloomberg, TradingView.com, and the world's largest brokers. Every timeframe from 1 minute to monthly.
+          - generic [ref=e529]:
+            - generic [ref=e530]: 02 / 04
+            - heading "Indicators that traders actually use." [level=3] [ref=e531]
+            - paragraph [ref=e532]: MA, EMA, MACD, RSI, Bollinger Bands, VWAP, Ichimoku, ATR, Stochastic — all built in. Stacked. Customizable.
+          - generic [ref=e533]:
+            - generic [ref=e534]: 03 / 04
+            - heading "Draw. Annotate. Strategize." [level=3] [ref=e535]
+            - paragraph [ref=e536]: Trendlines, Fibonacci, rectangles, text notes. Saved per symbol, synced across every device you own.
+          - generic [ref=e537]:
+            - generic [ref=e538]: 04 / 04
+            - heading "Multi-timeframe. Multi-symbol." [level=3] [ref=e539]
+            - paragraph [ref=e540]: Split your screen. Compare timeframes. The professional workflow, finally on the web.
+    - generic [ref=e543]:
+      - generic [ref=e544]:
+        - generic [ref=e545]:
+          - generic [ref=e547]: IB PORTAL
+          - heading "Your affiliates, your distribution engine." [level=2] [ref=e549]:
+            - text: Your affiliates,
+            - text: your distribution engine.
+          - paragraph [ref=e551]: Multi-tier IB network. Commission calculated on every tick. Paid automatically. Statements branded to your broker.
+          - generic [ref=e553]:
+            - generic [ref=e554]:
+              - generic [ref=e555]: 47%
+              - generic [ref=e556]: of client volume
+              - generic [ref=e557]: via IBs avg
+            - generic [ref=e558]:
+              - generic [ref=e559]: $0
+              - generic [ref=e560]: commission delay
+              - generic [ref=e561]: guaranteed
+            - generic [ref=e562]:
+              - generic [ref=e563]: 3-tier
+              - generic [ref=e564]: network depth
+              - generic [ref=e565]: supported
+        - generic [ref=e567]:
+          - generic [ref=e572]: London
+          - generic [ref=e575]: Dubai
+          - generic [ref=e578]: New York
+          - generic [ref=e581]: Singapore
+          - generic [ref=e584]: Tokyo
+          - generic [ref=e587]: Sydney
+          - generic [ref=e590]: Riyadh
+          - generic [ref=e593]: Lagos
+          - img [ref=e594]
+      - generic [ref=e601]:
+        - generic [ref=e603]:
+          - generic [ref=e604]:
+            - generic [ref=e605]: Al
+            - generic [ref=e606]:
+              - generic [ref=e607]: AlphaGrid
+              - generic [ref=e608]: 412 copiers
+            - generic [ref=e609]:
+              - generic [ref=e610]: +31.2%
+              - generic [ref=e611]: "-4.1%"
+            - button "COPY" [ref=e612] [cursor=pointer]
+          - generic [ref=e613]:
+            - generic [ref=e614]: FX
+            - generic [ref=e615]:
+              - generic [ref=e616]: FXPulse
+              - generic [ref=e617]: 847 copiers
+            - generic [ref=e618]:
+              - generic [ref=e619]: +22.8%
+              - generic [ref=e620]: "-6.3%"
+            - button "COPY" [ref=e621] [cursor=pointer]
+          - generic [ref=e622]:
+            - generic [ref=e623]: "No"
+            - generic [ref=e624]:
+              - generic [ref=e625]: NovaTrend
+              - generic [ref=e626]: 298 copiers
+            - generic [ref=e627]:
+              - generic [ref=e628]: +18.4%
+              - generic [ref=e629]: "-3.7%"
+            - button "COPY" [ref=e630] [cursor=pointer]
+        - generic [ref=e631]:
+          - generic [ref=e633]: OBSIDIAN MIRROR
+          - heading "Copy the best. Automatically." [level=2] [ref=e635]:
+            - text: Copy the best.
+            - text: Automatically.
+          - paragraph [ref=e637]: A signal marketplace embedded in your platform. Your clients copy verified traders. Performance fees collected and distributed automatically. You earn on every copied trade.
+          - generic [ref=e639]:
+            - generic [ref=e640]:
+              - generic [ref=e641]: "847"
+              - generic [ref=e642]: avg copiers
+              - generic [ref=e643]: per top strategy
+            - generic [ref=e644]:
+              - generic [ref=e645]: +28.4%
+              - generic [ref=e646]: avg top trader
+              - generic [ref=e647]: return 12-month
+            - generic [ref=e648]:
+              - generic [ref=e649]: 20%
+              - generic [ref=e650]: perf fee model
+              - generic [ref=e651]: built in
+    - generic [ref=e653]:
+      - paragraph [ref=e655]: TRUSTED BY BROKERS. RECOGNISED BY REGULATORS.
+      - generic [ref=e656]:
+        - generic [ref=e658]: FT
+        - generic [ref=e660]: Bloomberg
+        - generic [ref=e662]: Reuters
+        - generic [ref=e664]: LMAX
+        - generic [ref=e666]: Integral
+        - generic [ref=e668]: FSA
+        - generic [ref=e670]: CySEC
+        - generic [ref=e672]: ASIC
+        - generic [ref=e674]: FCA
+    - generic [ref=e676]:
+      - generic [ref=e677]:
+        - generic [ref=e678]: PRICING
+        - heading "Launch your broker. Not your runway." [level=2] [ref=e679]:
+          - text: Launch your broker.
+          - text: Not your runway.
+        - paragraph [ref=e680]: One subscription. All 9 products. No hidden fees.
+      - generic [ref=e681]:
+        - generic [ref=e682]: Monthly
+        - button [ref=e683] [cursor=pointer]
+        - generic [ref=e685]: Annual 2 months free
+      - generic [ref=e686]:
+        - generic [ref=e687]:
+          - generic [ref=e688]: Starter
+          - generic [ref=e689]: UP TO 100 CLIENTS
+          - generic [ref=e690]:
+            - generic [ref=e691]: $400
+            - text: /mo
+          - generic [ref=e692]:
+            - generic [ref=e693]:
+              - generic [ref=e694]: ✓
+              - generic [ref=e695]: Basic instruments
+            - generic [ref=e696]:
+              - generic [ref=e697]: ✓
+              - generic [ref=e698]: Web terminal
+            - generic [ref=e699]:
+              - generic [ref=e700]: ✓
+              - generic [ref=e701]: Broker admin
+            - generic [ref=e702]:
+              - generic [ref=e703]: ✓
+              - generic [ref=e704]: Email support
+            - generic [ref=e705]:
+              - generic [ref=e706]: ✓
+              - generic [ref=e707]: 1 LP integration
+            - generic [ref=e708]:
+              - generic [ref=e709]: ✓
+              - generic [ref=e710]: Standard KYC
+          - button "Get Started" [ref=e711]
+        - generic [ref=e712]:
+          - generic [ref=e713]: Growth
+          - generic [ref=e714]: UP TO 500 CLIENTS
+          - generic [ref=e715]:
+            - generic [ref=e716]: $960
+            - text: /mo
+          - generic [ref=e717]:
+            - generic [ref=e718]:
+              - generic [ref=e719]: ✓
+              - generic [ref=e720]: All instruments
+            - generic [ref=e721]:
+              - generic [ref=e722]: ✓
+              - generic [ref=e723]: Web terminal
+            - generic [ref=e724]:
+              - generic [ref=e725]: ✓
+              - generic [ref=e726]: + Mobile app
+            - generic [ref=e727]:
+              - generic [ref=e728]: ✓
+              - generic [ref=e729]: + IB Portal
+            - generic [ref=e730]:
+              - generic [ref=e731]: ✓
+              - generic [ref=e732]: Chat support
+            - generic [ref=e733]:
+              - generic [ref=e734]: ✓
+              - generic [ref=e735]: 3 LP integrations
+          - button "Get Started" [ref=e736]
+        - generic [ref=e737]:
+          - generic [ref=e738]: MOST POPULAR
+          - generic [ref=e739]: Pro
+          - generic [ref=e740]: UP TO 2,000 CLIENTS
+          - generic [ref=e741]:
+            - generic [ref=e742]: $2,000
+            - text: /mo
+          - generic [ref=e743]:
+            - generic [ref=e744]:
+              - generic [ref=e745]: ✓
+              - generic [ref=e746]: All instruments
+            - generic [ref=e747]:
+              - generic [ref=e748]: ✓
+              - generic [ref=e749]: All 9 products
+            - generic [ref=e750]:
+              - generic [ref=e751]: ✓
+              - generic [ref=e752]: + Desktop Pro
+            - generic [ref=e753]:
+              - generic [ref=e754]: ✓
+              - generic [ref=e755]: + Copy Trading
+            - generic [ref=e756]:
+              - generic [ref=e757]: ✓
+              - generic [ref=e758]: Dedicated AM
+            - generic [ref=e759]:
+              - generic [ref=e760]: ✓
+              - generic [ref=e761]: Priority 24/7
+          - button "Get Started" [ref=e762]
+        - generic [ref=e763]:
+          - generic [ref=e764]: Enterprise
+          - generic [ref=e765]: UNLIMITED CLIENTS
+          - generic [ref=e766]: Custom
+          - generic [ref=e767]:
+            - generic [ref=e768]:
+              - generic [ref=e769]: ✓
+              - generic [ref=e770]: Everything in Pro
+            - generic [ref=e771]:
+              - generic [ref=e772]: ✓
+              - generic [ref=e773]: Custom infrastructure
+            - generic [ref=e774]:
+              - generic [ref=e775]: ✓
+              - generic [ref=e776]: SLA 99.99%
+            - generic [ref=e777]:
+              - generic [ref=e778]: ✓
+              - generic [ref=e779]: White-glove setup
+            - generic [ref=e780]:
+              - generic [ref=e781]: ✓
+              - generic [ref=e782]: Custom integrations
+            - generic [ref=e783]:
+              - generic [ref=e784]: ✓
+              - generic [ref=e785]: Dedicated engineers
+          - button "Contact Sales" [ref=e786]
+      - generic [ref=e787]:
+        - generic [ref=e788]: FREQUENTLY ASKED
+        - heading "Questions? We have answers." [level=3] [ref=e789]
+      - generic [ref=e791]:
+        - button "Is the entire platform truly white-labeled? +" [ref=e793] [cursor=pointer]:
+          - generic [ref=e794]: Is the entire platform truly white-labeled?
+          - generic [ref=e795]: +
+        - button "What payment methods do you accept? +" [ref=e797] [cursor=pointer]:
+          - generic [ref=e798]: What payment methods do you accept?
+          - generic [ref=e799]: +
+        - button "How long does onboarding take? +" [ref=e801] [cursor=pointer]:
+          - generic [ref=e802]: How long does onboarding take?
+          - generic [ref=e803]: +
+        - button "Do you provide liquidity? +" [ref=e805] [cursor=pointer]:
+          - generic [ref=e806]: Do you provide liquidity?
+          - generic [ref=e807]: +
+        - button "Is the platform FCA/CySEC/ASIC compliant? +" [ref=e809] [cursor=pointer]:
+          - generic [ref=e810]: Is the platform FCA/CySEC/ASIC compliant?
+          - generic [ref=e811]: +
+    - generic [ref=e813]:
+      - generic [ref=e814]:
+        - generic [ref=e815]: BUILT ON
+        - heading "Battle-tested stack. No experiments in production." [level=2] [ref=e816]:
+          - text: Battle-tested stack.
+          - text: No experiments in production.
+      - generic [ref=e817]:
+        - generic [ref=e818]:
+          - generic [ref=e819]: "N"
+          - generic [ref=e820]: Next.js
+        - generic [ref=e821]:
+          - generic [ref=e822]: JS
+          - generic [ref=e823]: Node.js
+        - generic [ref=e824]:
+          - generic [ref=e825]: PG
+          - generic [ref=e826]: PostgreSQL
+        - generic [ref=e827]:
+          - generic [ref=e828]: R
+          - generic [ref=e829]: Redis
+        - generic [ref=e830]:
+          - generic [ref=e831]: K
+          - generic [ref=e832]: Kafka
+        - generic [ref=e833]:
+          - generic [ref=e834]: K8
+          - generic [ref=e835]: Kubernetes
+        - generic [ref=e836]:
+          - generic [ref=e837]: AWS
+          - generic [ref=e838]: AWS
+        - generic [ref=e839]:
+          - generic [ref=e840]: TV
+          - generic [ref=e841]: TradingView
+        - generic [ref=e842]:
+          - generic [ref=e843]: FIX
+          - generic [ref=e844]: FIX 4.4
+        - generic [ref=e845]:
+          - generic [ref=e846]: WS
+          - generic [ref=e847]: WebSocket
+        - generic [ref=e848]:
+          - generic [ref=e849]: 🐳
+          - generic [ref=e850]: Docker
+        - generic [ref=e851]:
+          - generic [ref=e852]: TF
+          - generic [ref=e853]: Terraform
+      - generic [ref=e854]:
+        - generic [ref=e856]:
+          - heading "Performance specs." [level=3] [ref=e857]
+          - paragraph [ref=e858]: Not marketing numbers. These are the contractual SLA values written into every Enterprise agreement.
+        - generic [ref=e860]:
+          - generic [ref=e861]:
+            - term [ref=e862]: Order processing latency
+            - definition [ref=e863]: < 12ms average, < 50ms P99
+          - generic [ref=e864]:
+            - term [ref=e865]: WebSocket message delivery
+            - definition [ref=e866]: < 8ms to client after fill
+          - generic [ref=e867]:
+            - term [ref=e868]: Price feed update frequency
+            - definition [ref=e869]: 100ms (10× per second)
+          - generic [ref=e870]:
+            - term [ref=e871]: System throughput capacity
+            - definition [ref=e872]: 50,000 trades per second
+          - generic [ref=e873]:
+            - term [ref=e874]: Trade history retention
+            - definition [ref=e875]: 7 years — immutable audit log
+          - generic [ref=e876]:
+            - term [ref=e877]: Backup frequency
+            - definition [ref=e878]: Every 6 hours, 3 geographic regions
+    - generic [ref=e881]:
+      - generic [ref=e882]:
+        - generic [ref=e883]:
+          - generic [ref=e884]: COMPLIANCE
+          - heading "Regulated everywhere you want to operate." [level=2] [ref=e885]:
+            - text: Regulated everywhere
+            - text: you want to operate.
+        - paragraph [ref=e887]: The platform is built for compliance, not retrofitted for it. KYC, AML, leverage caps, negative balance protection, and MiFID II reporting — all configurable per jurisdiction.
+        - generic [ref=e888]:
+          - generic [ref=e889]:
+            - generic [ref=e890]: ✓
+            - generic [ref=e891]: Multi-jurisdiction KYC flows
+          - generic [ref=e892]:
+            - generic [ref=e893]: ✓
+            - generic [ref=e894]: Automated AML screening
+          - generic [ref=e895]:
+            - generic [ref=e896]: ✓
+            - generic [ref=e897]: MiFID II trade reporting
+          - generic [ref=e898]:
+            - generic [ref=e899]: ✓
+            - generic [ref=e900]: Jurisdiction-specific leverage caps
+          - generic [ref=e901]:
+            - generic [ref=e902]: ✓
+            - generic [ref=e903]: Negative balance protection
+      - generic [ref=e904]:
+        - generic [ref=e905]:
+          - generic [ref=e906]: 🇬🇧
+          - generic [ref=e907]: FCA
+          - generic [ref=e908]: UK
+        - generic [ref=e909]:
+          - generic [ref=e910]: 🇨🇾
+          - generic [ref=e911]: CySEC
+          - generic [ref=e912]: CYPRUS
+        - generic [ref=e913]:
+          - generic [ref=e914]: 🇦🇺
+          - generic [ref=e915]: ASIC
+          - generic [ref=e916]: AUSTRALIA
+        - generic [ref=e917]:
+          - generic [ref=e918]: 🇦🇪
+          - generic [ref=e919]: DFSA
+          - generic [ref=e920]: UAE
+        - generic [ref=e921]:
+          - generic [ref=e922]: 🇸🇨
+          - generic [ref=e923]: FSA
+          - generic [ref=e924]: SEYCHELLES
+        - generic [ref=e925]:
+          - generic [ref=e926]: 🇻🇬
+          - generic [ref=e927]: FSC
+          - generic [ref=e928]: BVI
+        - generic [ref=e929]:
+          - generic [ref=e930]: 🇰🇾
+          - generic [ref=e931]: CIMA
+          - generic [ref=e932]: CAYMAN
+        - generic [ref=e933]:
+          - generic [ref=e934]: 🇿🇦
+          - generic [ref=e935]: FSCA
+          - generic [ref=e936]: S.AFRICA
+        - generic [ref=e937]:
+          - generic [ref=e938]: 🇸🇬
+          - generic [ref=e939]: MAS
+          - generic [ref=e940]: SINGAPORE
+        - generic [ref=e941]:
+          - generic [ref=e942]: 🇨🇭
+          - generic [ref=e943]: FINMA
+          - generic [ref=e944]: SWITZERLAND
+        - generic [ref=e945]:
+          - generic [ref=e946]: 🇲🇺
+          - generic [ref=e947]: FSC
+          - generic [ref=e948]: MAURITIUS
+        - generic [ref=e949]:
+          - generic [ref=e950]: 🇧🇸
+          - generic [ref=e951]: SCB
+          - generic [ref=e952]: BAHAMAS
+    - generic [ref=e954]:
+      - generic [ref=e955]:
+        - generic [ref=e956]: ONBOARDING
+        - heading "From contract to live in 21 days." [level=2] [ref=e957]:
+          - text: From contract to live
+          - text: in 21 days.
+      - generic [ref=e958]:
+        - generic [ref=e959]:
+          - generic [ref=e961]: "1"
+          - generic [ref=e963]:
+            - generic [ref=e964]: Day 1
+            - heading "Discovery Call" [level=3] [ref=e965]
+            - paragraph [ref=e966]: 30 minutes. We learn your market, target clients, jurisdiction, and LP relationships. No sales pitch — just architecture planning.
+        - generic [ref=e967]:
+          - generic [ref=e969]: "2"
+          - generic [ref=e971]:
+            - generic [ref=e972]: Day 2–3
+            - heading "Demo + Contract" [level=3] [ref=e973]
+            - paragraph [ref=e974]: See the full platform live. Sign contracts. Your dedicated onboarding manager is assigned immediately.
+        - generic [ref=e975]:
+          - generic [ref=e977]: "3"
+          - generic [ref=e979]:
+            - generic [ref=e980]: Days 4–10
+            - heading "Technical Setup" [level=3] [ref=e981]
+            - paragraph [ref=e982]: Domain configuration, branding, instruments, pricing rules, LP integration. We do the heavy lifting. You review and approve.
+        - generic [ref=e983]:
+          - generic [ref=e985]: "4"
+          - generic [ref=e987]:
+            - generic [ref=e988]: Days 11–17
+            - heading "UAT & Compliance" [level=3] [ref=e989]
+            - paragraph [ref=e990]: User acceptance testing. Compliance sign-off. Team training sessions. Marketing materials prepared and reviewed.
+        - generic [ref=e991]:
+          - generic [ref=e993]: "5"
+          - generic [ref=e994]:
+            - generic [ref=e995]: Day 18–21
+            - heading "Go Live" [level=3] [ref=e996]
+            - paragraph [ref=e997]: Your branded platform is live. Clients can register, verify, deposit, and trade. Obsidian infrastructure handles everything else.
+    - generic [ref=e999]:
+      - generic [ref=e1000]:
+        - generic [ref=e1001]: GET STARTED
+        - heading "Your branded broker. In 3 weeks." [level=2] [ref=e1002]:
+          - text: Your branded broker.
+          - text: In 3 weeks.
+        - paragraph [ref=e1003]: No sales pitch. A 30-minute architecture call where we map your market, jurisdiction, and LP relationships to the right setup.
+      - generic [ref=e1005]:
+        - textbox "your@email.com" [ref=e1006]
+        - button "Book Demo" [ref=e1007]
+      - generic [ref=e1008]:
+        - link "View Pricing →" [ref=e1009] [cursor=pointer]:
+          - /url: "#pricing"
+        - generic [ref=e1010]: "|"
+        - generic [ref=e1011]: No commitment. No credit card.
+        - generic [ref=e1012]: "|"
+        - generic [ref=e1013]: Response in <24 hours
+  - contentinfo [ref=e1014]:
+    - generic [ref=e1015]:
+      - generic [ref=e1016]:
+        - generic [ref=e1017]:
+          - generic [ref=e1018]: Obsidian
+          - paragraph [ref=e1019]: The full-stack trading platform for brokers who want to compete on product, not infrastructure.
+          - generic [ref=e1020]:
+            - link "X" [ref=e1021] [cursor=pointer]:
+              - /url: "#"
+            - link "LinkedIn" [ref=e1022] [cursor=pointer]:
+              - /url: "#"
+            - link "GitHub" [ref=e1023] [cursor=pointer]:
+              - /url: "#"
+            - link "YouTube" [ref=e1024] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e1025]:
+          - generic [ref=e1026]: Platform
+          - generic [ref=e1027]:
+            - link "Web Terminal" [ref=e1028] [cursor=pointer]:
+              - /url: "#"
+            - link "Mobile App" [ref=e1029] [cursor=pointer]:
+              - /url: "#"
+            - link "Desktop Pro" [ref=e1030] [cursor=pointer]:
+              - /url: "#"
+            - link "Dealer Workstation" [ref=e1031] [cursor=pointer]:
+              - /url: "#"
+            - link "Broker Admin" [ref=e1032] [cursor=pointer]:
+              - /url: "#"
+            - link "IB Portal" [ref=e1033] [cursor=pointer]:
+              - /url: "#"
+            - link "Copy Trading" [ref=e1034] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e1035]:
+          - generic [ref=e1036]: Company
+          - generic [ref=e1037]:
+            - link "About" [ref=e1038] [cursor=pointer]:
+              - /url: "#"
+            - link "Blog" [ref=e1039] [cursor=pointer]:
+              - /url: "#"
+            - link "Careers" [ref=e1040] [cursor=pointer]:
+              - /url: "#"
+            - link "Press" [ref=e1041] [cursor=pointer]:
+              - /url: "#"
+            - link "Contact" [ref=e1042] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e1043]:
+          - generic [ref=e1044]: Legal
+          - generic [ref=e1045]:
+            - link "Terms of Service" [ref=e1046] [cursor=pointer]:
+              - /url: "#"
+            - link "Privacy Policy" [ref=e1047] [cursor=pointer]:
+              - /url: "#"
+            - link "Cookie Policy" [ref=e1048] [cursor=pointer]:
+              - /url: "#"
+            - link "SLA" [ref=e1049] [cursor=pointer]:
+              - /url: "#"
+        - generic [ref=e1050]:
+          - generic [ref=e1051]: Support
+          - generic [ref=e1052]:
+            - link "Documentation" [ref=e1053] [cursor=pointer]:
+              - /url: "#"
+            - link "API Reference" [ref=e1054] [cursor=pointer]:
+              - /url: "#"
+            - link "Status Page" [ref=e1055] [cursor=pointer]:
+              - /url: "#"
+            - link "Community" [ref=e1056] [cursor=pointer]:
+              - /url: "#"
+      - generic [ref=e1057]:
+        - generic [ref=e1058]: © 2026 Obsidian Trading Technologies Ltd. All rights reserved.
+        - generic [ref=e1059]: Trading involves risk. Past performance is not indicative of future results.

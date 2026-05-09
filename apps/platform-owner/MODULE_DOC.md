@@ -29,3 +29,4 @@
 
 **Change-log**
 - 2026-03-15: Platform Owner UI completed with mock data: layout + sidebar, tenants (list + create), entitlements (list + upsert), billing (list + create), audit controls (read-only list + tenant filter). Types and mock data aligned with backend; backend integration deferred.
+- 2026-05-09: Full auth + API integration. Added AuthProvider (po_access_token in sessionStorage), AuthGuard (SSR-safe), AppShell (conditionally renders shell for authenticated routes), API client (attaches Bearer + x-tenant-id: 'platform'). New /login page (two-step OTP). New /brokers/new page with OnboardBrokerForm → POST /saas/onboard-broker. Brokers list wired to GET /saas/brokers. All (admin) routes guarded against unauthenticated access.

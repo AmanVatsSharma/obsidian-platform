@@ -1,0 +1,116 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e6]:
+      - heading "NestTrade Trader Workspace" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Portfolio, orders, funds, settings, and onboarding.
+  - generic [ref=e9]:
+    - complementary [ref=e10]:
+      - navigation "Trader navigation" [ref=e11]:
+        - link "Workstation" [ref=e12] [cursor=pointer]:
+          - /url: /workstation
+        - link "Onboarding" [ref=e13] [cursor=pointer]:
+          - /url: /onboarding
+        - link "Portfolio" [ref=e14] [cursor=pointer]:
+          - /url: /portfolio
+        - link "Orders" [ref=e15] [cursor=pointer]:
+          - /url: /orders
+        - link "Funds" [ref=e16] [cursor=pointer]:
+          - /url: /funds
+        - link "Settings" [ref=e17] [cursor=pointer]:
+          - /url: /settings
+    - main "Trader workspace content" [ref=e18]:
+      - generic [ref=e20]:
+        - generic [ref=e21]:
+          - generic [ref=e23]:
+            - paragraph [ref=e24]: Total Equity
+            - paragraph [ref=e25]: $124,856.78
+          - generic [ref=e27]:
+            - paragraph [ref=e28]: Day P&L
+            - paragraph [ref=e29]: +$1,234.56
+            - paragraph [ref=e30]: +1.00%
+          - generic [ref=e32]:
+            - paragraph [ref=e33]: Unrealized P&L
+            - paragraph [ref=e34]: +$739.75
+            - paragraph [ref=e35]: +0.59%
+          - generic [ref=e37]:
+            - paragraph [ref=e38]: Free Margin
+            - paragraph [ref=e39]: $87,234.12
+            - paragraph [ref=e40]: "Used: $3,606.41"
+        - generic [ref=e41]:
+          - generic [ref=e43]:
+            - heading "Portfolio" [level=3] [ref=e44]
+            - generic [ref=e45]:
+              - button "Open Positions (6)" [ref=e46] [cursor=pointer]
+              - button "Holdings (6)" [ref=e47] [cursor=pointer]
+          - table [ref=e50]:
+            - rowgroup [ref=e51]:
+              - row "Symbol Side Lots Open Price Current P&L P&L % Margin" [ref=e52]:
+                - columnheader "Symbol" [ref=e53]
+                - columnheader "Side" [ref=e54]
+                - columnheader "Lots" [ref=e55]
+                - columnheader "Open Price" [ref=e56]
+                - columnheader "Current" [ref=e57]
+                - columnheader "P&L" [ref=e58]
+                - columnheader "P&L %" [ref=e59]
+                - columnheader "Margin" [ref=e60]
+            - rowgroup [ref=e61]:
+              - row "EUR/USD BUY 1 1.08234 1.08452 +$218.00 +0.20% $1,084.52" [ref=e62]:
+                - cell "EUR/USD" [ref=e63]
+                - cell "BUY" [ref=e64]:
+                  - generic [ref=e65]: BUY
+                - cell "1" [ref=e66]
+                - cell "1.08234" [ref=e67]
+                - cell "1.08452" [ref=e68]
+                - cell "+$218.00" [ref=e69]
+                - cell "+0.20%" [ref=e70]
+                - cell "$1,084.52" [ref=e71]
+              - row "GBP/USD SELL 0.5 1.275 1.27234 +$133.00 +0.21% $636.17" [ref=e72]:
+                - cell "GBP/USD" [ref=e73]
+                - cell "SELL" [ref=e74]:
+                  - generic [ref=e75]: SELL
+                - cell "0.5" [ref=e76]
+                - cell "1.275" [ref=e77]
+                - cell "1.27234" [ref=e78]
+                - cell "+$133.00" [ref=e79]
+                - cell "+0.21%" [ref=e80]
+                - cell "$636.17" [ref=e81]
+              - row "XAUUSD BUY 0.1 2340 2345.67 +$56.70 +0.24% $234.57" [ref=e82]:
+                - cell "XAUUSD" [ref=e83]
+                - cell "BUY" [ref=e84]:
+                  - generic [ref=e85]: BUY
+                - cell "0.1" [ref=e86]
+                - cell "2340" [ref=e87]
+                - cell "2345.67" [ref=e88]
+                - cell "+$56.70" [ref=e89]
+                - cell "+0.24%" [ref=e90]
+                - cell "$234.57" [ref=e91]
+              - row "BTC/USD BUY 0.01 66500 67834.5 +$133.45 +2.01% $678.35" [ref=e92]:
+                - cell "BTC/USD" [ref=e93]
+                - cell "BUY" [ref=e94]:
+                  - generic [ref=e95]: BUY
+                - cell "0.01" [ref=e96]
+                - cell "66500" [ref=e97]
+                - cell "67834.5" [ref=e98]
+                - cell "+$133.45" [ref=e99]
+                - cell "+2.01%" [ref=e100]
+                - cell "$678.35" [ref=e101]
+              - row "US500 SELL 1 5260 5234.5 +$255.00 +0.49% $523.45" [ref=e102]:
+                - cell "US500" [ref=e103]
+                - cell "SELL" [ref=e104]:
+                  - generic [ref=e105]: SELL
+                - cell "1" [ref=e106]
+                - cell "5260" [ref=e107]
+                - cell "5234.5" [ref=e108]
+                - cell "+$255.00" [ref=e109]
+                - cell "+0.49%" [ref=e110]
+                - cell "$523.45" [ref=e111]
+              - row "USD/JPY BUY 0.3 149.5 149.782 $56.40 0.19% $449.35" [ref=e112]:
+                - cell "USD/JPY" [ref=e113]
+                - cell "BUY" [ref=e114]:
+                  - generic [ref=e115]: BUY
+                - cell "0.3" [ref=e116]
+                - cell "149.5" [ref=e117]
+                - cell "149.782" [ref=e118]
+                - cell "$56.40" [ref=e119]
+                - cell "0.19%" [ref=e120]
+                - cell "$449.35" [ref=e121]

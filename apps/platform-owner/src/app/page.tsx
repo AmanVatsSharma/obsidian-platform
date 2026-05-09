@@ -1,16 +1,20 @@
 /**
- * @file page.tsx
- * @module platform-owner
- * @description Platform Owner home page; navigation in sidebar
- * @author BharatERP
- * @created 2026-03-15
+ * File:        apps/platform-owner/src/app/page.tsx
+ * Module:      platform-owner · Root Route
+ * Purpose:     Root route redirects to /dashboard
+ *
+ * Exports:
+ *   - default() — server redirect to /dashboard
+ *
+ * Side-effects:
+ *   - none
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-04-24
  */
 
+import { redirect } from 'next/navigation';
+
 export default function IndexPage() {
-  return (
-    <main style={{ display: 'grid', gap: 12 }}>
-      <h1>Platform Owner Console</h1>
-      <p>Global tenancy governance and SaaS monetization. Use the sidebar to manage tenants, entitlements, billing, and audit controls.</p>
-    </main>
-  );
+  redirect('/dashboard');
 }

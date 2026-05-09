@@ -1,0 +1,532 @@
+- generic [ref=e3]:
+  - banner [ref=e4]:
+    - generic [ref=e5]: NESTTRADE
+    - button "EUR/USD 1.08452 +0.11%" [ref=e7] [cursor=pointer]:
+      - generic [ref=e8]: EUR/USD
+      - generic [ref=e9]: "1.08452"
+      - generic [ref=e10]: +0.11%
+    - button "GBP/USD 1.27234 -0.27%" [ref=e11] [cursor=pointer]:
+      - generic [ref=e12]: GBP/USD
+      - generic [ref=e13]: "1.27234"
+      - generic [ref=e14]: "-0.27%"
+    - button "USD/JPY 149.782 +0.16%" [ref=e15] [cursor=pointer]:
+      - generic [ref=e16]: USD/JPY
+      - generic [ref=e17]: "149.782"
+      - generic [ref=e18]: +0.16%
+    - button "USD/CHF 0.89234 -0.26%" [ref=e19] [cursor=pointer]:
+      - generic [ref=e20]: USD/CHF
+      - generic [ref=e21]: "0.89234"
+      - generic [ref=e22]: "-0.26%"
+    - button "AUD/USD 0.65123 +0.12%" [ref=e23] [cursor=pointer]:
+      - generic [ref=e24]: AUD/USD
+      - generic [ref=e25]: "0.65123"
+      - generic [ref=e26]: +0.12%
+    - generic [ref=e27]:
+      - img [ref=e28]
+      - textbox "Search markets" [ref=e31]:
+        - /placeholder: Search symbol, market…
+    - generic [ref=e32]:
+      - generic [ref=e33]: NY
+      - generic [ref=e35]: LON
+      - generic [ref=e37]: TKY
+      - generic [ref=e39]: SYD
+    - generic [ref=e41]:
+      - button "Alerts" [ref=e42] [cursor=pointer]:
+        - img [ref=e43]
+        - text: Alerts
+      - button "Settings" [ref=e47] [cursor=pointer]:
+        - img [ref=e48]
+        - text: Settings
+    - generic [ref=e51] [cursor=pointer]:
+      - generic [ref=e52]: AL
+      - generic [ref=e53]:
+        - generic [ref=e54]: Balance
+        - generic [ref=e55]: $28,450.00
+      - img [ref=e56]
+  - generic [ref=e58]:
+    - complementary [ref=e59]:
+      - generic [ref=e60]:
+        - generic [ref=e61]: Watchlist
+        - generic [ref=e62]:
+          - img [ref=e63]
+          - textbox "Filter watchlist" [ref=e66]:
+            - /placeholder: Filter…
+      - generic [ref=e67]:
+        - button "All" [ref=e68] [cursor=pointer]
+        - button "Forex" [ref=e69] [cursor=pointer]
+        - button "Crypto" [ref=e70] [cursor=pointer]
+        - button "Indices" [ref=e71] [cursor=pointer]
+        - button "Comm." [ref=e72] [cursor=pointer]
+      - generic [ref=e73]:
+        - button "EUR/USD 1.08452 Euro / US Dollar +0.11%" [ref=e74] [cursor=pointer]:
+          - generic [ref=e75]: EUR/USD
+          - generic [ref=e76]: "1.08452"
+          - generic [ref=e77]: Euro / US Dollar
+          - generic [ref=e78]: +0.11%
+        - button "GBP/USD 1.27234 Pound / US Dollar -0.27%" [ref=e79] [cursor=pointer]:
+          - generic [ref=e80]: GBP/USD
+          - generic [ref=e81]: "1.27234"
+          - generic [ref=e82]: Pound / US Dollar
+          - generic [ref=e83]: "-0.27%"
+        - button "USD/JPY 149.782 US Dollar / Yen +0.16%" [ref=e84] [cursor=pointer]:
+          - generic [ref=e85]: USD/JPY
+          - generic [ref=e86]: "149.782"
+          - generic [ref=e87]: US Dollar / Yen
+          - generic [ref=e88]: +0.16%
+        - button "USD/CHF 0.89234 US Dollar / Swiss Franc -0.26%" [ref=e89] [cursor=pointer]:
+          - generic [ref=e90]: USD/CHF
+          - generic [ref=e91]: "0.89234"
+          - generic [ref=e92]: US Dollar / Swiss Franc
+          - generic [ref=e93]: "-0.26%"
+        - button "AUD/USD 0.65123 Aussie / US Dollar +0.12%" [ref=e94] [cursor=pointer]:
+          - generic [ref=e95]: AUD/USD
+          - generic [ref=e96]: "0.65123"
+          - generic [ref=e97]: Aussie / US Dollar
+          - generic [ref=e98]: +0.12%
+        - button "USD/CAD 1.35678 US Dollar / CAD +0.11%" [ref=e99] [cursor=pointer]:
+          - generic [ref=e100]: USD/CAD
+          - generic [ref=e101]: "1.35678"
+          - generic [ref=e102]: US Dollar / CAD
+          - generic [ref=e103]: +0.11%
+        - button "NZD/USD 0.60234 Kiwi / US Dollar -0.18%" [ref=e104] [cursor=pointer]:
+          - generic [ref=e105]: NZD/USD
+          - generic [ref=e106]: "0.60234"
+          - generic [ref=e107]: Kiwi / US Dollar
+          - generic [ref=e108]: "-0.18%"
+        - button "BTC/USD 67834.5 Bitcoin +1.85%" [ref=e109] [cursor=pointer]:
+          - generic [ref=e110]: BTC/USD
+          - generic [ref=e111]: "67834.5"
+          - generic [ref=e112]: Bitcoin
+          - generic [ref=e113]: +1.85%
+        - button "ETH/USD 3456.78 Ethereum -1.29%" [ref=e114] [cursor=pointer]:
+          - generic [ref=e115]: ETH/USD
+          - generic [ref=e116]: "3456.78"
+          - generic [ref=e117]: Ethereum
+          - generic [ref=e118]: "-1.29%"
+        - button "SOL/USD 178.45 Solana +3.28%" [ref=e119] [cursor=pointer]:
+          - generic [ref=e120]: SOL/USD
+          - generic [ref=e121]: "178.45"
+          - generic [ref=e122]: Solana
+          - generic [ref=e123]: +3.28%
+        - button "XRP/USD 0.6234 Ripple +2.01%" [ref=e124] [cursor=pointer]:
+          - generic [ref=e125]: XRP/USD
+          - generic [ref=e126]: "0.6234"
+          - generic [ref=e127]: Ripple
+          - generic [ref=e128]: +2.01%
+        - button "US500 5234.50 S&P 500 +0.45%" [ref=e129] [cursor=pointer]:
+          - generic [ref=e130]: US500
+          - generic [ref=e131]: "5234.50"
+          - generic [ref=e132]: S&P 500
+          - generic [ref=e133]: +0.45%
+        - button "US30 39234.5 Dow Jones 30 -0.31%" [ref=e134] [cursor=pointer]:
+          - generic [ref=e135]: US30
+          - generic [ref=e136]: "39234.5"
+          - generic [ref=e137]: Dow Jones 30
+          - generic [ref=e138]: "-0.31%"
+        - button "NAS100 18234.5 NASDAQ 100 +0.80%" [ref=e139] [cursor=pointer]:
+          - generic [ref=e140]: NAS100
+          - generic [ref=e141]: "18234.5"
+          - generic [ref=e142]: NASDAQ 100
+          - generic [ref=e143]: +0.80%
+        - button "GER40 18134.5 DAX 40 +0.49%" [ref=e144] [cursor=pointer]:
+          - generic [ref=e145]: GER40
+          - generic [ref=e146]: "18134.5"
+          - generic [ref=e147]: DAX 40
+          - generic [ref=e148]: +0.49%
+        - button "XAUUSD 2345.67 Gold +0.53%" [ref=e149] [cursor=pointer]:
+          - generic [ref=e150]: XAUUSD
+          - generic [ref=e151]: "2345.67"
+          - generic [ref=e152]: Gold
+          - generic [ref=e153]: +0.53%
+        - button "XAGUSD 29.456 Silver -0.79%" [ref=e154] [cursor=pointer]:
+          - generic [ref=e155]: XAGUSD
+          - generic [ref=e156]: "29.456"
+          - generic [ref=e157]: Silver
+          - generic [ref=e158]: "-0.79%"
+        - button "USOIL 78.234 Crude Oil WTI +1.60%" [ref=e159] [cursor=pointer]:
+          - generic [ref=e160]: USOIL
+          - generic [ref=e161]: "78.234"
+          - generic [ref=e162]: Crude Oil WTI
+          - generic [ref=e163]: +1.60%
+        - button "NATGAS 2.1234 Natural Gas -2.10%" [ref=e164] [cursor=pointer]:
+          - generic [ref=e165]: NATGAS
+          - generic [ref=e166]: "2.1234"
+          - generic [ref=e167]: Natural Gas
+          - generic [ref=e168]: "-2.10%"
+    - generic [ref=e169]:
+      - generic [ref=e170]:
+        - generic [ref=e172]:
+          - generic [ref=e173]:
+            - generic [ref=e174]:
+              - generic [ref=e175]: EUR/USD
+              - generic [ref=e176]: "1.08452"
+              - generic [ref=e177]: +0.11%
+            - button "1m" [ref=e179] [cursor=pointer]
+            - button "3m" [ref=e180] [cursor=pointer]
+            - button "5m" [ref=e181] [cursor=pointer]
+            - button "15m" [ref=e182] [cursor=pointer]
+            - button "30m" [ref=e183] [cursor=pointer]
+            - button "1H" [ref=e184] [cursor=pointer]
+            - button "4H" [ref=e185] [cursor=pointer]
+            - button "1D" [ref=e186] [cursor=pointer]
+            - button "1W" [ref=e187] [cursor=pointer]
+            - button "1M" [ref=e188] [cursor=pointer]
+            - button "Candles" [ref=e190] [cursor=pointer]:
+              - img [ref=e191]
+              - text: Candles
+            - button "Line" [ref=e195] [cursor=pointer]:
+              - img [ref=e196]
+              - text: Line
+            - button "Indicators" [ref=e199] [cursor=pointer]:
+              - img [ref=e200]
+              - text: Indicators
+            - button "Drawing" [ref=e202] [cursor=pointer]:
+              - img [ref=e203]
+              - text: Drawing
+            - generic [ref=e204]:
+              - button "Maximize chart" [ref=e205] [cursor=pointer]:
+                - img [ref=e206]
+              - button "Refresh chart" [ref=e211] [cursor=pointer]:
+                - img [ref=e212]
+          - generic [ref=e217]:
+            - generic:
+              - generic:
+                - generic: O
+                - generic: "0.00000"
+              - generic:
+                - generic: H
+                - generic: "0.00000"
+              - generic:
+                - generic: L
+                - generic: "0.00000"
+              - generic:
+                - generic: C
+                - generic: "0.00000"
+              - generic:
+                - generic: VOL
+                - generic: 0K
+        - generic [ref=e218]:
+          - generic [ref=e219]:
+            - generic [ref=e220]: DOM
+            - generic [ref=e221]: EUR/USD
+          - generic [ref=e222]:
+            - generic [ref=e223]: Price
+            - generic [ref=e224]: Volume
+            - generic [ref=e225]: Depth
+          - generic [ref=e226]:
+            - generic [ref=e227] [cursor=pointer]:
+              - generic [ref=e229]: "1.08552"
+              - generic [ref=e230]: 1.9K
+              - generic [ref=e231]: 8K
+            - generic [ref=e232] [cursor=pointer]:
+              - generic [ref=e234]: "1.08542"
+              - generic [ref=e235]: 2.6K
+              - generic [ref=e236]: 18K
+            - generic [ref=e237] [cursor=pointer]:
+              - generic [ref=e239]: "1.08532"
+              - generic [ref=e240]: 4.7K
+              - generic [ref=e241]: 6K
+            - generic [ref=e242] [cursor=pointer]:
+              - generic [ref=e244]: "1.08522"
+              - generic [ref=e245]: 2.9K
+              - generic [ref=e246]: 13K
+            - generic [ref=e247] [cursor=pointer]:
+              - generic [ref=e249]: "1.08512"
+              - generic [ref=e250]: 3.2K
+              - generic [ref=e251]: 20K
+            - generic [ref=e252] [cursor=pointer]:
+              - generic [ref=e254]: "1.08502"
+              - generic [ref=e255]: 1.3K
+              - generic [ref=e256]: 14K
+            - generic [ref=e257] [cursor=pointer]:
+              - generic [ref=e259]: "1.08492"
+              - generic [ref=e260]: 0.6K
+              - generic [ref=e261]: 25K
+            - generic [ref=e262] [cursor=pointer]:
+              - generic [ref=e264]: "1.08482"
+              - generic [ref=e265]: 1.2K
+              - generic [ref=e266]: 27K
+            - generic [ref=e267] [cursor=pointer]:
+              - generic [ref=e269]: "1.08472"
+              - generic [ref=e270]: 2.4K
+              - generic [ref=e271]: 10K
+            - generic [ref=e272] [cursor=pointer]:
+              - generic [ref=e274]: "1.08462"
+              - generic [ref=e275]: 3.2K
+              - generic [ref=e276]: 26K
+            - generic [ref=e277]:
+              - generic [ref=e278]: SPREAD
+              - generic [ref=e279]: 0.6 pts
+            - generic [ref=e280] [cursor=pointer]:
+              - generic [ref=e282]: "1.08442"
+              - generic [ref=e283]: 0.7K
+              - generic [ref=e284]: 21K
+            - generic [ref=e285] [cursor=pointer]:
+              - generic [ref=e287]: "1.08432"
+              - generic [ref=e288]: 4.4K
+              - generic [ref=e289]: 19K
+            - generic [ref=e290] [cursor=pointer]:
+              - generic [ref=e292]: "1.08422"
+              - generic [ref=e293]: 3.9K
+              - generic [ref=e294]: 10K
+            - generic [ref=e295] [cursor=pointer]:
+              - generic [ref=e297]: "1.08412"
+              - generic [ref=e298]: 5.0K
+              - generic [ref=e299]: 21K
+            - generic [ref=e300] [cursor=pointer]:
+              - generic [ref=e302]: "1.08402"
+              - generic [ref=e303]: 3.2K
+              - generic [ref=e304]: 33K
+            - generic [ref=e305] [cursor=pointer]:
+              - generic [ref=e307]: "1.08392"
+              - generic [ref=e308]: 1.0K
+              - generic [ref=e309]: 5K
+            - generic [ref=e310] [cursor=pointer]:
+              - generic [ref=e312]: "1.08382"
+              - generic [ref=e313]: 4.6K
+              - generic [ref=e314]: 26K
+            - generic [ref=e315] [cursor=pointer]:
+              - generic [ref=e317]: "1.08372"
+              - generic [ref=e318]: 1.2K
+              - generic [ref=e319]: 13K
+            - generic [ref=e320] [cursor=pointer]:
+              - generic [ref=e322]: "1.08362"
+              - generic [ref=e323]: 1.7K
+              - generic [ref=e324]: 27K
+            - generic [ref=e325] [cursor=pointer]:
+              - generic [ref=e327]: "1.08352"
+              - generic [ref=e328]: 1.4K
+              - generic [ref=e329]: 6K
+      - generic [ref=e330]:
+        - generic [ref=e331]:
+          - button "Positions 6" [ref=e332] [cursor=pointer]:
+            - img [ref=e333]
+            - text: Positions
+            - generic [ref=e337]: "6"
+          - button "Orders 4" [ref=e338] [cursor=pointer]:
+            - img [ref=e339]
+            - text: Orders
+            - generic [ref=e341]: "4"
+          - button "History" [ref=e342] [cursor=pointer]:
+            - img [ref=e343]
+            - text: History
+          - button "Calendar 5" [ref=e346] [cursor=pointer]:
+            - img [ref=e347]
+            - text: Calendar
+            - generic [ref=e349]: "5"
+          - button "News" [ref=e350] [cursor=pointer]:
+            - img [ref=e351]
+            - text: News
+        - generic [ref=e354]:
+          - generic [ref=e355]:
+            - generic [ref=e356]:
+              - text: "6 positions · Total P&L:"
+              - generic [ref=e357]: +$739.75
+            - button "Close All" [ref=e358] [cursor=pointer]
+          - table [ref=e359]:
+            - rowgroup [ref=e360]:
+              - row "Symbol Type Lots Open Price Current SL TP Swap P&L Actions" [ref=e361]:
+                - columnheader "Symbol" [ref=e362]
+                - columnheader "Type" [ref=e363]
+                - columnheader "Lots" [ref=e364]
+                - columnheader "Open Price" [ref=e365]
+                - columnheader "Current" [ref=e366]
+                - columnheader "SL" [ref=e367]
+                - columnheader "TP" [ref=e368]
+                - columnheader "Swap" [ref=e369]
+                - columnheader "P&L" [ref=e370]
+                - columnheader "Actions" [ref=e371]
+            - rowgroup [ref=e372]:
+              - row "EUR/USD BUY 1.00 1.08234 1.08452 1.078 1.09 -2.4 +$218.00 Edit position Close" [ref=e373]:
+                - cell "EUR/USD" [ref=e374]
+                - cell "BUY" [ref=e375]:
+                  - generic [ref=e376]: BUY
+                - cell "1.00" [ref=e377]
+                - cell "1.08234" [ref=e378]
+                - cell "1.08452" [ref=e379]
+                - cell "1.078" [ref=e380]
+                - cell "1.09" [ref=e381]
+                - cell "-2.4" [ref=e382]
+                - cell "+$218.00" [ref=e383]
+                - cell "Edit position Close" [ref=e384]:
+                  - generic [ref=e385]:
+                    - button "Edit position" [ref=e386] [cursor=pointer]:
+                      - img [ref=e387]
+                    - button "Close" [ref=e390] [cursor=pointer]
+              - row "GBP/USD SELL 0.50 1.275 1.27234 1.282 1.265 -1.2 +$133.00 Edit position Close" [ref=e391]:
+                - cell "GBP/USD" [ref=e392]
+                - cell "SELL" [ref=e393]:
+                  - generic [ref=e394]: SELL
+                - cell "0.50" [ref=e395]
+                - cell "1.275" [ref=e396]
+                - cell "1.27234" [ref=e397]
+                - cell "1.282" [ref=e398]
+                - cell "1.265" [ref=e399]
+                - cell "-1.2" [ref=e400]
+                - cell "+$133.00" [ref=e401]
+                - cell "Edit position Close" [ref=e402]:
+                  - generic [ref=e403]:
+                    - button "Edit position" [ref=e404] [cursor=pointer]:
+                      - img [ref=e405]
+                    - button "Close" [ref=e408] [cursor=pointer]
+              - row "XAUUSD BUY 0.10 2340 2345.67 2320 2380 -0.8 +$56.70 Edit position Close" [ref=e409]:
+                - cell "XAUUSD" [ref=e410]
+                - cell "BUY" [ref=e411]:
+                  - generic [ref=e412]: BUY
+                - cell "0.10" [ref=e413]
+                - cell "2340" [ref=e414]
+                - cell "2345.67" [ref=e415]
+                - cell "2320" [ref=e416]
+                - cell "2380" [ref=e417]
+                - cell "-0.8" [ref=e418]
+                - cell "+$56.70" [ref=e419]
+                - cell "Edit position Close" [ref=e420]:
+                  - generic [ref=e421]:
+                    - button "Edit position" [ref=e422] [cursor=pointer]:
+                      - img [ref=e423]
+                    - button "Close" [ref=e426] [cursor=pointer]
+              - row "BTC/USD BUY 0.01 66500 67834.5 65000 70000 0 +$133.45 Edit position Close" [ref=e427]:
+                - cell "BTC/USD" [ref=e428]
+                - cell "BUY" [ref=e429]:
+                  - generic [ref=e430]: BUY
+                - cell "0.01" [ref=e431]
+                - cell "66500" [ref=e432]
+                - cell "67834.5" [ref=e433]
+                - cell "65000" [ref=e434]
+                - cell "70000" [ref=e435]
+                - cell "0" [ref=e436]
+                - cell "+$133.45" [ref=e437]
+                - cell "Edit position Close" [ref=e438]:
+                  - generic [ref=e439]:
+                    - button "Edit position" [ref=e440] [cursor=pointer]:
+                      - img [ref=e441]
+                    - button "Close" [ref=e444] [cursor=pointer]
+              - row "US500 SELL 1.00 5260 5234.5 5300 5180 -3.1 +$255.00 Edit position Close" [ref=e445]:
+                - cell "US500" [ref=e446]
+                - cell "SELL" [ref=e447]:
+                  - generic [ref=e448]: SELL
+                - cell "1.00" [ref=e449]
+                - cell "5260" [ref=e450]
+                - cell "5234.5" [ref=e451]
+                - cell "5300" [ref=e452]
+                - cell "5180" [ref=e453]
+                - cell "-3.1" [ref=e454]
+                - cell "+$255.00" [ref=e455]
+                - cell "Edit position Close" [ref=e456]:
+                  - generic [ref=e457]:
+                    - button "Edit position" [ref=e458] [cursor=pointer]:
+                      - img [ref=e459]
+                    - button "Close" [ref=e462] [cursor=pointer]
+              - row "USD/JPY BUY 0.30 149.5 149.782 148.8 151 -0.6 $56.40 Edit position Close" [ref=e463]:
+                - cell "USD/JPY" [ref=e464]
+                - cell "BUY" [ref=e465]:
+                  - generic [ref=e466]: BUY
+                - cell "0.30" [ref=e467]
+                - cell "149.5" [ref=e468]
+                - cell "149.782" [ref=e469]
+                - cell "148.8" [ref=e470]
+                - cell "151" [ref=e471]
+                - cell "-0.6" [ref=e472]
+                - cell "$56.40" [ref=e473]
+                - cell "Edit position Close" [ref=e474]:
+                  - generic [ref=e475]:
+                    - button "Edit position" [ref=e476] [cursor=pointer]:
+                      - img [ref=e477]
+                    - button "Close" [ref=e480] [cursor=pointer]
+    - generic [ref=e481]:
+      - generic [ref=e482]:
+        - generic [ref=e483]:
+          - button "▲ BUY" [ref=e484] [cursor=pointer]
+          - button "▼ SELL" [ref=e485] [cursor=pointer]
+        - generic [ref=e486]:
+          - generic [ref=e487]:
+            - generic [ref=e488]:
+              - generic [ref=e489]: Bid
+              - generic [ref=e490]: "1.08452"
+            - generic [ref=e491]:
+              - generic [ref=e492]: Spread
+              - generic [ref=e493]: 0.6 pts
+            - generic [ref=e494]:
+              - generic [ref=e495]: Ask
+              - generic [ref=e496]: "1.08458"
+          - generic [ref=e497]:
+            - generic [ref=e498]: Order Type
+            - generic [ref=e499]:
+              - button "Market" [ref=e500] [cursor=pointer]
+              - button "Limit" [ref=e501] [cursor=pointer]
+              - button "Stop" [ref=e502] [cursor=pointer]
+          - generic [ref=e503]:
+            - generic [ref=e504]: Volume (Lots)
+            - generic [ref=e505]:
+              - spinbutton "Volume in lots" [ref=e506]: "1.00"
+              - generic [ref=e507]:
+                - button "▲" [ref=e508] [cursor=pointer]
+                - button "▼" [ref=e509] [cursor=pointer]
+              - generic [ref=e510]: LOT
+          - generic [ref=e511]:
+            - generic [ref=e512]:
+              - generic [ref=e513]: Stop Loss
+              - spinbutton [ref=e515]
+            - generic [ref=e516]:
+              - generic [ref=e517]: Take Profit
+              - spinbutton [ref=e519]
+          - generic [ref=e520]:
+            - generic [ref=e521]: Req. Margin
+            - generic [ref=e522]: $10.85
+          - generic [ref=e523]:
+            - generic [ref=e524]: Pip Value
+            - generic [ref=e525]: $10.00
+          - button "▲ BUY MARKET" [ref=e527] [cursor=pointer]
+      - generic [ref=e528]:
+        - generic [ref=e529]:
+          - generic [ref=e530]: Account
+          - generic [ref=e531]: OB-84721 · 1:100
+        - generic [ref=e532]:
+          - generic [ref=e533]:
+            - generic [ref=e534]: Balance
+            - generic [ref=e535]: $28,450.00
+            - generic [ref=e536]: USD
+          - generic [ref=e537]:
+            - generic [ref=e538]: Equity
+            - generic [ref=e539]: $29,189.75
+            - generic [ref=e540]: ECN Pro
+          - generic [ref=e541]:
+            - generic [ref=e542]: Unrealized P&L
+            - generic [ref=e543]: +$739.75
+          - generic [ref=e544]:
+            - generic [ref=e545]: Today P&L
+            - generic [ref=e546]: +$1,245.80
+          - generic [ref=e547]:
+            - generic [ref=e548]: Free Margin
+            - generic [ref=e549]: $25,583.34
+            - generic [ref=e550]: "Used: $3,606.41"
+          - generic [ref=e551]:
+            - generic [ref=e552]: Margin Level
+            - generic [ref=e553]: 809.45%
+            - generic [ref=e554]: Safe
+        - generic [ref=e555]:
+          - generic [ref=e556]: Margin Usage
+          - generic [ref=e559]:
+            - generic [ref=e560]: 0%
+            - generic [ref=e561]: 12.4%
+            - generic [ref=e562]: 100%
+        - generic [ref=e563]:
+          - generic [ref=e564]:
+            - generic [ref=e565]: 30-Day P&L
+            - generic [ref=e566]: +$3,567
+          - img [ref=e567]
+  - contentinfo [ref=e570]:
+    - generic [ref=e573]: Connected
+    - generic [ref=e574]:
+      - img [ref=e575]
+      - generic [ref=e579]: OB-LIVE-01
+    - generic [ref=e580]:
+      - img [ref=e581]
+      - generic [ref=e583]: 12ms
+    - generic [ref=e584]:
+      - img [ref=e585]
+      - generic [ref=e589]: ECN Pro · 1:100
+    - generic [ref=e591]: v2.4.1
+    - link "Mobile" [ref=e593] [cursor=pointer]:
+      - /url: /m/workstation
+    - generic [ref=e595]: 04:10:47 UTC

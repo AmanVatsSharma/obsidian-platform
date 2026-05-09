@@ -1,9 +1,17 @@
 /**
- * @file mock-data-context.tsx
- * @module platform-owner
- * @description React context for mock data state; allows list + create/upsert without backend
- * @author BharatERP
- * @created 2026-03-15
+ * File:        apps/platform-owner/src/lib/mock-data-context.tsx
+ * Module:      platform-owner · Mock Data Context
+ * Purpose:     React context for mock data state; allows read + create/upsert without backend
+ *
+ * Exports:
+ *   - MockDataProvider(children) — context provider wrapping the app
+ *   - useMockData()              — hook returning full mock data state + actions
+ *
+ * Side-effects:
+ *   - In-memory React state only; resets on page reload
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-04-24
  */
 
 'use client';
@@ -11,16 +19,28 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
 import {
   MOCK_BILLING_INVOICES,
+  MOCK_BROKERS,
   MOCK_ENTITLEMENT_PLANS,
   MOCK_IMPERSONATION_AUDITS,
+  MOCK_INFRA_NODES,
+  MOCK_INFRA_SERVICES,
+  MOCK_LIQUIDITY_PROVIDERS,
+  MOCK_PLAN_REVENUE,
   MOCK_PROVISIONING,
+  MOCK_REVENUE_SERIES,
   MOCK_TENANTS,
 } from './mock-data';
 import type {
+  Broker,
   BillingInvoicePlaceholder,
   CreateBillingInput,
   CreateTenantInput,
   EntitlementPlan,
+  InfraNode,
+  InfraService,
+  LiquidityProvider,
+  PlanRevenueSplit,
+  RevenuePoint,
   SupportImpersonationAudit,
   Tenant,
   UpsertEntitlementInput,
@@ -36,6 +56,12 @@ interface MockDataState {
   entitlementPlans: EntitlementPlan[];
   billingInvoices: BillingInvoicePlaceholder[];
   impersonationAudits: SupportImpersonationAudit[];
+  brokers: Broker[];
+  infraServices: InfraService[];
+  infraNodes: InfraNode[];
+  liquidityProviders: LiquidityProvider[];
+  revenueSeries: RevenuePoint[];
+  planRevenue: PlanRevenueSplit[];
 }
 
 interface MockDataActions {
@@ -54,6 +80,12 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
   const [entitlementPlans, setEntitlementPlans] = useState<EntitlementPlan[]>(MOCK_ENTITLEMENT_PLANS);
   const [billingInvoices, setBillingInvoices] = useState<BillingInvoicePlaceholder[]>(MOCK_BILLING_INVOICES);
   const [impersonationAudits] = useState<SupportImpersonationAudit[]>(MOCK_IMPERSONATION_AUDITS);
+  const [brokers] = useState<Broker[]>(MOCK_BROKERS);
+  const [infraServices] = useState<InfraService[]>(MOCK_INFRA_SERVICES);
+  const [infraNodes] = useState<InfraNode[]>(MOCK_INFRA_NODES);
+  const [liquidityProviders] = useState<LiquidityProvider[]>(MOCK_LIQUIDITY_PROVIDERS);
+  const [revenueSeries] = useState<RevenuePoint[]>(MOCK_REVENUE_SERIES);
+  const [planRevenue] = useState<PlanRevenueSplit[]>(MOCK_PLAN_REVENUE);
 
   const addTenant = useCallback((input: CreateTenantInput): Tenant => {
     const now = new Date().toISOString();
@@ -129,6 +161,12 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
       entitlementPlans,
       billingInvoices,
       impersonationAudits,
+      brokers,
+      infraServices,
+      infraNodes,
+      liquidityProviders,
+      revenueSeries,
+      planRevenue,
       addTenant,
       upsertEntitlement,
       addBillingInvoice,
@@ -139,6 +177,12 @@ export function MockDataProvider({ children }: { children: React.ReactNode }) {
       entitlementPlans,
       billingInvoices,
       impersonationAudits,
+      brokers,
+      infraServices,
+      infraNodes,
+      liquidityProviders,
+      revenueSeries,
+      planRevenue,
       addTenant,
       upsertEntitlement,
       addBillingInvoice,

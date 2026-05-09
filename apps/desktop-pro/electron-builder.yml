@@ -1,0 +1,74 @@
+# File:        apps/desktop-pro/electron-builder.yml
+# Module:      desktop-pro · Distribution
+# Purpose:     electron-builder config for macOS .dmg and Windows NSIS installer.
+#
+# Usage:
+#   electron-builder --mac    → produces .dmg + .zip (notarized via CI)
+#   electron-builder --win    → produces NSIS .exe installer
+#
+# Side-effects:
+#   - Reads dist/ output produced by electron-vite build
+#   - Writes dist/packages/ with platform-specific installers
+#
+# Key invariants:
+#   - appId must match the deep-link protocol registration in electron/main.ts
+#   - hardenedRuntime + entitlements required for macOS notarization (Gatekeeper)
+#   - publish provider set to s3; bucket nesttrade-releases must exist in AWS
+#   - signing env vars APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD injected by CI
+#
+# Author:      BharatERP
+# Last-updated: 2026-04-26
+
+appId: trade.nesttrade.desktop
+productName: NestTrade Pro
+copyright: "Copyright © 2026 NestTrade"
+
+directories:
+  output: dist/packages
+  buildResources: build
+
+files:
+  - dist/**
+  - "!dist/packages/**"
+
+mac:
+  category: public.app-category.finance
+  icon: build/icon.icns
+  target:
+    - target: dmg
+      arch: [x64, arm64]
+    - target: zip
+      arch: [x64, arm64]
+  hardenedRuntime: true
+  gatekeeperAssess: false
+  entitlements: build/entitlements.mac.plist
+  entitlementsInherit: build/entitlements.mac.plist
+
+win:
+  icon: build/icon.ico
+  target:
+    - target: nsis
+      arch: [x64]
+  signingHashAlgorithms: [sha256]
+
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+
+linux:
+  category: Finance
+  target:
+    - target: AppImage
+      arch: [x64]
+
+publish:
+  provider: s3
+  bucket: nesttrade-releases
+  region: ap-south-1
+  path: /desktop-pro
+
+protocols:
+  - name: NestTrade
+    schemes: [nesttrade]

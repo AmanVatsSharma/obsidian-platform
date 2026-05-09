@@ -1,24 +1,50 @@
 /**
- * @file global.css
- * @module platform-owner
- * @description Global styles for Platform Owner console
- * @author BharatERP
- * @created 2026-03-15
+ * File:        apps/platform-owner/src/app/global.css
+ * Module:      platform-owner · Styles
+ * Purpose:     Tailwind directives + Obsidian token import for Platform Owner console
+ *
+ * Side-effects:
+ *   - Imports Obsidian dark-terminal CSS custom properties
+ *   - Sets base html/body styles
+ *
+ * Key invariants:
+ *   - Token import must use relative path (PostCSS can't resolve TS/NX path aliases)
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-04-24
  */
 
-html,
-body {
-  margin: 0;
-  font-family: Inter, Arial, sans-serif;
-  background: #020617;
-  color: #e2e8f0;
-}
+@import '../../../../libs/obsidian-ui/src/styles/tokens.css';
 
-a {
-  color: #38bdf8;
-  text-decoration: none;
-}
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-main {
-  padding: 24px;
+@layer base {
+  html,
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: var(--bg-base);
+    color: var(--fg1);
+    font-family: var(--font-ui), 'DM Sans', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  * {
+    box-sizing: border-box;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--bg-surface);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-hi);
+    border-radius: 2px;
+  }
 }
