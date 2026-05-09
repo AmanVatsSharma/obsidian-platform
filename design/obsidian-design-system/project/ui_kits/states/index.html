@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obsidian · States</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#07090C;color:var(--fg1);font-family:var(--font-ui);font-size:13px;min-height:100%;-webkit-font-smoothing:antialiased}
+
+.canvas{min-height:100vh;padding:48px 40px 96px;background:
+  radial-gradient(1000px 700px at 0% -10%, rgba(59,130,246,0.04), transparent 60%),
+  #07090C;
+}
+.hd{max-width:1680px;margin:0 auto 56px}
+.kicker{display:flex;align-items:center;gap:10px;font-family:var(--font-data);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--warn);margin-bottom:12px}
+.kicker .d{width:6px;height:6px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px var(--warn)}
+.ttl{font-family:var(--font-display);font-size:52px;font-weight:800;letter-spacing:-0.02em;margin-bottom:14px}
+.sub{font-size:15px;color:var(--fg2);max-width:680px;line-height:1.5}
+
+.sec{max-width:1680px;margin:0 auto 64px}
+.sec-hd{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.sec-n{font-family:var(--font-data);font-size:11px;color:var(--warn);letter-spacing:0.14em}
+.sec-t{font-family:var(--font-display);font-size:22px;font-weight:700;letter-spacing:-0.01em}
+.sec-d{color:var(--fg3);font-size:13px;margin-left:auto;max-width:400px;text-align:right;line-height:1.4}
+
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.card{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:340px}
+.card-hd{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg-surface);display:flex;align-items:center;gap:10px;flex-shrink:0}
+.card-hd .dot{width:6px;height:6px;border-radius:50%}
+.card-hd .t{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg1)}
+.card-hd .tag{margin-left:auto;font-family:var(--font-data);font-size:9.5px;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase}
+.card-body{flex:1;padding:28px 22px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;position:relative;overflow:hidden}
+.card-ft{padding:10px 14px;border-top:1px solid var(--border);font-family:var(--font-data);font-size:10px;color:var(--fg3);letter-spacing:0.04em;display:flex;align-items:center;gap:8px;flex-shrink:0}
+.card-ft code{color:var(--accent);background:var(--accent-dim);padding:1px 6px;border-radius:4px}
+
+/* Empty state glyphs */
+.glyph{width:64px;height:64px;border-radius:16px;display:flex;align-items:center;justify-content:center;margin-bottom:18px;position:relative}
+.glyph.empty{background:var(--bg-elevated);border:1px solid var(--border)}
+.glyph.error{background:var(--bear-dim);border:1px solid rgba(255,59,92,0.25)}
+.glyph.warn{background:var(--warn-dim);border:1px solid rgba(245,158,11,0.25)}
+.glyph.info{background:var(--accent-dim);border:1px solid rgba(59,130,246,0.25)}
+.state-title{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:-0.01em;margin-bottom:6px}
+.state-body{font-size:12px;color:var(--fg2);line-height:1.5;max-width:280px;margin-bottom:16px}
+.state-body code{font-family:var(--font-data);color:var(--fg1);background:var(--bg-elevated);padding:1px 6px;border-radius:4px;font-size:11px}
+.btn{padding:7px 14px;border-radius:6px;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.btn.primary{background:var(--accent);color:#fff}
+.btn.ghost{background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg1)}
+.btn.danger{background:var(--bear);color:#fff}
+.btn.danger-ghost{background:var(--bear-dim);border:1px solid rgba(255,59,92,0.3);color:var(--bear)}
+.btn-row{display:flex;gap:8px}
+
+/* LOADING */
+@keyframes shimmer{0%{background-position:-400px 0}100%{background-position:400px 0}}
+.skel{background:linear-gradient(90deg,var(--bg-elevated) 0%,#1c2332 50%,var(--bg-elevated) 100%);background-size:800px 100%;animation:shimmer 1.4s linear infinite;border-radius:4px}
+@keyframes dots{0%,20%{color:transparent}40%{color:var(--accent)}60%,100%{color:transparent}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spinner{width:32px;height:32px;border-radius:50%;border:2px solid var(--border);border-top-color:var(--accent);animation:spin 0.8s linear infinite;margin-bottom:18px}
+@keyframes barGrow{0%{width:0}100%{width:100%}}
+.progress-bar{width:100%;max-width:240px;height:4px;background:var(--bg-elevated);border-radius:2px;overflow:hidden;margin-bottom:14px}
+.progress-fill{height:100%;background:var(--accent);border-radius:2px;width:62%;box-shadow:0 0 8px var(--accent)}
+.progress-l{font-family:var(--font-data);font-size:10px;color:var(--fg3);letter-spacing:0.08em}
+@keyframes pulse-dot{0%,100%{opacity:0.3;transform:scale(0.8)}50%{opacity:1;transform:scale(1.2)}}
+.pulse-group{display:flex;gap:6px;margin-bottom:14px}
+.pulse-group .d{width:8px;height:8px;border-radius:50%;background:var(--accent);animation:pulse-dot 1.2s ease-in-out infinite}
+.pulse-group .d:nth-child(2){animation-delay:0.15s}
+.pulse-group .d:nth-child(3){animation-delay:0.3s}
+
+/* SKELETON rows */
+.skel-panel{width:100%;display:flex;flex-direction:column;gap:10px;padding:0 8px}
+.skel-row{display:flex;align-items:center;gap:12px}
+.skel-sq{width:28px;height:28px;border-radius:6px;flex-shrink:0}
+.skel-lines{flex:1;display:flex;flex-direction:column;gap:5px}
+.skel-l1{height:10px;width:70%}
+.skel-l2{height:8px;width:45%}
+.skel-right{width:50px;height:12px;flex-shrink:0}
+
+/* Feed disconnected */
+.dc-sparks{position:absolute;inset:0;opacity:0.18}
+.dc-sparks svg{width:100%;height:100%}
+
+/* Error ticker lines */
+.err-trace{width:100%;max-width:320px;background:var(--bg-base);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-family:var(--font-data);font-size:10.5px;color:var(--fg2);line-height:1.55;text-align:left}
+.err-trace .err-key{color:var(--bear)}
+.err-trace .err-code{color:var(--fg3)}
+
+/* Inline error */
+.inline-err{width:100%;max-width:320px;background:var(--bear-dim);border:1px solid rgba(255,59,92,0.3);border-radius:8px;padding:10px 12px;display:flex;align-items:flex-start;gap:10px;text-align:left}
+.inline-err .ie-t{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--bear);letter-spacing:0.04em;text-transform:uppercase}
+.inline-err .ie-d{font-size:11.5px;color:var(--fg1);margin-top:3px;line-height:1.45}
+
+/* 429 banner */
+.rl-banner{width:100%;max-width:320px;background:var(--warn-dim);border:1px solid rgba(245,158,11,0.3);border-radius:8px;padding:12px;text-align:left}
+.rl-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.rl-head .t{font-family:var(--font-display);font-size:11px;font-weight:700;color:var(--warn);letter-spacing:0.04em;text-transform:uppercase}
+.rl-head .c{font-family:var(--font-data);font-size:11px;color:var(--warn);margin-left:auto}
+.rl-bar{height:3px;background:rgba(245,158,11,0.2);border-radius:2px;overflow:hidden;margin-top:8px}
+.rl-bar .f{height:100%;background:var(--warn);width:34%;border-radius:2px}
+.rl-d{font-size:11px;color:var(--fg2);margin-top:3px;line-height:1.4}
+
+/* market closed */
+.mc-clock{width:80px;height:80px;border-radius:50%;border:2px solid var(--fg3);display:flex;align-items:center;justify-content:center;margin-bottom:16px;position:relative}
+.mc-clock::before{content:'';position:absolute;top:8px;left:50%;width:2px;height:24px;background:var(--fg3);transform-origin:bottom center}
+.mc-clock::after{content:'';position:absolute;left:14px;top:50%;height:2px;width:20px;background:var(--fg3);transform-origin:right center;transform:translateY(-50%)}
+
+/* price flash */
+.flash-demo{display:flex;align-items:center;gap:6px;margin-top:10px}
+.flash-cell{width:64px;padding:3px 8px;border-radius:3px;font-family:var(--font-data);font-size:11px;font-weight:700;text-align:right}
+.flash-up{background:var(--bull-dim);color:var(--bull);animation:flash-g 1.2s ease-out infinite}
+.flash-dn{background:var(--bear-dim);color:var(--bear);animation:flash-r 1.2s ease-out infinite}
+@keyframes flash-g{0%{background:rgba(16,217,150,0.4)}100%{background:rgba(16,217,150,0.1)}}
+@keyframes flash-r{0%{background:rgba(255,59,92,0.4)}100%{background:rgba(255,59,92,0.1)}}
+
+.bull{color:var(--bull)}.bear{color:var(--bear)}
+
+/* spec bar at bottom */
+.spec{display:flex;gap:16px;align-items:center;justify-content:center;flex-wrap:wrap}
+.spec-i{display:flex;flex-direction:column;align-items:center;gap:2px}
+.spec-l{font-family:var(--font-data);font-size:9px;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase}
+.spec-v{font-family:var(--font-data);font-size:12px;color:var(--fg1);font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <div class="hd">
+    <div class="kicker"><span class="d"></span>STATES LIBRARY · CARD #18</div>
+    <div class="ttl">Empty · Loading · Error</div>
+    <div class="sub">Signature moments where calm matters most. Every trading surface has dead air — when data is fetching, when a feed drops, when a request is rejected. How Obsidian handles these determines whether the platform feels solid or brittle.</div>
+  </div>
+
+  <!-- ═════ EMPTY STATES ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">01 /</span>
+      <span class="sec-t">Empty states</span>
+      <span class="sec-d">Never blank. Always explain what should be here, and offer the first step to fill it.</span>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--fg3)"></div><div class="t">No Positions</div><div class="tag">portfolio</div></div>
+        <div class="card-body">
+          <div class="glyph empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--fg2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="2" y1="13" x2="22" y2="13"/></svg>
+          </div>
+          <div class="state-title">No open positions</div>
+          <div class="state-body">Your book is flat. Browse markets to open your first trade, or restore a position from history.</div>
+          <div class="btn-row">
+            <button class="btn primary">Browse markets</button>
+            <button class="btn ghost">View history</button>
+          </div>
+        </div>
+        <div class="card-ft"><code>&lt;EmptyState /&gt;</code> · neutral tone, actionable</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--fg3)"></div><div class="t">No Search Results</div><div class="tag">markets</div></div>
+        <div class="card-body">
+          <div class="glyph empty">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--fg2)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
+          </div>
+          <div class="state-title">No matches for <code>EURGBJ</code></div>
+          <div class="state-body">Double-check the symbol, or search by asset name. We support 247 forex pairs, 78 crypto, 34 indices.</div>
+          <div class="btn-row">
+            <button class="btn ghost">Clear search</button>
+            <button class="btn primary">Request symbol</button>
+          </div>
+        </div>
+        <div class="card-ft">shows user's exact query · suggests scope</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--fg3)"></div><div class="t">No Alerts</div><div class="tag">research</div></div>
+        <div class="card-body">
+          <div class="glyph info">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+          </div>
+          <div class="state-title">No active price alerts</div>
+          <div class="state-body">Set alerts to get notified when markets hit your targets. First alert is one tap away.</div>
+          <button class="btn primary">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+            Add price alert
+          </button>
+        </div>
+        <div class="card-ft">single-CTA variant · onboarding moment</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════ LOADING STATES ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">02 /</span>
+      <span class="sec-t">Loading states</span>
+      <span class="sec-d">Prefer skeletons over spinners — they suggest layout so the shift-to-data is seamless.</span>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--accent)"></div><div class="t">Skeleton · Watchlist</div><div class="tag">initial load</div></div>
+        <div class="card-body" style="padding:24px 18px;justify-content:flex-start">
+          <div class="skel-panel">
+            <div class="skel-row"><div class="skel skel-sq"></div><div class="skel-lines"><div class="skel skel-l1"></div><div class="skel skel-l2"></div></div><div class="skel skel-right"></div></div>
+            <div class="skel-row"><div class="skel skel-sq"></div><div class="skel-lines"><div class="skel skel-l1"></div><div class="skel skel-l2"></div></div><div class="skel skel-right"></div></div>
+            <div class="skel-row"><div class="skel skel-sq"></div><div class="skel-lines"><div class="skel skel-l1"></div><div class="skel skel-l2"></div></div><div class="skel skel-right"></div></div>
+            <div class="skel-row"><div class="skel skel-sq"></div><div class="skel-lines"><div class="skel skel-l1"></div><div class="skel skel-l2"></div></div><div class="skel skel-right"></div></div>
+            <div class="skel-row"><div class="skel skel-sq"></div><div class="skel-lines"><div class="skel skel-l1"></div><div class="skel skel-l2"></div></div><div class="skel skel-right"></div></div>
+          </div>
+        </div>
+        <div class="card-ft">shimmer · <code>1.4s</code> linear infinite · matches final row height</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--accent)"></div><div class="t">Spinner · Submit</div><div class="tag">blocking</div></div>
+        <div class="card-body">
+          <div class="spinner"></div>
+          <div class="state-title">Submitting order…</div>
+          <div class="state-body">Contacting <code>live-1.obsidian.fx</code> · round-trip typical &lt;240ms</div>
+          <div class="progress-l">ROUTING · VENUE · ACK</div>
+        </div>
+        <div class="card-ft">for user-initiated blocking ops only</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--accent)"></div><div class="t">Progress · KYC Upload</div><div class="tag">determinate</div></div>
+        <div class="card-body">
+          <div class="state-title" style="margin-bottom:14px">Uploading passport.pdf</div>
+          <div class="progress-bar"><div class="progress-fill"></div></div>
+          <div class="progress-l">62% · 2.4 MB / 3.9 MB · 0:08 left</div>
+          <div style="margin-top:18px">
+            <button class="btn ghost">Cancel</button>
+          </div>
+        </div>
+        <div class="card-ft">always show bytes + ETA · let user abort</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--accent)"></div><div class="t">Pulse · Feed Resubscribe</div><div class="tag">polling</div></div>
+        <div class="card-body">
+          <div class="pulse-group"><span class="d"></span><span class="d"></span><span class="d"></span></div>
+          <div class="state-title">Resubscribing to tick feed</div>
+          <div class="state-body">Reconnected to <code>wss://marketdata-2</code> · awaiting first tick for EUR/USD</div>
+        </div>
+        <div class="card-ft">background task · non-blocking</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--accent)"></div><div class="t">Chart · Backfilling</div><div class="tag">data fill</div></div>
+        <div class="card-body" style="padding:0;align-items:stretch">
+          <div style="position:relative;flex:1;background:var(--bg-base)">
+            <svg viewBox="0 0 300 200" preserveAspectRatio="none" style="width:100%;height:100%;opacity:0.5">
+              <rect x="20" y="100" width="4" height="80" fill="var(--fg3)"/>
+              <rect x="30" y="110" width="4" height="60" fill="var(--fg3)"/>
+              <rect x="40" y="90" width="4" height="90" fill="var(--fg3)"/>
+              <rect x="50" y="100" width="4" height="70" fill="var(--fg3)"/>
+              <rect x="60" y="80" width="4" height="100" fill="var(--fg3)"/>
+              <rect x="70" y="85" width="4" height="90" fill="var(--fg3)"/>
+              <!-- loaded right side -->
+              <rect x="200" y="60" width="4" height="80" fill="var(--bull)"/>
+              <rect x="212" y="70" width="4" height="60" fill="var(--bull)"/>
+              <rect x="224" y="55" width="4" height="90" fill="var(--bull)"/>
+              <rect x="236" y="65" width="4" height="70" fill="var(--bear)"/>
+              <rect x="248" y="50" width="4" height="100" fill="var(--bull)"/>
+              <rect x="260" y="45" width="4" height="90" fill="var(--bull)"/>
+              <rect x="272" y="40" width="4" height="100" fill="var(--bull)"/>
+              <!-- separator line -->
+              <line x1="150" y1="0" x2="150" y2="200" stroke="var(--accent)" stroke-dasharray="3 3" opacity="0.5"/>
+            </svg>
+            <div style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center">
+              <div class="spinner" style="width:22px;height:22px;margin:0 auto 8px"></div>
+              <div style="font-family:var(--font-data);font-size:10px;color:var(--accent);letter-spacing:0.08em">Backfilling 500 bars</div>
+            </div>
+          </div>
+        </div>
+        <div class="card-ft">in-context spinner · live data stays visible</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--accent)"></div><div class="t">Tick Flash Tokens</div><div class="tag">micro-loading</div></div>
+        <div class="card-body">
+          <div class="state-title" style="margin-bottom:10px">Price update flash</div>
+          <div class="state-body">When bids/asks tick, the cell flashes for 300ms before returning to base. Uptick green, downtick red.</div>
+          <div class="flash-demo">
+            <div class="flash-cell flash-up">1.08472</div>
+            <span style="color:var(--fg3);font-family:var(--font-data);font-size:10px">→</span>
+            <div class="flash-cell flash-dn">1.08465</div>
+          </div>
+        </div>
+        <div class="card-ft"><code>flash-g / flash-r</code> · 300ms ease-out</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════ ERROR STATES ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">03 /</span>
+      <span class="sec-t">Error states</span>
+      <span class="sec-d">Say what went wrong, what we're doing about it, and what the user can do. Never blame the user.</span>
+    </div>
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--bear)"></div><div class="t">Feed Disconnected</div><div class="tag">critical</div></div>
+        <div class="card-body">
+          <div class="dc-sparks"><svg viewBox="0 0 300 200" preserveAspectRatio="none"><polyline points="0,100 30,98 60,95 90,100" fill="none" stroke="var(--bear)" stroke-width="1" stroke-dasharray="4 3"/><polyline points="210,100 240,104 270,99 300,102" fill="none" stroke="var(--fg3)" stroke-width="1" stroke-dasharray="4 3"/></svg></div>
+          <div class="glyph error">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bear)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><path d="M5 12.55a10.94 10.94 0 0 1 5.17-2.39"/><path d="M10.71 5.05A16 16 0 0 1 22.58 9"/><path d="M1.42 9a15.91 15.91 0 0 1 4.7-2.88"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>
+          </div>
+          <div class="state-title">Market data feed offline</div>
+          <div class="state-body">We've lost the upstream tick feed. Prices shown are last-known (stale at <code>09:41:02</code>). Trading is paused.</div>
+          <div class="btn-row">
+            <button class="btn danger">Reconnect now</button>
+            <button class="btn ghost">Use backup feed</button>
+          </div>
+        </div>
+        <div class="card-ft"><code>WS_DISCONNECT_1006</code> · auto-retry in 3s</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--bear)"></div><div class="t">Order Rejected</div><div class="tag">broker</div></div>
+        <div class="card-body">
+          <div class="inline-err">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--bear)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            <div>
+              <div class="ie-t">Order rejected · REJ-403</div>
+              <div class="ie-d">Insufficient free margin for 5.0 lots EUR/USD. Required <strong>$5,423.60</strong>, available <strong>$3,124.80</strong>. Reduce size to max 2.87 lots.</div>
+            </div>
+          </div>
+          <div class="btn-row" style="margin-top:14px">
+            <button class="btn primary">Resize to 2.87</button>
+            <button class="btn ghost">Close ticket</button>
+          </div>
+        </div>
+        <div class="card-ft">inline · actionable · shows exact numbers</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--warn)"></div><div class="t">Rate Limited · 429</div><div class="tag">throttled</div></div>
+        <div class="card-body">
+          <div class="rl-banner">
+            <div class="rl-head">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--warn)" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <div class="t">Rate limited</div>
+              <div class="c">retry 4s</div>
+            </div>
+            <div class="rl-d">You've sent 120 orders/min. Obsidian API limit is 100/min. Requests resume automatically in 4 seconds.</div>
+            <div class="rl-bar"><div class="f"></div></div>
+          </div>
+          <div style="margin-top:14px;font-family:var(--font-data);font-size:10px;color:var(--fg3)">HTTP 429 · X-RateLimit-Reset: 1735920264</div>
+        </div>
+        <div class="card-ft">non-blocking banner · auto-recovery</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--warn)"></div><div class="t">Market Closed</div><div class="tag">session</div></div>
+        <div class="card-body">
+          <div class="mc-clock"></div>
+          <div class="state-title">FX Markets Closed</div>
+          <div class="state-body">Forex re-opens Sunday 22:00 UTC — in <code>2d 13h 27m</code>. You can view charts and set pending orders now.</div>
+          <div class="btn-row">
+            <button class="btn primary">Place pending</button>
+            <button class="btn ghost">View crypto</button>
+          </div>
+        </div>
+        <div class="card-ft">informational · offers alternatives</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--bear)"></div><div class="t">500 · Server Error</div><div class="tag">server-side</div></div>
+        <div class="card-body">
+          <div class="glyph error">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--bear)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/><line x1="12" y1="10" x2="12" y2="14" stroke-dasharray="2 2"/></svg>
+          </div>
+          <div class="state-title">Something's wrong on our end</div>
+          <div class="state-body">Our trade engine returned an error. Your funds are safe and positions are intact. Engineering has been paged.</div>
+          <div class="btn-row">
+            <button class="btn primary">Retry</button>
+            <button class="btn ghost">Status page ↗</button>
+          </div>
+          <div style="font-family:var(--font-data);font-size:10px;color:var(--fg3);margin-top:12px">incident <code>#OBS-8241</code> · 09:41:02 UTC</div>
+        </div>
+        <div class="card-ft">owns the blame · links to status · never "try again later"</div>
+      </div>
+
+      <div class="card">
+        <div class="card-hd"><div class="dot" style="background:var(--bear)"></div><div class="t">Validation Error</div><div class="tag">form</div></div>
+        <div class="card-body" style="justify-content:flex-start;padding:24px 22px">
+          <div style="width:100%;max-width:280px">
+            <div style="font-size:11px;color:var(--fg3);font-family:var(--font-data);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:4px">Stop Loss</div>
+            <div style="height:36px;background:var(--bg-elevated);border:1px solid var(--bear);border-radius:6px;padding:0 10px;display:flex;align-items:center;font-family:var(--font-data);font-size:13px;color:var(--fg1);box-shadow:0 0 0 3px rgba(255,59,92,0.1)">1.08900</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="var(--bear)"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12" stroke="#fff" stroke-width="2"/><circle cx="12" cy="16" r="1" fill="#fff"/></svg>
+              <span style="font-size:11px;color:var(--bear);font-family:var(--font-data);font-weight:600">SL must be below entry (1.08472) for BUY</span>
+            </div>
+            <div style="margin-top:16px;font-size:11px;color:var(--fg3)">Valid range: <code style="color:var(--bull);font-family:var(--font-data)">1.00000 — 1.08472</code></div>
+          </div>
+        </div>
+        <div class="card-ft">inline · ring-shadow · shows valid range</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════ DECISION MATRIX ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">04 /</span>
+      <span class="sec-t">Decision matrix</span>
+      <span class="sec-d">Which pattern to reach for.</span>
+    </div>
+    <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;overflow:hidden">
+      <table style="width:100%;border-collapse:collapse;font-size:12.5px">
+        <thead>
+          <tr style="background:var(--bg-surface);border-bottom:1px solid var(--border)">
+            <th style="text-align:left;padding:12px 16px;font-family:var(--font-display);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);font-weight:600">Situation</th>
+            <th style="text-align:left;padding:12px 16px;font-family:var(--font-display);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);font-weight:600">Pattern</th>
+            <th style="text-align:left;padding:12px 16px;font-family:var(--font-display);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);font-weight:600">Dismissal</th>
+            <th style="text-align:left;padding:12px 16px;font-family:var(--font-display);font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);font-weight:600">Blocks UI?</th>
+          </tr>
+        </thead>
+        <tbody style="color:var(--fg2);font-family:var(--font-ui)">
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px">Empty table / list</td>
+            <td style="padding:10px 16px"><code style="font-family:var(--font-data);color:var(--accent);font-size:11.5px">&lt;EmptyState&gt;</code> with CTA</td>
+            <td style="padding:10px 16px">— (populates naturally)</td>
+            <td style="padding:10px 16px" class="bear">no</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px">Initial data fetch</td>
+            <td style="padding:10px 16px">Skeleton rows, matching shape</td>
+            <td style="padding:10px 16px">Auto (data arrives)</td>
+            <td style="padding:10px 16px" class="bear">no</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px">User-initiated submit</td>
+            <td style="padding:10px 16px">Spinner on button, disable form</td>
+            <td style="padding:10px 16px">Auto (response)</td>
+            <td style="padding:10px 16px" class="bull">yes · within scope</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px">Background resync</td>
+            <td style="padding:10px 16px">Pulse dots · top-bar indicator</td>
+            <td style="padding:10px 16px">Auto</td>
+            <td style="padding:10px 16px" class="bear">no</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px">Validation failure</td>
+            <td style="padding:10px 16px">Inline ring · field-local message</td>
+            <td style="padding:10px 16px">User corrects</td>
+            <td style="padding:10px 16px" class="bear">no</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px">Rejected request (4xx)</td>
+            <td style="padding:10px 16px">Inline error with next-action</td>
+            <td style="padding:10px 16px">User acts or dismisses</td>
+            <td style="padding:10px 16px" class="bear">no</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px">Throttled (429)</td>
+            <td style="padding:10px 16px">Banner with countdown</td>
+            <td style="padding:10px 16px">Auto (timer)</td>
+            <td style="padding:10px 16px" class="bear">no</td>
+          </tr>
+          <tr style="border-bottom:1px solid var(--border)">
+            <td style="padding:10px 16px">Feed disconnect</td>
+            <td style="padding:10px 16px">Top-bar red · full-state on trade attempt</td>
+            <td style="padding:10px 16px">Reconnect success</td>
+            <td style="padding:10px 16px" class="bull">partial · trade blocked</td>
+          </tr>
+          <tr>
+            <td style="padding:10px 16px">Server error (5xx)</td>
+            <td style="padding:10px 16px">Full-state · retry + status link</td>
+            <td style="padding:10px 16px">Retry succeeds</td>
+            <td style="padding:10px 16px" class="bull">yes</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- spec footer -->
+  <div class="sec" style="margin-bottom:0">
+    <div class="spec">
+      <div class="spec-i"><div class="spec-l">Skeleton shimmer</div><div class="spec-v">1.4s linear</div></div>
+      <div class="spec-i"><div class="spec-l">Tick flash</div><div class="spec-v">300ms ease-out</div></div>
+      <div class="spec-i"><div class="spec-l">Spinner</div><div class="spec-v">0.8s linear</div></div>
+      <div class="spec-i"><div class="spec-l">Reconnect retry</div><div class="spec-v">3s · exp backoff</div></div>
+      <div class="spec-i"><div class="spec-l">Auto-dismiss toast</div><div class="spec-v">4s</div></div>
+      <div class="spec-i"><div class="spec-l">Modal fade</div><div class="spec-v">180ms ease</div></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

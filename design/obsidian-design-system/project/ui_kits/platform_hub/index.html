@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obsidian Hub · Platform Owner</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../_shared.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.tenants-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:16px 20px}
+.tenant{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;padding:16px;display:flex;flex-direction:column;gap:12px;position:relative;overflow:hidden;cursor:pointer;transition:border-color 180ms}
+.tenant:hover{border-color:var(--border-hi)}
+.tenant::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--accent)}
+.tenant.bull::before{background:var(--bull)}
+.tenant.warn::before{background:var(--warn)}
+.tenant.bear::before{background:var(--bear)}
+.tenant-hd{display:flex;align-items:center;gap:10px}
+.tenant-logo{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;color:#fff;font-size:13px;letter-spacing:0.04em}
+.tl-1{background:linear-gradient(135deg,#3B82F6,#1E40AF)}
+.tl-2{background:linear-gradient(135deg,#A855F7,#6D28D9)}
+.tl-3{background:linear-gradient(135deg,#10D996,#065F46)}
+.tl-4{background:linear-gradient(135deg,#F59E0B,#9A3412)}
+.tl-5{background:linear-gradient(135deg,#EC4899,#831843)}
+.tl-6{background:linear-gradient(135deg,#0EA5E9,#0C4A6E)}
+.tenant-n{flex:1}
+.tenant-n .name{font-family:var(--font-display);font-size:14px;font-weight:700;color:var(--fg1)}
+.tenant-n .dom{font-family:var(--font-data);font-size:10px;color:var(--fg3);letter-spacing:0.04em;margin-top:1px}
+.tenant-stats{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border);border-radius:6px;overflow:hidden}
+.tenant-stat{background:var(--bg-elevated);padding:8px 10px}
+.tenant-stat .l{font-family:var(--font-display);font-size:8px;letter-spacing:0.1em;color:var(--fg3);text-transform:uppercase}
+.tenant-stat .v{font-family:var(--font-data);font-size:14px;font-weight:600;color:var(--fg1);margin-top:2px}
+.tenant-footer{display:flex;justify-content:space-between;align-items:center;font-family:var(--font-data);font-size:10px;color:var(--fg3);border-top:1px solid var(--border);padding-top:10px}
+.svc-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border);margin:0 20px 20px;border-radius:8px;overflow:hidden;border:1px solid var(--border)}
+.svc{background:var(--bg-panel);padding:14px}
+.svc-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.svc-h .n{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg1)}
+.svc-h .dot{width:8px;height:8px;border-radius:50%}
+.svc.op .dot{background:var(--bull);box-shadow:0 0 6px var(--bull)}
+.svc.deg .dot{background:var(--warn);box-shadow:0 0 6px var(--warn)}
+.svc.out .dot{background:var(--bear);box-shadow:0 0 6px var(--bear)}
+.svc-m{font-family:var(--font-data);font-size:10px;color:var(--fg3);letter-spacing:0.04em}
+.svc-m b{color:var(--fg1);font-weight:600}
+.svc-bars{display:flex;align-items:flex-end;gap:2px;height:28px;margin-top:8px}
+.svc-bar{flex:1;background:var(--bg-elevated);border-radius:1px}
+.svc.op .svc-bar{background:rgba(16,217,150,0.35)}
+.svc.deg .svc-bar{background:rgba(245,158,11,0.35)}
+.svc.out .svc-bar{background:rgba(255,59,92,0.35)}
+.geo-panel{padding:16px;background:radial-gradient(ellipse at center,rgba(59,130,246,0.04),transparent 70%)}
+.geo-list{display:flex;flex-direction:column;gap:1px;padding:10px 0}
+.geo-row{display:grid;grid-template-columns:32px 1fr 80px 100px;padding:9px 14px;gap:12px;align-items:center;font-family:var(--font-data);font-size:12px;border-bottom:1px solid var(--border)}
+.geo-row:last-child{border-bottom:none}
+.geo-row .flag{font-size:18px}
+.geo-row .name{color:var(--fg1);font-family:var(--font-ui);font-weight:500}
+.geo-row .mini{height:4px;background:var(--bg-elevated);border-radius:2px;overflow:hidden}
+.geo-row .mini .f{height:100%;background:var(--accent)}
+.geo-row .v{text-align:right;font-weight:600;color:var(--fg1);font-feature-settings:"tnum" 1}
+.bill-card{background:linear-gradient(135deg,var(--bg-panel),rgba(168,85,247,0.04));border:1px solid var(--border-md);border-radius:10px;padding:18px;margin:0 20px 20px}
+.bill-g{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:20px}
+.bill-st{display:flex;flex-direction:column;gap:4px}
+.bill-st .l{font-family:var(--font-display);font-size:10px;letter-spacing:0.08em;color:var(--fg3);text-transform:uppercase}
+.bill-st .v{font-family:var(--font-data);font-size:22px;font-weight:700;color:var(--fg1)}
+.bill-st .d{font-family:var(--font-data);font-size:11px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="logo"><div class="d"></div>OBSIDIAN<div class="sep"></div><span class="sub">Hub · Platform Owner</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="tag bull"><span class="dot" style="animation:blink 2s infinite"></span>All Regions Operational</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-actions">
+      <button class="btn"><i data-lucide="plus"></i>Onboard Broker</button>
+      <button class="tb-btn"><i data-lucide="bell"></i><span class="notif"></span></button>
+      <div class="chip"><div class="ava av-2">EO</div><div><div class="n">E. Oduya</div><div class="r">Owner</div></div></div>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="sidebar">
+      <div class="sb-section">Platform</div>
+      <div class="sb-list">
+        <div class="sb-item active"><i data-lucide="globe-2"></i>Overview</div>
+        <div class="sb-item"><i data-lucide="building-2"></i>Tenants<span class="b">6</span></div>
+        <div class="sb-item"><i data-lucide="activity"></i>Infra Health</div>
+        <div class="sb-item"><i data-lucide="bar-chart-big"></i>Global Volume</div>
+      </div>
+      <div class="sb-section">Commercial</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="receipt"></i>Billing</div>
+        <div class="sb-item"><i data-lucide="file-text"></i>Contracts</div>
+        <div class="sb-item"><i data-lucide="line-chart"></i>Revenue</div>
+      </div>
+      <div class="sb-section">Oversight</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="shield"></i>Surveillance</div>
+        <div class="sb-item"><i data-lucide="scale"></i>Regulatory</div>
+        <div class="sb-item"><i data-lucide="settings-2"></i>Feature Flags</div>
+      </div>
+      <div class="sb-footer">
+        <div class="st" style="flex:1">
+          <div class="sl">Platform Revenue · MTD</div>
+          <div class="sv" style="color:var(--bull);font-size:13px;font-weight:600"><span class="dot"></span>$1.84M</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-hd">
+        <div>
+          <div class="crumb">Platform <span>/</span> <span class="cur">Overview</span></div>
+          <h1>Platform Hub</h1>
+        </div>
+        <div class="right">
+          <button class="btn ghost"><i data-lucide="filter"></i>All Regions</button>
+          <button class="btn"><i data-lucide="download"></i>Export</button>
+        </div>
+      </div>
+
+      <div class="bill-card">
+        <div class="bill-g">
+          <div class="bill-st"><div class="l">Total Platform Volume · MTD</div><div class="v">$184.2M</div><div class="d bull">↑ +22.4% vs last month</div></div>
+          <div class="bill-st"><div class="l">Platform Revenue · MTD</div><div class="v bull">$1.84M</div><div class="d bull">↑ +18.9% vs last month</div></div>
+          <div class="bill-st"><div class="l">Active Brokers</div><div class="v">6 <span style="font-size:12px;color:var(--fg3)">· 1 onboarding</span></div><div class="d" style="color:var(--fg3)">14,820 end-clients</div></div>
+          <div class="bill-st"><div class="l">Infra Cost · MTD</div><div class="v warn-text">$284K</div><div class="d" style="color:var(--fg3)">15.4% of rev · on-budget</div></div>
+        </div>
+      </div>
+
+      <div class="panel-hd" style="background:transparent;border:none;padding:0 20px 8px">
+        <h3 style="font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg2)">Broker Tenants</h3>
+        <div class="right"><button class="filter active">All</button><button class="filter">Live</button><button class="filter">Onboarding</button></div>
+      </div>
+      <div class="tenants-grid">
+        <div class="tenant bull">
+          <div class="tenant-hd"><div class="tenant-logo tl-1">AF</div><div class="tenant-n"><div class="name">ArcaFX</div><div class="dom">arcafx.obsidian.io</div></div><span class="tag bull"><span class="dot"></span>Live</span></div>
+          <div class="tenant-stats">
+            <div class="tenant-stat"><div class="l">Clients</div><div class="v">2,184</div></div>
+            <div class="tenant-stat"><div class="l">Volume MTD</div><div class="v">$48.2M</div></div>
+            <div class="tenant-stat"><div class="l">Rev Share</div><div class="v bull">$420K</div></div>
+            <div class="tenant-stat"><div class="l">Region</div><div class="v">EU · UK</div></div>
+          </div>
+          <div class="tenant-footer"><span>Live since Jan 2024</span><span class="bull">+22.4%</span></div>
+        </div>
+        <div class="tenant bull">
+          <div class="tenant-hd"><div class="tenant-logo tl-2">NV</div><div class="tenant-n"><div class="name">NovaPrime</div><div class="dom">novaprime.obsidian.io</div></div><span class="tag bull"><span class="dot"></span>Live</span></div>
+          <div class="tenant-stats">
+            <div class="tenant-stat"><div class="l">Clients</div><div class="v">3,420</div></div>
+            <div class="tenant-stat"><div class="l">Volume MTD</div><div class="v">$62.8M</div></div>
+            <div class="tenant-stat"><div class="l">Rev Share</div><div class="v bull">$584K</div></div>
+            <div class="tenant-stat"><div class="l">Region</div><div class="v">APAC</div></div>
+          </div>
+          <div class="tenant-footer"><span>Live since Mar 2023</span><span class="bull">+18.2%</span></div>
+        </div>
+        <div class="tenant bull">
+          <div class="tenant-hd"><div class="tenant-logo tl-3">ZN</div><div class="tenant-n"><div class="name">Zenith Markets</div><div class="dom">zenith.obsidian.io</div></div><span class="tag bull"><span class="dot"></span>Live</span></div>
+          <div class="tenant-stats">
+            <div class="tenant-stat"><div class="l">Clients</div><div class="v">4,820</div></div>
+            <div class="tenant-stat"><div class="l">Volume MTD</div><div class="v">$54.2M</div></div>
+            <div class="tenant-stat"><div class="l">Rev Share</div><div class="v bull">$504K</div></div>
+            <div class="tenant-stat"><div class="l">Region</div><div class="v">MENA</div></div>
+          </div>
+          <div class="tenant-footer"><span>Live since Jul 2023</span><span class="bull">+14.8%</span></div>
+        </div>
+        <div class="tenant warn">
+          <div class="tenant-hd"><div class="tenant-logo tl-4">HR</div><div class="tenant-n"><div class="name">Harlow &amp; Reid</div><div class="dom">harlow.obsidian.io</div></div><span class="tag warn"><span class="dot"></span>Degraded</span></div>
+          <div class="tenant-stats">
+            <div class="tenant-stat"><div class="l">Clients</div><div class="v">1,240</div></div>
+            <div class="tenant-stat"><div class="l">Volume MTD</div><div class="v">$12.4M</div></div>
+            <div class="tenant-stat"><div class="l">Rev Share</div><div class="v">$142K</div></div>
+            <div class="tenant-stat"><div class="l">Region</div><div class="v">UK</div></div>
+          </div>
+          <div class="tenant-footer"><span class="warn-text">LP feed intermittent</span><span>+2.1%</span></div>
+        </div>
+        <div class="tenant bull">
+          <div class="tenant-hd"><div class="tenant-logo tl-5">BS</div><div class="tenant-n"><div class="name">BlackStream</div><div class="dom">blackstream.obsidian.io</div></div><span class="tag bull"><span class="dot"></span>Live</span></div>
+          <div class="tenant-stats">
+            <div class="tenant-stat"><div class="l">Clients</div><div class="v">2,840</div></div>
+            <div class="tenant-stat"><div class="l">Volume MTD</div><div class="v">$4.2M</div></div>
+            <div class="tenant-stat"><div class="l">Rev Share</div><div class="v bull">$38K</div></div>
+            <div class="tenant-stat"><div class="l">Region</div><div class="v">LATAM</div></div>
+          </div>
+          <div class="tenant-footer"><span>Live since Nov 2024</span><span class="bull">+42.1%</span></div>
+        </div>
+        <div class="tenant">
+          <div class="tenant-hd"><div class="tenant-logo tl-6">KP</div><div class="tenant-n"><div class="name">Kestrel Partners</div><div class="dom">kestrel.obsidian.io</div></div><span class="tag accent"><span class="dot"></span>Onboarding</span></div>
+          <div class="tenant-stats">
+            <div class="tenant-stat"><div class="l">Clients</div><div class="v">—</div></div>
+            <div class="tenant-stat"><div class="l">KYC Setup</div><div class="v warn-text">72%</div></div>
+            <div class="tenant-stat"><div class="l">Go-live</div><div class="v">May 15</div></div>
+            <div class="tenant-stat"><div class="l">Region</div><div class="v">CA · US</div></div>
+          </div>
+          <div class="tenant-footer"><span>Onboarding step 5/8</span><span style="color:var(--accent)">In progress</span></div>
+        </div>
+      </div>
+
+      <div class="panel-hd" style="background:transparent;border:none;padding:4px 20px 8px">
+        <h3 style="font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg2)">Infrastructure · Live Status</h3>
+      </div>
+      <div class="svc-grid">
+        <div class="svc op">
+          <div class="svc-h"><span class="n">Pricing Engine</span><span class="dot"></span></div>
+          <div class="svc-m">Latency <b>2.1ms</b> · p99 <b>8ms</b></div>
+          <div class="svc-bars"><div class="svc-bar" style="height:60%"></div><div class="svc-bar" style="height:70%"></div><div class="svc-bar" style="height:55%"></div><div class="svc-bar" style="height:80%"></div><div class="svc-bar" style="height:65%"></div><div class="svc-bar" style="height:75%"></div><div class="svc-bar" style="height:70%"></div><div class="svc-bar" style="height:85%"></div><div class="svc-bar" style="height:72%"></div><div class="svc-bar" style="height:78%"></div></div>
+        </div>
+        <div class="svc op">
+          <div class="svc-h"><span class="n">Order Matcher</span><span class="dot"></span></div>
+          <div class="svc-m">Throughput <b>18.4K/s</b> · fill <b>98.4%</b></div>
+          <div class="svc-bars"><div class="svc-bar" style="height:50%"></div><div class="svc-bar" style="height:65%"></div><div class="svc-bar" style="height:72%"></div><div class="svc-bar" style="height:68%"></div><div class="svc-bar" style="height:85%"></div><div class="svc-bar" style="height:78%"></div><div class="svc-bar" style="height:82%"></div><div class="svc-bar" style="height:90%"></div><div class="svc-bar" style="height:76%"></div><div class="svc-bar" style="height:80%"></div></div>
+        </div>
+        <div class="svc deg">
+          <div class="svc-h"><span class="n">LP · Harlow Feed</span><span class="dot"></span></div>
+          <div class="svc-m warn-text">Reconnecting · 2 drops in 5m</div>
+          <div class="svc-bars"><div class="svc-bar" style="height:60%"></div><div class="svc-bar" style="height:65%"></div><div class="svc-bar" style="height:20%"></div><div class="svc-bar" style="height:10%"></div><div class="svc-bar" style="height:15%"></div><div class="svc-bar" style="height:62%"></div><div class="svc-bar" style="height:68%"></div><div class="svc-bar" style="height:24%"></div><div class="svc-bar" style="height:58%"></div><div class="svc-bar" style="height:70%"></div></div>
+        </div>
+        <div class="svc op">
+          <div class="svc-h"><span class="n">KYC &amp; AML</span><span class="dot"></span></div>
+          <div class="svc-m">Queue <b>47</b> · SLA <b>98.1%</b></div>
+          <div class="svc-bars"><div class="svc-bar" style="height:40%"></div><div class="svc-bar" style="height:52%"></div><div class="svc-bar" style="height:48%"></div><div class="svc-bar" style="height:65%"></div><div class="svc-bar" style="height:58%"></div><div class="svc-bar" style="height:42%"></div><div class="svc-bar" style="height:60%"></div><div class="svc-bar" style="height:55%"></div><div class="svc-bar" style="height:62%"></div><div class="svc-bar" style="height:50%"></div></div>
+        </div>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-hd"><h3>Volume by Geography</h3><div class="right"><button class="filter active">MTD</button><button class="filter">YTD</button></div></div>
+          <div class="geo-panel">
+            <div class="geo-list">
+              <div class="geo-row"><span class="flag">🇬🇧</span><span class="name">United Kingdom</span><div class="mini"><div class="f" style="width:92%"></div></div><span class="v">$42.8M</span></div>
+              <div class="geo-row"><span class="flag">🇩🇪</span><span class="name">Germany</span><div class="mini"><div class="f" style="width:74%"></div></div><span class="v">$34.2M</span></div>
+              <div class="geo-row"><span class="flag">🇯🇵</span><span class="name">Japan</span><div class="mini"><div class="f" style="width:62%"></div></div><span class="v">$28.4M</span></div>
+              <div class="geo-row"><span class="flag">🇦🇪</span><span class="name">UAE</span><div class="mini"><div class="f" style="width:48%"></div></div><span class="v">$22.1M</span></div>
+              <div class="geo-row"><span class="flag">🇸🇬</span><span class="name">Singapore</span><div class="mini"><div class="f" style="width:40%"></div></div><span class="v">$18.4M</span></div>
+              <div class="geo-row"><span class="flag">🇧🇷</span><span class="name">Brazil</span><div class="mini"><div class="f" style="width:32%"></div></div><span class="v">$14.8M</span></div>
+              <div class="geo-row"><span class="flag">🇿🇦</span><span class="name">South Africa</span><div class="mini"><div class="f" style="width:24%"></div></div><span class="v">$11.2M</span></div>
+              <div class="geo-row"><span class="flag">🇮🇳</span><span class="name">India</span><div class="mini"><div class="f" style="width:20%"></div></div><span class="v">$9.4M</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h3>Regulatory Calendar</h3></div>
+          <div class="panel-body">
+            <div class="audit-log" style="padding:2px 0">
+              <div class="audit-item"><div class="i"><i data-lucide="scale" style="color:var(--warn)"></i></div><div class="t">Apr 22</div><div class="d"><b>FCA</b> quarterly CASS report · ArcaFX · Harlow &amp; Reid</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="file-text" style="color:var(--accent)"></i></div><div class="t">May 01</div><div class="d"><b>CySEC</b> monthly prudential return · Zenith Markets</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="shield-check" style="color:var(--bull)"></i></div><div class="t">May 08</div><div class="d"><b>MAS</b> audit interview · NovaPrime · scheduled 10:00 SGT</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="alert-triangle" style="color:var(--bear)"></i></div><div class="t">May 14</div><div class="d"><b>ESMA</b> transaction reporting · action req · Harlow &amp; Reid</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="file-bar-chart" style="color:var(--fg2)"></i></div><div class="t">May 20</div><div class="d"><b>FSCA</b> annual renewal · BlackStream · docs prepared</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="status">
+    <div class="status-i"><span class="status-d"></span>All regions operational</div>
+    <div class="status-i">Nodes: <span class="bull">24/24</span></div>
+    <div class="status-i">Global latency: <span class="bull">3.2ms</span></div>
+    <div class="status-i">14,820 end-clients · 6 brokers</div>
+    <div class="status-i">10:42:18 UTC</div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

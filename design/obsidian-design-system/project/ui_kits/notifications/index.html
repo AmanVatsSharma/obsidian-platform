@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obsidian · Notifications</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#07090C;color:var(--fg1);font-family:var(--font-ui);font-size:13px;min-height:100%;-webkit-font-smoothing:antialiased}
+
+.canvas{min-height:100vh;padding:48px 40px 96px;background:
+  radial-gradient(1000px 700px at 100% -10%, rgba(16,217,150,0.04), transparent 60%),
+  #07090C;
+}
+.hd{max-width:1680px;margin:0 auto 56px}
+.kicker{display:flex;align-items:center;gap:10px;font-family:var(--font-data);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--bull);margin-bottom:12px}
+.kicker .d{width:6px;height:6px;border-radius:50%;background:var(--bull);box-shadow:0 0 8px var(--bull)}
+.ttl{font-family:var(--font-display);font-size:52px;font-weight:800;letter-spacing:-0.02em;margin-bottom:14px}
+.sub{font-size:15px;color:var(--fg2);max-width:680px;line-height:1.5}
+
+.sec{max-width:1680px;margin:0 auto 64px}
+.sec-hd{display:flex;align-items:baseline;gap:16px;margin-bottom:20px;padding-bottom:14px;border-bottom:1px solid var(--border)}
+.sec-n{font-family:var(--font-data);font-size:11px;color:var(--bull);letter-spacing:0.14em}
+.sec-t{font-family:var(--font-display);font-size:22px;font-weight:700;letter-spacing:-0.01em}
+.sec-d{color:var(--fg3);font-size:13px;margin-left:auto;max-width:400px;text-align:right;line-height:1.4}
+
+/* ═══ TOAST SPECIMENS ═══ */
+.toast-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.toast-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.toast-label{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg-surface);display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+.toast-label .d{width:5px;height:5px;border-radius:50%}
+.toast-label .tag{margin-left:auto;font-family:var(--font-data);font-size:9px;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase}
+.toast-stage{padding:24px 20px;background:#0A0C10;min-height:150px;display:flex;align-items:center;justify-content:center;position:relative}
+.toast-stage::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(to right,rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.025) 1px,transparent 1px);
+  background-size:16px 16px;
+  pointer-events:none;
+}
+
+/* Toast base */
+.toast{position:relative;z-index:2;width:100%;max-width:320px;background:var(--bg-elevated);border:1px solid var(--border-md);border-radius:10px;padding:12px 12px 12px 14px;display:flex;align-items:flex-start;gap:10px;box-shadow:0 8px 24px rgba(0,0,0,0.4),0 0 0 1px rgba(255,255,255,0.02)}
+.toast-icon{width:22px;height:22px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.toast-body{flex:1;min-width:0}
+.toast-title{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;margin-bottom:2px}
+.toast-msg{font-size:12.5px;color:var(--fg2);line-height:1.45}
+.toast-msg code{font-family:var(--font-data);font-size:11.5px;color:var(--fg1);background:var(--bg-base);padding:1px 5px;border-radius:3px}
+.toast-actions{display:flex;gap:4px;margin-top:8px}
+.toast-actions button{padding:4px 9px;border-radius:4px;font-family:var(--font-display);font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:var(--bg-base);border:1px solid var(--border);color:var(--fg1);cursor:pointer}
+.toast-actions button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.toast-close{width:18px;height:18px;color:var(--fg3);cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;border-radius:4px;margin-top:1px}
+.toast-close:hover{background:var(--bg-base);color:var(--fg1)}
+
+.toast.success{border-left:3px solid var(--bull)}
+.toast.error{border-left:3px solid var(--bear)}
+.toast.warn{border-left:3px solid var(--warn)}
+.toast.info{border-left:3px solid var(--accent)}
+
+.toast.success .toast-icon{background:var(--bull-dim);color:var(--bull)}
+.toast.error .toast-icon{background:var(--bear-dim);color:var(--bear)}
+.toast.warn .toast-icon{background:var(--warn-dim);color:var(--warn)}
+.toast.info .toast-icon{background:var(--accent-dim);color:var(--accent)}
+
+/* Timer bar */
+.toast-timer{position:absolute;left:0;right:0;bottom:0;height:2px;background:rgba(255,255,255,0.04);border-radius:0 0 10px 10px;overflow:hidden}
+.toast-timer .f{height:100%;width:60%;border-radius:0 0 0 10px}
+.toast.success .toast-timer .f{background:var(--bull)}
+.toast.error .toast-timer .f{background:var(--bear)}
+.toast.warn .toast-timer .f{background:var(--warn)}
+.toast.info .toast-timer .f{background:var(--accent)}
+
+/* ═══ TOAST STACK DEMO ═══ */
+.stack-demo{background:#0A0C10;border:1px solid var(--border);border-radius:12px;padding:24px;position:relative;min-height:420px;display:flex;align-items:flex-start;justify-content:flex-end;overflow:hidden}
+.stack-demo::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(to right,rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.025) 1px,transparent 1px);
+  background-size:24px 24px;
+  pointer-events:none;
+}
+.stack-pane{position:relative;z-index:2;display:flex;flex-direction:column;gap:8px;width:360px}
+.stack-pane .toast{max-width:none}
+.stack-pane .toast:nth-child(2){transform:scale(0.98);opacity:0.92}
+.stack-pane .toast:nth-child(3){transform:scale(0.96);opacity:0.78}
+.stack-pane .toast:nth-child(4){transform:scale(0.94);opacity:0.6}
+
+.stack-caption{position:absolute;left:24px;top:24px;z-index:3;max-width:280px}
+.stack-caption .t{font-family:var(--font-display);font-size:14px;font-weight:700;margin-bottom:6px}
+.stack-caption .d{font-size:12px;color:var(--fg2);line-height:1.5}
+.stack-rules{position:absolute;left:24px;bottom:24px;z-index:3;display:flex;flex-direction:column;gap:6px;max-width:280px}
+.stack-rules .r{font-family:var(--font-data);font-size:10.5px;color:var(--fg3);line-height:1.5;padding-left:14px;position:relative}
+.stack-rules .r::before{content:'→';position:absolute;left:0;color:var(--bull)}
+
+/* ═══ BANNER ═══ */
+.banner{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:10px;border:1px solid var(--border)}
+.banner.info{background:linear-gradient(90deg,rgba(59,130,246,0.08),transparent);border-color:rgba(59,130,246,0.3)}
+.banner.warn{background:linear-gradient(90deg,rgba(245,158,11,0.08),transparent);border-color:rgba(245,158,11,0.3)}
+.banner.error{background:linear-gradient(90deg,rgba(255,59,92,0.08),transparent);border-color:rgba(255,59,92,0.3)}
+.banner.success{background:linear-gradient(90deg,rgba(16,217,150,0.08),transparent);border-color:rgba(16,217,150,0.3)}
+.banner-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.banner.info .banner-icon{background:var(--accent-dim);color:var(--accent)}
+.banner.warn .banner-icon{background:var(--warn-dim);color:var(--warn)}
+.banner.error .banner-icon{background:var(--bear-dim);color:var(--bear)}
+.banner.success .banner-icon{background:var(--bull-dim);color:var(--bull)}
+.banner-body{flex:1}
+.banner-t{font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:0.02em;margin-bottom:2px}
+.banner-d{font-size:12px;color:var(--fg2);line-height:1.4}
+.banner-d code{font-family:var(--font-data);color:var(--fg1);background:var(--bg-base);padding:0 4px;border-radius:3px;font-size:11px}
+.banner-actions{display:flex;gap:8px;flex-shrink:0}
+.banner-actions button{padding:6px 12px;border-radius:6px;font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:var(--bg-elevated);border:1px solid var(--border-md);color:var(--fg1);cursor:pointer}
+.banner-actions button.primary{background:var(--fg1);color:#000;border-color:var(--fg1)}
+
+/* ═══ MODAL ═══ */
+.modal-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.modal-card{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;overflow:hidden}
+.modal-label{padding:10px 14px;border-bottom:1px solid var(--border);background:var(--bg-surface);display:flex;align-items:center;gap:8px}
+.modal-label .d{width:6px;height:6px;border-radius:50%}
+.modal-label .t{font-family:var(--font-display);font-size:10.5px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase}
+.modal-label .tag{margin-left:auto;font-family:var(--font-data);font-size:9.5px;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase}
+.modal-stage{padding:24px;background:#0A0C10;position:relative;min-height:300px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.modal-stage::before{
+  content:'';position:absolute;inset:0;
+  background-image:linear-gradient(to right,rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(to bottom,rgba(255,255,255,0.025) 1px,transparent 1px);
+  background-size:16px 16px;
+  pointer-events:none;
+}
+.modal-scrim{position:absolute;inset:0;background:rgba(0,0,0,0.55);backdrop-filter:blur(2px);z-index:1}
+
+.modal{position:relative;z-index:2;width:100%;max-width:360px;background:var(--bg-panel);border:1px solid var(--border-md);border-radius:12px;overflow:hidden;box-shadow:0 24px 60px rgba(0,0,0,0.6),0 0 0 1px rgba(255,255,255,0.04)}
+.modal-hd{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px}
+.modal-hd-icon{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.modal-hd-t{font-family:var(--font-display);font-size:13px;font-weight:700;letter-spacing:0.01em}
+.modal-hd-x{margin-left:auto;width:22px;height:22px;border-radius:5px;color:var(--fg3);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.modal-hd-x:hover{background:var(--bg-elevated);color:var(--fg1)}
+.modal-body{padding:16px}
+.modal-msg{font-size:12.5px;color:var(--fg2);line-height:1.55}
+.modal-msg code{font-family:var(--font-data);color:var(--fg1);background:var(--bg-elevated);padding:1px 5px;border-radius:3px;font-size:11.5px}
+.modal-msg strong{color:var(--fg1);font-weight:600}
+.modal-ft{padding:10px 16px;border-top:1px solid var(--border);background:var(--bg-surface);display:flex;justify-content:flex-end;gap:8px}
+.modal-btn{padding:7px 14px;border-radius:6px;font-family:var(--font-display);font-size:10.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;background:var(--bg-elevated);border:1px solid var(--border-md);color:var(--fg1);cursor:pointer}
+.modal-btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.modal-btn.danger{background:var(--bear);border-color:var(--bear);color:#fff}
+.modal-btn.ghost{background:none;border-color:transparent;color:var(--fg3)}
+
+.modal-confirm-data{margin-top:12px;background:var(--bg-base);border:1px solid var(--border);border-radius:8px;padding:10px 12px;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mcd-i{display:flex;flex-direction:column;gap:2px}
+.mcd-l{font-family:var(--font-data);font-size:9.5px;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase}
+.mcd-v{font-family:var(--font-data);font-size:13px;color:var(--fg1);font-weight:600}
+.mcd-v.bull{color:var(--bull)}
+.mcd-v.bear{color:var(--bear)}
+
+.session-timer{font-family:var(--font-data);font-size:28px;color:var(--warn);font-weight:600;letter-spacing:0.04em;text-align:center;margin:12px 0;padding:12px;background:var(--warn-dim);border-radius:8px;border:1px solid rgba(245,158,11,0.3)}
+.session-bar{height:3px;background:var(--bg-base);border-radius:2px;overflow:hidden;margin-top:8px}
+.session-bar .f{height:100%;width:32%;background:var(--warn);border-radius:2px}
+
+/* ═══ NOTIFICATION CENTER ═══ */
+.nc-wrap{display:grid;grid-template-columns:1fr 380px;gap:24px;align-items:start}
+.nc-spec{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;padding:24px}
+.nc-spec h3{font-family:var(--font-display);font-size:13px;font-weight:700;margin-bottom:4px}
+.nc-spec p{font-size:12.5px;color:var(--fg2);line-height:1.6;margin-bottom:16px}
+.nc-spec dl{display:grid;grid-template-columns:140px 1fr;gap:8px 16px;font-size:12px}
+.nc-spec dt{font-family:var(--font-display);font-size:10px;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;align-self:center}
+.nc-spec dd{font-family:var(--font-data);color:var(--fg1)}
+.nc-spec .sub{font-family:var(--font-ui);font-size:12px;color:var(--fg2);margin-left:4px}
+
+.nc{background:var(--bg-panel);border:1px solid var(--border-md);border-radius:12px;overflow:hidden;box-shadow:0 12px 40px rgba(0,0,0,0.4)}
+.nc-hd{padding:12px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg-surface)}
+.nc-hd h4{font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:0.02em}
+.nc-hd .count{font-family:var(--font-data);font-size:10px;color:var(--fg3);letter-spacing:0.04em}
+.nc-hd .unread{background:var(--bear);color:#fff;font-family:var(--font-data);font-size:9.5px;padding:1px 6px;border-radius:10px;font-weight:700}
+.nc-hd-actions{margin-left:auto;display:flex;gap:4px}
+.nc-hd-btn{width:26px;height:26px;border-radius:5px;color:var(--fg3);border:none;background:none;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.nc-hd-btn:hover{background:var(--bg-elevated);color:var(--fg1)}
+.nc-tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg-surface);padding:0 8px}
+.nc-tab{padding:10px 12px;font-family:var(--font-display);font-size:10.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;align-items:center;gap:5px}
+.nc-tab.active{color:var(--fg1);border-color:var(--accent)}
+.nc-tab .b{background:var(--bg-elevated);color:var(--fg2);font-family:var(--font-data);font-size:9px;padding:0 5px;border-radius:8px;letter-spacing:0}
+.nc-tab.active .b{background:var(--accent-dim);color:var(--accent)}
+
+.nc-list{max-height:460px;overflow-y:auto}
+.nc-group{padding:8px 14px 4px;font-family:var(--font-data);font-size:9.5px;color:var(--fg3);letter-spacing:0.1em;text-transform:uppercase;background:var(--bg-base);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.nc-item{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:flex-start;gap:10px;cursor:pointer;position:relative}
+.nc-item:hover{background:var(--bg-hover)}
+.nc-item.unread::before{content:'';position:absolute;left:4px;top:18px;width:4px;height:4px;border-radius:50%;background:var(--accent)}
+.nc-item.unread .nc-item-t{color:var(--fg1)}
+.nc-item-icon{width:26px;height:26px;border-radius:6px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:11px}
+.nc-item-icon.fill{background:var(--bull-dim);color:var(--bull)}
+.nc-item-icon.cancel{background:var(--bear-dim);color:var(--bear)}
+.nc-item-icon.alert{background:var(--warn-dim);color:var(--warn)}
+.nc-item-icon.deposit{background:var(--accent-dim);color:var(--accent)}
+.nc-item-icon.news{background:var(--purple-dim,rgba(139,92,246,0.15));color:var(--purple,#A78BFA)}
+.nc-item-icon.kyc{background:rgba(236,72,153,0.15);color:#EC4899}
+.nc-item-body{flex:1;min-width:0}
+.nc-item-t{font-size:12px;font-weight:600;color:var(--fg2);margin-bottom:2px;letter-spacing:-0.005em}
+.nc-item-t .symbol{font-family:var(--font-data);color:var(--fg1)}
+.nc-item-d{font-size:11.5px;color:var(--fg3);line-height:1.4}
+.nc-item-d .bull{color:var(--bull);font-family:var(--font-data)}
+.nc-item-d .bear{color:var(--bear);font-family:var(--font-data)}
+.nc-item-time{font-family:var(--font-data);font-size:10px;color:var(--fg3);flex-shrink:0;letter-spacing:0.04em}
+
+.nc-ft{padding:10px 14px;border-top:1px solid var(--border);display:flex;align-items:center;gap:8px;background:var(--bg-surface);font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3)}
+.nc-ft a{color:var(--accent);cursor:pointer;margin-left:auto}
+
+/* ═══ PLACEMENT MAP ═══ */
+.map{background:var(--bg-panel);border:1px solid var(--border);border-radius:12px;padding:24px}
+.map-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px dashed var(--border-md);border-radius:8px;overflow:hidden;aspect-ratio:16/9;position:relative;background:var(--bg-base)}
+.map-cell{border:1px dashed var(--border);margin:-1px;padding:12px;display:flex;flex-direction:column;justify-content:space-between;gap:6px;position:relative}
+.map-cell .z{font-family:var(--font-data);font-size:9.5px;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase}
+.map-cell .u{font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.04em;color:var(--fg1)}
+.map-marker{align-self:flex-start;padding:3px 7px;border-radius:20px;font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;border:1px solid}
+.map-marker.t{background:var(--bull-dim);border-color:rgba(16,217,150,0.3);color:var(--bull)}
+.map-marker.b{background:var(--warn-dim);border-color:rgba(245,158,11,0.3);color:var(--warn)}
+.map-marker.i{background:var(--bear-dim);border-color:rgba(255,59,92,0.3);color:var(--bear)}
+.map-marker.m{background:var(--accent-dim);border-color:rgba(59,130,246,0.3);color:var(--accent)}
+.map-legend{display:flex;gap:16px;margin-top:16px;flex-wrap:wrap}
+.map-legend .l{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--fg2)}
+.map-legend .l .sw{width:10px;height:10px;border-radius:2px}
+
+/* viewport preview */
+.vw-chrome{background:var(--bg-base);border:1px solid var(--border);border-radius:6px;margin:0 -1px;flex:1;display:flex;flex-direction:column}
+.vw-top{height:22px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 8px;gap:4px}
+.vw-top .dot{width:5px;height:5px;border-radius:50%}
+.vw-main{flex:1;background:var(--bg-panel);position:relative}
+</style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <div class="hd">
+    <div class="kicker"><span class="d"></span>NOTIFICATIONS · CARD #19</div>
+    <div class="ttl">Toasts · Banners · Modals</div>
+    <div class="sub">Obsidian's feedback system. Toasts for transient confirmations, banners for persistent context, modals only when we must block. Trading happens in seconds — notifications must never get in the way.</div>
+  </div>
+
+  <!-- ═════ TOAST SPECIMENS ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">01 /</span>
+      <span class="sec-t">Toast variants</span>
+      <span class="sec-d">Bottom-right, 320px wide, auto-dismiss 4s. Icon · title · message · optional actions · timer.</span>
+    </div>
+
+    <div class="toast-grid">
+
+      <div class="toast-card">
+        <div class="toast-label"><span class="d" style="background:var(--bull)"></span>Success<span class="tag">4s auto</span></div>
+        <div class="toast-stage">
+          <div class="toast success">
+            <div class="toast-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="toast-body">
+              <div class="toast-title">Order filled</div>
+              <div class="toast-msg">BUY 2.5 lots <code>EUR/USD</code> @ 1.08472 · slippage 0.2 pip</div>
+            </div>
+            <div class="toast-close">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <div class="toast-timer"><div class="f" style="width:40%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast-card">
+        <div class="toast-label"><span class="d" style="background:var(--bear)"></span>Error<span class="tag">persist</span></div>
+        <div class="toast-stage">
+          <div class="toast error">
+            <div class="toast-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </div>
+            <div class="toast-body">
+              <div class="toast-title">Order rejected</div>
+              <div class="toast-msg">Margin insufficient for 5.0 lots. Need <code>$5,423</code>, have <code>$3,124</code>.</div>
+              <div class="toast-actions">
+                <button class="primary">Resize</button>
+                <button>Details</button>
+              </div>
+            </div>
+            <div class="toast-close">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast-card">
+        <div class="toast-label"><span class="d" style="background:var(--warn)"></span>Warning<span class="tag">6s auto</span></div>
+        <div class="toast-stage">
+          <div class="toast warn">
+            <div class="toast-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            </div>
+            <div class="toast-body">
+              <div class="toast-title">Margin utilization 78%</div>
+              <div class="toast-msg">Approaching margin call threshold. Consider reducing exposure or adding funds.</div>
+            </div>
+            <div class="toast-close">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <div class="toast-timer"><div class="f" style="width:75%"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="toast-card">
+        <div class="toast-label"><span class="d" style="background:var(--accent)"></span>Info<span class="tag">4s auto</span></div>
+        <div class="toast-stage">
+          <div class="toast info">
+            <div class="toast-icon">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </div>
+            <div class="toast-body">
+              <div class="toast-title">Deposit confirmed</div>
+              <div class="toast-msg"><code>$10,000.00</code> credited · ref <code>DEP-84271</code></div>
+            </div>
+            <div class="toast-close">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <div class="toast-timer"><div class="f" style="width:58%"></div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════ TOAST STACK BEHAVIOR ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">02 /</span>
+      <span class="sec-t">Stack behavior</span>
+      <span class="sec-d">Trading produces bursts — fills, cancels, margin updates. Stack gracefully, never drown the user.</span>
+    </div>
+
+    <div class="stack-demo">
+      <div class="stack-caption">
+        <div class="t">Volatile morning</div>
+        <div class="d">Newest toast on top, older ones fade and scale down. Max 4 visible; rest accumulate in the notification center.</div>
+      </div>
+      <div class="stack-pane">
+        <div class="toast success">
+          <div class="toast-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>
+          <div class="toast-body"><div class="toast-title">TP hit · GBP/JPY</div><div class="toast-msg">+$2,140.00 realized · closed 1.2 lots</div></div>
+          <div class="toast-timer"><div class="f" style="width:88%"></div></div>
+        </div>
+        <div class="toast info">
+          <div class="toast-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
+          <div class="toast-body"><div class="toast-title">Order filled</div><div class="toast-msg">BUY 2.5 lots EUR/USD @ 1.08472</div></div>
+          <div class="toast-timer"><div class="f" style="width:72%"></div></div>
+        </div>
+        <div class="toast warn">
+          <div class="toast-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="toast-body"><div class="toast-title">High volatility alert</div><div class="toast-msg">USD/JPY +0.62% in 15m · NFP release 08:30 EST</div></div>
+        </div>
+        <div class="toast info">
+          <div class="toast-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="toast-body"><div class="toast-title">Pending order activated</div><div class="toast-msg">Sell-stop AUD/USD @ 0.65230 is now live</div></div>
+        </div>
+      </div>
+      <div class="stack-rules">
+        <div class="r">Max 4 visible · oldest drops to notification center</div>
+        <div class="r">Same-type within 2s merge into a count badge</div>
+        <div class="r">Success: 4s · Warn: 6s · Error: persist until dismissed</div>
+        <div class="r">Hover pauses the timer on all stacked toasts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═════ INLINE BANNERS ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">03 /</span>
+      <span class="sec-t">Inline banners</span>
+      <span class="sec-d">Persistent context tied to a region. Live until the condition changes — no auto-dismiss.</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+
+      <div class="banner info">
+        <div class="banner-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        </div>
+        <div class="banner-body">
+          <div class="banner-t">Paper trading mode</div>
+          <div class="banner-d">You're on a demo account with <code>$100,000</code> virtual balance. Orders route to simulation — real markets unaffected.</div>
+        </div>
+        <div class="banner-actions"><button class="primary">Fund live account</button></div>
+      </div>
+
+      <div class="banner warn">
+        <div class="banner-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        </div>
+        <div class="banner-body">
+          <div class="banner-t">Weekend · Extended spreads</div>
+          <div class="banner-d">Crypto markets open 24/7 but liquidity is thin. Typical spread is 3× weekday levels. FX and indices resume Sun 22:00 UTC.</div>
+        </div>
+        <div class="banner-actions"><button>Dismiss</button></div>
+      </div>
+
+      <div class="banner error">
+        <div class="banner-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </div>
+        <div class="banner-body">
+          <div class="banner-t">Margin call imminent</div>
+          <div class="banner-d">Equity at <code>105% of margin</code>. Positions auto-close at 100% — deposit funds or reduce exposure now.</div>
+        </div>
+        <div class="banner-actions"><button>Reduce</button><button class="primary">Deposit now</button></div>
+      </div>
+
+      <div class="banner success">
+        <div class="banner-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="banner-body">
+          <div class="banner-t">KYC verified</div>
+          <div class="banner-d">Your identity is verified. Withdrawal limits lifted to <code>$250,000/day</code>, leverage available up to 1:500.</div>
+        </div>
+        <div class="banner-actions"><button>View limits</button></div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════ MODALS ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">04 /</span>
+      <span class="sec-t">Modal dialogs</span>
+      <span class="sec-d">Use sparingly. Only when a decision blocks everything else — confirmations, destructive actions, regulatory friction.</span>
+    </div>
+
+    <div class="modal-grid">
+
+      <!-- Trade confirm -->
+      <div class="modal-card">
+        <div class="modal-label"><span class="d" style="background:var(--accent)"></span><span class="t">Trade confirmation</span><span class="tag">standard</span></div>
+        <div class="modal-stage">
+          <div class="modal-scrim"></div>
+          <div class="modal">
+            <div class="modal-hd">
+              <div class="modal-hd-icon" style="background:var(--accent-dim);color:var(--accent)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 17 9 11 13 15 21 7"/><polyline points="14 7 21 7 21 14"/></svg>
+              </div>
+              <div class="modal-hd-t">Confirm order</div>
+              <div class="modal-hd-x"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+            </div>
+            <div class="modal-body">
+              <div class="modal-msg">You are about to <strong>BUY 2.5 lots EUR/USD</strong> at market. Est. fill <code>1.08472</code> · slippage ± 0.4 pip.</div>
+              <div class="modal-confirm-data">
+                <div class="mcd-i"><div class="mcd-l">Notional</div><div class="mcd-v">$271,180</div></div>
+                <div class="mcd-i"><div class="mcd-l">Margin</div><div class="mcd-v">$2,712</div></div>
+                <div class="mcd-i"><div class="mcd-l">Take Profit</div><div class="mcd-v bull">1.08820</div></div>
+                <div class="mcd-i"><div class="mcd-l">Stop Loss</div><div class="mcd-v bear">1.08220</div></div>
+              </div>
+            </div>
+            <div class="modal-ft">
+              <button class="modal-btn ghost">Cancel</button>
+              <button class="modal-btn primary">Submit order</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Destructive: close all -->
+      <div class="modal-card">
+        <div class="modal-label"><span class="d" style="background:var(--bear)"></span><span class="t">Destructive action</span><span class="tag">requires type-to-confirm</span></div>
+        <div class="modal-stage">
+          <div class="modal-scrim"></div>
+          <div class="modal">
+            <div class="modal-hd">
+              <div class="modal-hd-icon" style="background:var(--bear-dim);color:var(--bear)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="modal-hd-t">Close all 7 positions?</div>
+              <div class="modal-hd-x"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></div>
+            </div>
+            <div class="modal-body">
+              <div class="modal-msg">This closes all open positions at market, realizing an est. <strong style="color:var(--bull)">+$4,284.12 P&L</strong>. This cannot be undone.</div>
+              <div style="margin-top:12px;font-family:var(--font-data);font-size:10.5px;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px">Type <strong style="color:var(--bear)">CLOSE ALL</strong> to confirm</div>
+              <div style="height:34px;background:var(--bg-base);border:1px solid var(--bear);border-radius:6px;padding:0 10px;display:flex;align-items:center;font-family:var(--font-data);font-size:12.5px;color:var(--fg1);box-shadow:0 0 0 3px rgba(255,59,92,0.08)">CLOSE ALL<span style="width:1px;height:14px;background:var(--fg1);margin-left:2px;animation:blink 1s infinite"></span></div>
+            </div>
+            <div class="modal-ft">
+              <button class="modal-btn ghost">Cancel</button>
+              <button class="modal-btn danger">Close all positions</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Session expired -->
+      <div class="modal-card">
+        <div class="modal-label"><span class="d" style="background:var(--warn)"></span><span class="t">Session about to expire</span><span class="tag">regulatory</span></div>
+        <div class="modal-stage">
+          <div class="modal-scrim"></div>
+          <div class="modal">
+            <div class="modal-hd">
+              <div class="modal-hd-icon" style="background:var(--warn-dim);color:var(--warn)">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+              <div class="modal-hd-t">Session expiring</div>
+            </div>
+            <div class="modal-body">
+              <div class="modal-msg">For your security, you'll be signed out due to inactivity. Positions remain open and will trail your SL/TP normally.</div>
+              <div class="session-timer">00 : 00 : 32</div>
+              <div class="session-bar"><div class="f"></div></div>
+              <div style="margin-top:10px;font-size:11px;color:var(--fg3);text-align:center">Last activity <code style="font-family:var(--font-data);color:var(--fg2)">09:26:18 UTC</code></div>
+            </div>
+            <div class="modal-ft">
+              <button class="modal-btn ghost">Sign out</button>
+              <button class="modal-btn primary">Stay signed in</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════ NOTIFICATION CENTER ═════ -->
+  <div class="sec">
+    <div class="sec-hd">
+      <span class="sec-n">05 /</span>
+      <span class="sec-t">Notification center</span>
+      <span class="sec-d">Persistent inbox opened from the bell icon. Tabs filter by type. Groups by time.</span>
+    </div>
+
+    <div class="nc-wrap">
+
+      <div class="nc-spec">
+        <h3>Anatomy</h3>
+        <p>Every notification in Obsidian has the same four parts — this is how routing decides where it appears.</p>
+        <dl>
+          <dt>Category</dt><dd>fill · cancel · alert · deposit · news · kyc <span class="sub">drives icon + routing</span></dd>
+          <dt>Severity</dt><dd>info · success · warn · error <span class="sub">drives accent color</span></dd>
+          <dt>Persistence</dt><dd>transient · persistent <span class="sub">transient → toast; both → center</span></dd>
+          <dt>Actionable</dt><dd>yes · no <span class="sub">actionable gets primary CTAs</span></dd>
+        </dl>
+
+        <h3 style="margin-top:24px">Routing rules</h3>
+        <p style="margin-bottom:0">
+          <strong style="color:var(--fg1)">Fills and cancels</strong> → toast (4s) + center.<br>
+          <strong style="color:var(--fg1)">Price alerts</strong> → toast (4s) + sound + center.<br>
+          <strong style="color:var(--fg1)">Margin warnings</strong> → persistent banner + center + optional email.<br>
+          <strong style="color:var(--fg1)">News (high impact)</strong> → toast if user follows symbol; otherwise center-only.<br>
+          <strong style="color:var(--fg1)">KYC / compliance</strong> → modal the first time, banner thereafter.<br>
+          <strong style="color:var(--fg1)">Margin call</strong> → blocking modal + sound + SMS + email.
+        </p>
+      </div>
+
+      <div class="nc">
+        <div class="nc-hd">
+          <h4>Notifications</h4>
+          <span class="count">·</span>
+          <span class="unread">14 new</span>
+          <div class="nc-hd-actions">
+            <div class="nc-hd-btn" title="Mark all read">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/><polyline points="17 12 12 17 7 12" style="opacity:0.5"/></svg>
+            </div>
+            <div class="nc-hd-btn" title="Settings">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="nc-tabs">
+          <div class="nc-tab active">All <span class="b">14</span></div>
+          <div class="nc-tab">Trades <span class="b">8</span></div>
+          <div class="nc-tab">Alerts <span class="b">4</span></div>
+          <div class="nc-tab">Account <span class="b">2</span></div>
+        </div>
+        <div class="nc-list">
+          <div class="nc-group">Just now</div>
+
+          <div class="nc-item unread">
+            <div class="nc-item-icon fill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="nc-item-body">
+              <div class="nc-item-t">Order filled · <span class="symbol">EUR/USD</span></div>
+              <div class="nc-item-d">BUY 2.5 lots @ <span class="bull">1.08472</span> · slippage 0.2 pip</div>
+            </div>
+            <div class="nc-item-time">09:41</div>
+          </div>
+
+          <div class="nc-item unread">
+            <div class="nc-item-icon alert">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
+            </div>
+            <div class="nc-item-body">
+              <div class="nc-item-t">Price alert · <span class="symbol">BTC/USD</span></div>
+              <div class="nc-item-d">Above <span class="bull">$72,500</span> · now $72,518.40</div>
+            </div>
+            <div class="nc-item-time">09:39</div>
+          </div>
+
+          <div class="nc-item unread">
+            <div class="nc-item-icon fill">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </div>
+            <div class="nc-item-body">
+              <div class="nc-item-t">Take profit hit · <span class="symbol">GBP/JPY</span></div>
+              <div class="nc-item-d">Closed 1.2 lots · realized <span class="bull">+$2,140.00</span></div>
+            </div>
+            <div class="nc-item-time">09:37</div>
+          </div>
+
+          <div class="nc-group">Earlier today</div>
+
+          <div class="nc-item unread">
+            <div class="nc-item-icon cancel">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </div>
+            <div class="nc-item-body">
+              <div class="nc-item-t">Order cancelled · <span class="symbol">USD/CAD</span></div>
+              <div class="nc-item-d">Limit 1.35120 · expired after 24h</div>
+            </div>
+            <div class="nc-item-time">08:12</div>
+          </div>
+
+          <div class="nc-item">
+            <div class="nc-item-icon news">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+            </div>
+            <div class="nc-item-body">
+              <div class="nc-item-t">NFP release · USD</div>
+              <div class="nc-item-d">Non-farm payrolls +214K vs +190K est. · bullish USD</div>
+            </div>
+            <div class="nc-item-time">08:30</div>
+          </div>
+
+          <div class="nc-item">
+            <div class="nc-item-icon deposit">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/></svg>
+            </div>
+            <div class="nc-item-body">
+              <div class="nc-item-t">Deposit confirmed</div>
+              <div class="nc-item-d"><span class="bull">$10,000.00</span> · ref DEP-84271</div>
+            </div>
+            <div class="nc-item-time">07:52</div>
+          </div>
+
+          <div class="nc-item">
+            <div class="nc-item-icon kyc">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            </div>
+            <div class="nc-item-body">
+              <div class="nc-item-t">KYC verification approved</div>
+              <div class="nc-item-d">Limits lifted · leverage up to 1:500</div>
+            </div>
+            <div class="nc-item-time">Yesterday</div>
+          </div>
+
+        </div>
+        <div class="nc-ft">
+          <span>7 of 142</span>
+          <a>View all →</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═════ PLACEMENT MAP ═════ -->
+  <div class="sec" style="margin-bottom:0">
+    <div class="sec-hd">
+      <span class="sec-n">06 /</span>
+      <span class="sec-t">Placement map</span>
+      <span class="sec-d">Where each type lives on a 1920×1080 terminal.</span>
+    </div>
+
+    <div class="map">
+      <div class="map-grid" style="grid-template-columns:220px 1fr 320px;grid-template-rows:40px 1fr 30px">
+        <div class="map-cell" style="grid-column:1 / 4;grid-row:1 / 2;flex-direction:row;align-items:center;gap:12px;padding:0 14px">
+          <div class="z">Top bar</div>
+          <div class="map-marker b">Banner · persistent</div>
+          <div style="margin-left:auto" class="z">Session · Market closed · KYC</div>
+        </div>
+        <div class="map-cell" style="grid-column:1 / 2;grid-row:2 / 3;justify-content:space-between">
+          <div class="z">Sidebar</div>
+          <div class="u">Nav · watchlists</div>
+        </div>
+        <div class="map-cell" style="grid-column:2 / 3;grid-row:2 / 3;justify-content:center;align-items:center;gap:10px">
+          <div class="z" style="align-self:flex-start">Chart · main workspace</div>
+          <div class="map-marker m" style="align-self:center">Modal · blocking only</div>
+          <div class="u" style="align-self:flex-end">Keyboard-dismissible</div>
+        </div>
+        <div class="map-cell" style="grid-column:3 / 4;grid-row:2 / 3;justify-content:space-between;align-items:flex-end">
+          <div class="z" style="align-self:flex-start">Ticket · order book</div>
+          <div class="map-marker t" style="margin-right:0">Toasts · bottom-right stack</div>
+        </div>
+        <div class="map-cell" style="grid-column:1 / 4;grid-row:3 / 4;flex-direction:row;align-items:center;padding:0 14px;gap:12px">
+          <div class="z">Status bar</div>
+          <div class="map-marker i">Inline error · field-scoped</div>
+          <div style="margin-left:auto;font-family:var(--font-data);font-size:10px;color:var(--fg3)">● connected · 1,204 kb/s</div>
+        </div>
+      </div>
+
+      <div class="map-legend">
+        <div class="l"><span class="sw" style="background:var(--bull)"></span>Toast → bottom-right, stacks, auto-dismiss</div>
+        <div class="l"><span class="sw" style="background:var(--warn)"></span>Banner → top bar, persistent, dismissable</div>
+        <div class="l"><span class="sw" style="background:var(--bear)"></span>Inline → field or row, scoped, live until fixed</div>
+        <div class="l"><span class="sw" style="background:var(--accent)"></span>Modal → center, blocking, keyboard-first</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

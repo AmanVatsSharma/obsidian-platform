@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body{margin:0;background:var(--bg-base);padding:20px;color:var(--fg1);display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.field{display:flex;flex-direction:column;gap:5px}
+.lab{font-family:var(--font-data);font-size:10px;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase;font-weight:600}
+.i{display:flex;align-items:center;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:all 150ms;height:34px}
+.i.focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(59,130,246,0.15)}
+.i input{flex:1;background:none;border:none;outline:none;padding:0 10px;font-family:var(--font-data);font-size:13px;font-weight:500;color:var(--fg1);width:100%}
+.i .unit{padding:0 10px;font-size:11px;color:var(--fg3);font-family:var(--font-data);border-left:1px solid var(--border);height:100%;display:flex;align-items:center}
+</style></head><body>
+<div class="field"><div class="lab">Volume</div><div class="i"><input value="0.10"><div class="unit">LOT</div></div></div>
+<div class="field"><div class="lab">Stop Loss</div><div class="i focus"><input value="1.08420"></div></div>
+<div class="field"><div class="lab">Take Profit</div><div class="i"><input value="1.08520"></div></div>
+<div class="field"><div class="lab">Search</div><div class="i"><input placeholder="Search symbol, market…" style="font-family:var(--font-ui)"></div></div>
+</body></html>

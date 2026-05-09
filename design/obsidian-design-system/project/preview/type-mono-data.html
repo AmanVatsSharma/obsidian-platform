@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body{margin:0;background:var(--bg-base);padding:24px;color:var(--fg1)}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.cell{display:flex;flex-direction:column;gap:2px}
+.v{font-family:var(--font-data);font-feature-settings:"tnum" 1}
+.meta{font-family:var(--font-data);font-size:9px;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-top:4px}
+</style></head><body>
+<div class="grid">
+  <div class="cell">
+    <div class="v" style="font-size:28px;font-weight:600;color:var(--fg1)">1.08452</div>
+    <div class="meta">data-xl · Plex Mono 600 · 28px</div>
+  </div>
+  <div class="cell">
+    <div class="v" style="font-size:22px;font-weight:600;color:var(--bull)">+$8,240.00</div>
+    <div class="meta">data-xl · bull</div>
+  </div>
+  <div class="cell">
+    <div class="v" style="font-size:16px;font-weight:600;color:var(--fg1)">EUR/USD</div>
+    <div class="meta">data-lg · 16px symbol</div>
+  </div>
+  <div class="cell">
+    <div class="v" style="font-size:13px;font-weight:500;color:var(--bear)">-2.14%</div>
+    <div class="meta">data · 13px · bear</div>
+  </div>
+  <div class="cell">
+    <div class="v" style="font-size:11px;font-weight:500;color:var(--fg2)">09:42:17 UTC</div>
+    <div class="meta">data-sm · 11px · timestamp</div>
+  </div>
+  <div class="cell">
+    <div style="font-family:var(--font-data);font-size:12px;background:var(--bg-elevated);padding:2px 6px;border-radius:3px;border:1px solid var(--border);color:var(--fg1);display:inline-block;width:fit-content">ARC-JL-4821</div>
+    <div class="meta">code · ref · inline pill</div>
+  </div>
+</div>
+</body></html>

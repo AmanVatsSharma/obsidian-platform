@@ -1,0 +1,1178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obsidian · Mobile Terminal UI Kit</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#0A0C10;color:var(--fg1);font-family:var(--font-ui);font-size:14px;min-height:100%;-webkit-font-smoothing:antialiased}
+
+/* ── Canvas chrome ───────────────────────────────────────── */
+.canvas{min-height:100vh;padding:48px 40px 80px;background:
+  radial-gradient(1200px 800px at 10% -10%, rgba(59,130,246,0.04), transparent 60%),
+  radial-gradient(900px 600px at 110% 100%, rgba(168,85,247,0.03), transparent 60%),
+  #07090C;
+}
+.hd{max-width:1680px;margin:0 auto 56px}
+.kicker{display:flex;align-items:center;gap:10px;font-family:var(--font-data);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.kicker .d{width:6px;height:6px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.ttl{font-family:var(--font-display);font-size:52px;font-weight:800;letter-spacing:-0.02em;margin-bottom:14px;color:var(--fg1)}
+.sub{font-size:15px;color:var(--fg2);max-width:640px;line-height:1.5}
+
+/* ── Grid of device frames ───────────────────────────────── */
+.grid{max-width:1680px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:56px 32px;justify-items:center}
+.cell{display:flex;flex-direction:column;align-items:center;gap:18px}
+.cell-label{font-family:var(--font-display);font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--fg2);margin-top:4px}
+.cell-label .n{font-family:var(--font-data);color:var(--accent);margin-right:8px}
+.cell-desc{font-size:12px;color:var(--fg3);text-align:center;max-width:260px;line-height:1.45}
+
+/* ── Device ──────────────────────────────────────────────── */
+.device{
+  width:320px;height:694px;border-radius:42px;overflow:hidden;position:relative;
+  background:#000;
+  box-shadow:
+    0 0 0 8px #1a1d24,
+    0 0 0 9px #2a2d35,
+    0 30px 80px rgba(0,0,0,0.5),
+    0 0 40px rgba(59,130,246,0.03);
+  flex-shrink:0;
+}
+.island{position:absolute;top:10px;left:50%;transform:translateX(-50%);width:100px;height:30px;border-radius:18px;background:#000;z-index:60}
+.status-bar{position:absolute;top:0;left:0;right:0;height:44px;display:flex;align-items:center;justify-content:space-between;padding:14px 24px 0;z-index:50;color:var(--fg1);font-family:-apple-system,system-ui;font-size:14px;font-weight:600}
+.status-bar .time{font-variant-numeric:tabular-nums}
+.status-bar .icons{display:flex;gap:4px;align-items:center}
+.status-bar svg{opacity:0.95}
+.home-ind{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:110px;height:4px;border-radius:2px;background:rgba(255,255,255,0.5);z-index:60}
+
+/* ── Screen content ──────────────────────────────────────── */
+.screen{position:absolute;inset:0;background:var(--bg-base);color:var(--fg1);padding-top:44px;overflow:hidden;display:flex;flex-direction:column}
+.scroll{flex:1;overflow:hidden;padding-bottom:12px}
+
+/* Top bar */
+.mtop{height:44px;display:flex;align-items:center;gap:8px;padding:0 14px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--bg-surface)}
+.mlogo{display:flex;align-items:center;gap:6px;font-family:var(--font-display);font-size:12px;font-weight:800;letter-spacing:0.08em}
+.mlogo .d{width:5px;height:5px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent)}
+.mt-title{font-family:var(--font-display);font-size:15px;font-weight:700;letter-spacing:0.02em}
+.mt-sub{font-family:var(--font-data);font-size:10px;color:var(--fg3)}
+.mt-right{margin-left:auto;display:flex;align-items:center;gap:4px}
+.live-pill{display:flex;align-items:center;gap:4px;padding:3px 7px;border-radius:12px;background:var(--bull-dim);border:1px solid rgba(16,217,150,0.25);font-family:var(--font-data);font-size:9px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--bull)}
+.live-pill .d{width:4px;height:4px;border-radius:50%;background:var(--bull);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.icon-btn{width:30px;height:30px;border-radius:8px;border:none;background:none;color:var(--fg2);display:flex;align-items:center;justify-content:center;position:relative}
+.icon-btn .notif{position:absolute;top:6px;right:6px;width:6px;height:6px;border-radius:50%;background:var(--bear);border:1.5px solid var(--bg-surface)}
+.avatar{width:26px;height:26px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#6366F1);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:9px;font-weight:800;color:#fff}
+
+/* HOME SCREEN */
+.equity-hero{padding:14px 14px 12px;background:linear-gradient(180deg,var(--bg-surface),var(--bg-base));border-bottom:1px solid var(--border)}
+.eh-label{font-family:var(--font-display);font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg3);margin-bottom:3px}
+.eh-amount{font-family:var(--font-data);font-size:28px;font-weight:600;letter-spacing:-0.01em;line-height:1.1}
+.eh-delta{display:flex;align-items:center;gap:8px;margin-top:5px}
+.delta-pill{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;font-family:var(--font-data);font-size:10px;font-weight:600}
+.delta-pill.bull{background:var(--bull-dim);color:var(--bull)}
+.eh-meta{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.eh-meta-i{display:flex;flex-direction:column;gap:2px}
+.eh-meta-l{font-size:8.5px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data)}
+.eh-meta-v{font-family:var(--font-data);font-size:11px;font-weight:600}
+
+/* Sparkline area */
+.spark-area{height:36px;margin-top:6px}
+
+/* Sessions */
+.sess-row{display:flex;gap:5px;padding:8px 14px;overflow-x:auto;border-bottom:1px solid var(--border);background:var(--bg-surface)}
+.sess{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;font-family:var(--font-data);font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;flex-shrink:0}
+.sess.open{background:var(--bull-dim);color:var(--bull);border:1px solid rgba(16,217,150,0.25)}
+.sess.closed{background:var(--bg-elevated);color:var(--fg3);border:1px solid var(--border)}
+.sess .d{width:4px;height:4px;border-radius:50%}
+.sess.open .d{background:var(--bull)}
+.sess.closed .d{background:var(--fg3)}
+
+/* Quick stats grid */
+.qstats{display:grid;grid-template-columns:1fr 1fr;gap:1px;padding:0;background:var(--border)}
+.qstat{padding:10px 12px;background:var(--bg-panel);display:flex;flex-direction:column;gap:2px}
+.qs-l{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data);font-weight:600}
+.qs-v{font-family:var(--font-data);font-size:15px;font-weight:600;letter-spacing:-0.01em}
+.qs-sub{font-size:9px;color:var(--fg3);font-family:var(--font-data)}
+
+/* Quick trade */
+.qt-row{display:flex;gap:8px;padding:10px 14px}
+.qt-btn{flex:1;height:46px;border-radius:10px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:var(--font-display);font-size:12px;font-weight:800;letter-spacing:0.08em;cursor:pointer}
+.qt-btn.buy{background:var(--bull);color:#062418}
+.qt-btn.sell{background:var(--bear);color:#2C0810}
+.qt-btn .p{font-family:var(--font-data);font-size:10px;font-weight:600;opacity:0.85}
+
+/* Section label */
+.sec-l{font-family:var(--font-display);font-size:9.5px;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg3);padding:12px 14px 6px;display:flex;justify-content:space-between;align-items:center}
+.sec-l .more{color:var(--accent);font-family:var(--font-ui);text-transform:none;letter-spacing:0}
+
+/* Watchlist strip — horizontal cards */
+.wl-strip{display:flex;gap:8px;padding:0 14px 8px;overflow-x:auto}
+.wl-chip{flex-shrink:0;min-width:90px;padding:8px 10px;background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;display:flex;flex-direction:column;gap:2px;position:relative}
+.wl-chip.active{background:var(--accent-dim);border-color:rgba(59,130,246,0.35)}
+.wl-chip .s{font-family:var(--font-data);font-size:11px;font-weight:700}
+.wl-chip .p{font-family:var(--font-data);font-size:12px;font-weight:600;letter-spacing:-0.01em}
+.wl-chip .c{font-family:var(--font-data);font-size:9.5px;font-weight:600}
+
+/* Position list */
+.m-card{margin:0 14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;overflow:hidden}
+.pos-row{display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--border)}
+.pos-row:last-child{border-bottom:none}
+.pos-badge{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:9.5px;font-weight:800;letter-spacing:0.06em;flex-shrink:0}
+.pos-badge.buy{background:var(--bull-dim);color:var(--bull);border:1px solid rgba(16,217,150,0.25)}
+.pos-badge.sell{background:var(--bear-dim);color:var(--bear);border:1px solid rgba(255,59,92,0.25)}
+.pos-info{flex:1;min-width:0}
+.pos-sym{font-family:var(--font-data);font-size:12px;font-weight:700;color:var(--fg1)}
+.pos-meta{font-family:var(--font-data);font-size:9.5px;color:var(--fg3);margin-top:1px}
+.pos-pnl{text-align:right;flex-shrink:0}
+.pos-pnl-v{font-family:var(--font-data);font-size:12px;font-weight:700}
+.pos-pnl-p{font-family:var(--font-data);font-size:9.5px;font-weight:600;margin-top:1px}
+
+/* Bottom nav */
+.bnav{height:62px;background:var(--bg-surface);border-top:1px solid var(--border);display:flex;align-items:flex-start;padding-top:6px;flex-shrink:0;padding-bottom:22px}
+.bnav-i{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer}
+.bnav-ic{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:6px;color:var(--fg3)}
+.bnav-i.active .bnav-ic{background:var(--accent-dim);color:var(--accent)}
+.bnav-l{font-size:9px;font-weight:600;letter-spacing:0.02em;color:var(--fg3)}
+.bnav-i.active .bnav-l{color:var(--accent)}
+.fab{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;margin-top:-16px}
+.fab-btn{width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,var(--accent),#6366F1);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(59,130,246,0.45),0 0 0 4px var(--bg-surface);color:#fff}
+.fab-l{font-size:9px;font-weight:700;color:var(--fg1);letter-spacing:0.04em}
+
+.bull{color:var(--bull)}.bear{color:var(--bear)}
+
+/* CHART SCREEN */
+.chart-sym-bar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--border);background:var(--bg-surface)}
+.csb-back{background:none;border:none;color:var(--fg2);width:26px;height:26px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.csb-name{font-family:var(--font-display);font-size:14px;font-weight:700}
+.csb-sub{font-family:var(--font-data);font-size:9px;color:var(--fg3);margin-top:1px}
+.csb-price{font-family:var(--font-data);font-size:14px;font-weight:600;margin-left:auto}
+.csb-chg{font-family:var(--font-data);font-size:9.5px;font-weight:700;padding:2px 6px;border-radius:10px}
+.csb-chg.bull{background:var(--bull-dim)}
+.tf-bar{display:flex;gap:3px;padding:6px 12px;border-bottom:1px solid var(--border);background:var(--bg-surface);overflow-x:auto}
+.tf-btn{padding:3px 7px;border-radius:6px;font-family:var(--font-data);font-size:10px;font-weight:600;border:1px solid transparent;background:none;color:var(--fg3);cursor:pointer;flex-shrink:0}
+.tf-btn.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(59,130,246,0.3)}
+.chart-area{flex:1;position:relative;background:var(--bg-base);min-height:0;overflow:hidden}
+.chart-area svg{width:100%;height:100%}
+.ohlc-bar{position:absolute;top:8px;left:8px;display:flex;gap:8px;background:rgba(6,8,10,0.85);backdrop-filter:blur(8px);padding:5px 8px;border-radius:6px;border:1px solid var(--border)}
+.ohlc-i{display:flex;flex-direction:column;gap:1px}
+.ohlc-l{font-size:8px;color:var(--fg3);font-family:var(--font-data)}
+.ohlc-v{font-size:10px;font-family:var(--font-data);font-weight:600}
+.chart-trade-bar{display:flex;gap:6px;padding:8px 12px;border-top:1px solid var(--border);background:var(--bg-surface)}
+.ctb-btn{flex:1;height:42px;border-radius:10px;border:none;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:var(--font-display);font-size:11px;font-weight:800;letter-spacing:0.08em;cursor:pointer}
+.ctb-btn.buy{background:var(--bull);color:#062418}
+.ctb-btn.sell{background:var(--bear);color:#2C0810}
+.ctb-btn .p{font-family:var(--font-data);font-size:10px;margin-top:1px}
+
+/* TRADE TICKET (Bottom Sheet) */
+.sheet-dim{position:absolute;inset:44px 0 0;background:rgba(0,0,0,0.6);z-index:70}
+.sheet{position:absolute;bottom:0;left:0;right:0;background:var(--bg-surface);border-top:1px solid var(--border);border-radius:20px 20px 0 0;z-index:80;padding:6px 0 20px;max-height:82%;display:flex;flex-direction:column}
+.sheet-handle{display:flex;justify-content:center;padding:4px 0 6px}
+.sheet-handle .b{width:36px;height:4px;border-radius:2px;background:var(--border-hi)}
+.sheet-head{display:flex;align-items:center;gap:8px;padding:2px 14px 10px;border-bottom:1px solid var(--border)}
+.sheet-head .ttl{font-family:var(--font-display);font-size:14px;font-weight:700}
+.sheet-head .sub{font-family:var(--font-data);font-size:10px;color:var(--fg3)}
+.sheet-head .x{margin-left:auto;width:26px;height:26px;border-radius:6px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg2);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.side-tog{display:flex;gap:6px;padding:10px 14px 0}
+.side-b{flex:1;height:36px;border-radius:8px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--fg2);font-family:var(--font-display);font-size:12px;font-weight:800;letter-spacing:0.08em;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:4px}
+.side-b.buy.active{background:var(--bull);color:#062418;border-color:var(--bull)}
+.side-b.sell.active{background:var(--bear);color:#2C0810;border-color:var(--bear)}
+.bidask{display:grid;grid-template-columns:1fr 42px 1fr;gap:4px;margin:10px 14px;padding:10px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px;align-items:center}
+.ba-side{text-align:center}
+.ba-l{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data);font-weight:600}
+.ba-p{font-family:var(--font-data);font-size:18px;font-weight:600;margin-top:2px}
+.ba-sp{text-align:center;border-left:1px solid var(--border);border-right:1px solid var(--border);padding:0 4px}
+.ba-sp-l{font-size:8px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data)}
+.ba-sp-v{font-family:var(--font-data);font-size:13px;font-weight:700;color:var(--warn)}
+.otype-row{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:0 14px}
+.ot-b{height:28px;border-radius:6px;border:1px solid var(--border);background:var(--bg-elevated);color:var(--fg2);font-family:var(--font-ui);font-size:10.5px;font-weight:600;cursor:pointer}
+.ot-b.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(59,130,246,0.35)}
+.lot-wheel{margin:12px 14px;padding:12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px}
+.lw-l{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data);font-weight:600;text-align:center}
+.lw-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px}
+.lw-btn{width:36px;height:36px;border-radius:50%;border:1px solid var(--border);background:var(--bg-panel);color:var(--fg1);font-size:18px;font-weight:600;cursor:pointer}
+.lw-disp{font-family:var(--font-data);font-size:28px;font-weight:600;letter-spacing:-0.02em;text-align:center}
+.lw-unit{font-family:var(--font-data);font-size:9px;color:var(--fg3);text-align:center;margin-top:1px}
+.lw-preset{display:flex;gap:4px;margin-top:10px;justify-content:center}
+.lw-p{padding:3px 9px;border-radius:12px;border:1px solid var(--border);background:var(--bg-panel);color:var(--fg2);font-family:var(--font-data);font-size:10px;font-weight:600;cursor:pointer}
+.sltp-row{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:0 14px}
+.sltp-i{}
+.sltp-l{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data);font-weight:600;margin-bottom:4px}
+.sltp-inp{height:34px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:0 10px;display:flex;align-items:center;font-family:var(--font-data);font-size:11px;color:var(--fg3)}
+.trade-info{display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;margin:12px 14px;padding:10px 12px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:10px}
+.ti-i{display:flex;justify-content:space-between;font-size:10.5px}
+.ti-l{color:var(--fg3);font-family:var(--font-ui)}
+.ti-v{font-family:var(--font-data);font-weight:600;color:var(--fg1)}
+.hold-btn{position:relative;margin:0 14px;height:52px;border-radius:12px;border:none;font-family:var(--font-display);font-size:13px;font-weight:800;letter-spacing:0.1em;cursor:pointer;overflow:hidden;display:flex;align-items:center;justify-content:center;gap:6px}
+.hold-btn.buy{background:var(--bull);color:#062418}
+.hold-btn .prog{position:absolute;top:0;bottom:0;left:0;background:rgba(255,255,255,0.2);width:44%;transition:width 0.9s}
+.hold-hint{text-align:center;font-size:10px;color:var(--fg3);margin-top:8px;font-family:var(--font-data);letter-spacing:0.04em}
+
+/* PORTFOLIO SCREEN */
+.port-sum{padding:14px;background:linear-gradient(180deg,var(--bg-surface),var(--bg-base));border-bottom:1px solid var(--border)}
+.ps-l{font-size:9px;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data);font-weight:600}
+.ps-eq{font-family:var(--font-data);font-size:26px;font-weight:600;letter-spacing:-0.01em;margin-top:3px}
+.ps-deltas{display:flex;gap:8px;margin-top:5px;font-family:var(--font-data);font-size:10.5px;font-weight:600}
+.ps-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border)}
+.tab-row{display:flex;gap:0;padding:0 14px;border-bottom:1px solid var(--border);background:var(--bg-surface)}
+.m-tab{padding:10px 14px;background:none;border:none;color:var(--fg3);font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;position:relative}
+.m-tab.active{color:var(--fg1)}
+.m-tab.active::after{content:'';position:absolute;bottom:-1px;left:0;right:0;height:2px;background:var(--accent)}
+.swipe-hint{padding:8px 14px;font-size:10px;color:var(--fg3);text-align:center;font-family:var(--font-data)}
+.port-item{padding:10px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg-base);position:relative}
+.port-item.swiped{background:var(--bear-dim)}
+.port-item .close-btn{position:absolute;right:8px;top:50%;transform:translateY(-50%);padding:4px 10px;border-radius:6px;background:var(--bear);color:#fff;font-family:var(--font-display);font-size:9.5px;font-weight:700;letter-spacing:0.06em;border:none;cursor:pointer}
+.pos-tp-sl{font-family:var(--font-data);font-size:9px;color:var(--fg3);margin-top:2px}
+
+/* MARKETS SCREEN */
+.search-bar{margin:10px 14px;display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px}
+.search-bar input{background:none;border:none;outline:none;color:var(--fg1);font-family:var(--font-ui);font-size:13px;flex:1}
+.cat-row{display:flex;gap:4px;padding:0 14px 6px;overflow-x:auto}
+.cat-b{padding:4px 10px;border-radius:14px;border:1px solid var(--border);background:var(--bg-panel);color:var(--fg3);font-family:var(--font-display);font-size:9.5px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;flex-shrink:0;cursor:pointer}
+.cat-b.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(59,130,246,0.35)}
+.mkt-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border-bottom:1px solid var(--border);cursor:pointer}
+.mkt-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:10px;font-weight:700;flex-shrink:0}
+.mkt-icon.forex{background:var(--accent-dim);color:var(--accent)}
+.mkt-icon.crypto{background:rgba(234,179,8,0.12);color:var(--gold)}
+.mkt-icon.indices{background:rgba(168,85,247,0.12);color:var(--purple)}
+.mkt-icon.commodities{background:var(--warn-dim);color:var(--warn)}
+.mkt-info{flex:1;min-width:0}
+.mkt-s{font-family:var(--font-data);font-size:12.5px;font-weight:700}
+.mkt-n{font-size:10px;color:var(--fg3);margin-top:1px}
+.mkt-spark{width:50px;height:20px;flex-shrink:0}
+.mkt-price{text-align:right;flex-shrink:0}
+.mkt-p{font-family:var(--font-data);font-size:12.5px;font-weight:600}
+.mkt-c{font-family:var(--font-data);font-size:10px;font-weight:600;margin-top:1px}
+
+/* DOM sheet */
+.dom-header{padding:10px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.dom-cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:6px 14px;background:var(--bg-elevated);border-bottom:1px solid var(--border);font-family:var(--font-data);font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-weight:600}
+.dom-cols .r{text-align:right}
+.dom-row{position:relative;display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;padding:5px 14px;font-family:var(--font-data);font-size:11px;font-weight:600}
+.dom-row .r{text-align:right}
+.dom-row.ask{color:var(--bear)}
+.dom-row.bid{color:var(--bull)}
+.dom-row .bar{position:absolute;top:0;bottom:0;right:0;z-index:0;opacity:0.15}
+.dom-row.ask .bar{background:var(--bear)}
+.dom-row.bid .bar{background:var(--bull)}
+.dom-row span{position:relative;z-index:1}
+.dom-row .vol{color:var(--fg2)}
+.dom-spread-bar{display:flex;align-items:center;gap:8px;padding:8px 14px;background:var(--bg-panel);border-top:1px solid var(--border);border-bottom:1px solid var(--border)}
+.dsb-p{font-family:var(--font-data);font-size:14px;font-weight:700;color:var(--fg1)}
+.dsb-l{font-size:9px;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data)}
+.dsb-v{font-family:var(--font-data);font-size:11px;font-weight:600;color:var(--warn);margin-left:auto}
+
+/* Toast on Home */
+.m-toast{position:absolute;left:10px;right:10px;top:52px;padding:10px 12px;background:rgba(16,217,150,0.1);border:1px solid rgba(16,217,150,0.35);backdrop-filter:blur(12px);border-radius:10px;display:flex;align-items:center;gap:10px;z-index:55}
+.m-toast .d{width:8px;height:8px;border-radius:50%;background:var(--bull);box-shadow:0 0 10px var(--bull);flex-shrink:0}
+.m-toast .t{font-family:var(--font-data);font-size:12px;font-weight:700;color:var(--bull)}
+.m-toast .s{font-family:var(--font-data);font-size:10px;color:var(--fg2);margin-top:1px}
+
+/* Swatch footer */
+.tokens{max-width:1680px;margin:80px auto 0;padding-top:48px;border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(4,1fr);gap:24px}
+.tok{display:flex;flex-direction:column;gap:6px}
+.tok-ttl{font-family:var(--font-display);font-size:10px;letter-spacing:0.14em;text-transform:uppercase;color:var(--fg3);margin-bottom:4px}
+.tok-row{display:flex;align-items:center;gap:10px;font-family:var(--font-data);font-size:11px}
+.tok-sw{width:28px;height:28px;border-radius:6px;flex-shrink:0}
+.tok-lbl{color:var(--fg1);font-weight:600}
+.tok-val{color:var(--fg3);margin-left:auto}
+
+/* SVG helpers */
+.arrow-up{display:inline-block;margin-right:2px}
+</style>
+</head>
+<body>
+
+<div class="canvas">
+
+  <div class="hd">
+    <div class="kicker"><span class="d"></span>MOBILE UI KIT · v1</div>
+    <div class="ttl">Mobile Trading Terminal</div>
+    <div class="sub">Native-feeling iOS surface for the Obsidian retail trader. Dense on data but thumb-friendly — bottom-sheet ticket with hold-to-confirm, swipe-to-close positions, and the same terminal typography as the desktop kit scaled to mobile.</div>
+  </div>
+
+  <div class="grid">
+
+    <!-- ═══════════════════ SCREEN 1: HOME ═══════════════════ -->
+    <div class="cell">
+      <div class="device">
+        <div class="island"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="icons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="#E2E8F0"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg>
+            <svg width="15" height="11" viewBox="0 0 15 11" fill="#E2E8F0"><path d="M7.5 2.5c2 0 3.8 0.8 5.2 2.1l1-1C11.7 1.8 9.7 0.8 7.5 0.8S3.3 1.8 1.8 3.6l1 1C4.2 3.3 6 2.5 7.5 2.5z"/><path d="M7.5 5.8c1.2 0 2.3 0.4 3 1.2l1-1C10.3 4.8 9 4.3 7.5 4.3S4.7 4.8 3.5 6l1 1c0.7-0.8 1.8-1.2 3-1.2z"/><circle cx="7.5" cy="9.2" r="1.2"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#E2E8F0" strokeOpacity="0.4" fill="none"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#10D996"/><path d="M23 3.5V8.5C23.7 8.3 24.3 7.5 24.3 6S23.7 3.7 23 3.5z" fill="#E2E8F0" fillOpacity="0.4"/></svg>
+          </div>
+        </div>
+
+        <div class="screen">
+
+          <!-- Top bar -->
+          <div class="mtop">
+            <div class="mlogo"><span class="d"></span>OBSIDIAN</div>
+            <div class="mt-right">
+              <div class="live-pill"><span class="d"></span>LIVE</div>
+              <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="notif"></span></button>
+              <div class="avatar">AM</div>
+            </div>
+          </div>
+
+          <div class="scroll" style="overflow-y:auto">
+
+            <!-- Equity hero -->
+            <div class="equity-hero">
+              <div class="eh-label">Total Equity</div>
+              <div class="eh-amount">$52,457.92</div>
+              <div class="eh-delta">
+                <div class="delta-pill bull">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                  +$847.23 today
+                </div>
+                <span style="font-family:var(--font-data);font-size:10px;color:var(--fg3)">+1.64%</span>
+              </div>
+              <div class="spark-area">
+                <svg width="100%" height="36" viewBox="0 0 280 36" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="pnl-grad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#10D996" stop-opacity="0.35"/>
+                      <stop offset="100%" stop-color="#10D996" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,28 L15,26 L30,22 L45,24 L60,20 L75,18 L90,22 L105,16 L120,18 L135,12 L150,14 L165,10 L180,12 L195,8 L210,10 L225,6 L240,8 L255,4 L270,6 L280,2 L280,36 L0,36 Z" fill="url(#pnl-grad)"/>
+                  <polyline points="0,28 15,26 30,22 45,24 60,20 75,18 90,22 105,16 120,18 135,12 150,14 165,10 180,12 195,8 210,10 225,6 240,8 255,4 270,6 280,2" fill="none" stroke="#10D996" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <div class="eh-meta">
+                <div class="eh-meta-i"><div class="eh-meta-l">Balance</div><div class="eh-meta-v">$51,610</div></div>
+                <div class="eh-meta-i"><div class="eh-meta-l">Free Mgn</div><div class="eh-meta-v">$48,234</div></div>
+                <div class="eh-meta-i"><div class="eh-meta-l">Mgn Lvl</div><div class="eh-meta-v bull">1,238%</div></div>
+                <div class="eh-meta-i"><div class="eh-meta-l">Drawdown</div><div class="eh-meta-v bear">4.2%</div></div>
+              </div>
+            </div>
+
+            <!-- Sessions -->
+            <div class="sess-row">
+              <div class="sess open"><span class="d"></span>London</div>
+              <div class="sess open"><span class="d"></span>New York</div>
+              <div class="sess closed"><span class="d"></span>Tokyo</div>
+              <div class="sess closed"><span class="d"></span>Sydney</div>
+            </div>
+
+            <!-- Quick stats -->
+            <div class="qstats">
+              <div class="qstat"><div class="qs-l">Open Positions</div><div class="qs-v">7</div><div class="qs-sub">active trades</div></div>
+              <div class="qstat"><div class="qs-l">Today P&L</div><div class="qs-v bull">+$847</div><div class="qs-sub">realized</div></div>
+              <div class="qstat"><div class="qs-l">Pending</div><div class="qs-v">3</div><div class="qs-sub">working</div></div>
+              <div class="qstat"><div class="qs-l">Win Rate</div><div class="qs-v bull">67%</div><div class="qs-sub">last 30</div></div>
+            </div>
+
+            <!-- Quick trade -->
+            <div class="qt-row">
+              <button class="qt-btn buy">▲ BUY<span class="p">1.08472</span></button>
+              <button class="qt-btn sell">▼ SELL<span class="p">1.08465</span></button>
+            </div>
+
+            <!-- Watchlist -->
+            <div class="sec-l">Watchlist<span class="more">See all</span></div>
+            <div class="wl-strip">
+              <div class="wl-chip active"><div class="s">EUR/USD</div><div class="p bull">1.08472</div><div class="c bull">+0.12%</div></div>
+              <div class="wl-chip"><div class="s">GBP/USD</div><div class="p bear">1.26382</div><div class="c bear">-0.24%</div></div>
+              <div class="wl-chip"><div class="s">BTC/USD</div><div class="p bull">94,238</div><div class="c bull">+2.41%</div></div>
+              <div class="wl-chip"><div class="s">XAU/USD</div><div class="p bull">2,647.50</div><div class="c bull">+0.68%</div></div>
+            </div>
+
+            <!-- Positions -->
+            <div class="sec-l">Open Positions<span class="more">View 7 →</span></div>
+            <div class="m-card">
+              <div class="pos-row">
+                <div class="pos-badge buy">BUY</div>
+                <div class="pos-info"><div class="pos-sym">EUR/USD</div><div class="pos-meta">2.5 lots @ 1.08421</div></div>
+                <div class="pos-pnl"><div class="pos-pnl-v bull">+$127.50</div><div class="pos-pnl-p bull">+0.47%</div></div>
+              </div>
+              <div class="pos-row">
+                <div class="pos-badge sell">SELL</div>
+                <div class="pos-info"><div class="pos-sym">GBP/JPY</div><div class="pos-meta">1.0 lots @ 198.124</div></div>
+                <div class="pos-pnl"><div class="pos-pnl-v bear">-$42.80</div><div class="pos-pnl-p bear">-0.18%</div></div>
+              </div>
+              <div class="pos-row">
+                <div class="pos-badge buy">BUY</div>
+                <div class="pos-info"><div class="pos-sym">BTC/USD</div><div class="pos-meta">0.05 lots @ 93,456</div></div>
+                <div class="pos-pnl"><div class="pos-pnl-v bull">+$391.20</div><div class="pos-pnl-p bull">+0.84%</div></div>
+              </div>
+            </div>
+
+            <div style="height:10px"></div>
+          </div>
+
+          <!-- Bottom nav -->
+          <div class="bnav">
+            <div class="bnav-i active"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="bnav-l">Home</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><div class="bnav-l">Markets</div></div>
+            <div class="fab"><div class="fab-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="fab-l">Trade</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div><div class="bnav-l">Portfolio</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></div><div class="bnav-l">Account</div></div>
+          </div>
+        </div>
+
+        <div class="home-ind"></div>
+      </div>
+      <div class="cell-label"><span class="n">01</span>HOME</div>
+      <div class="cell-desc">Equity hero, session pills, 4-up KPI grid, one-tap buy/sell, scannable position list.</div>
+    </div>
+
+    <!-- ═══════════════════ SCREEN 2: CHART + DOM ═══════════════════ -->
+    <div class="cell">
+      <div class="device">
+        <div class="island"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="icons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="#E2E8F0"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg>
+            <svg width="15" height="11" viewBox="0 0 15 11" fill="#E2E8F0"><path d="M7.5 2.5c2 0 3.8 0.8 5.2 2.1l1-1C11.7 1.8 9.7 0.8 7.5 0.8S3.3 1.8 1.8 3.6l1 1C4.2 3.3 6 2.5 7.5 2.5z"/><circle cx="7.5" cy="9.2" r="1.2"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#E2E8F0" strokeOpacity="0.4" fill="none"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#10D996"/></svg>
+          </div>
+        </div>
+
+        <div class="screen">
+          <!-- Symbol bar -->
+          <div class="chart-sym-bar">
+            <button class="csb-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div>
+              <div class="csb-name">EUR/USD</div>
+              <div class="csb-sub">Euro vs US Dollar</div>
+            </div>
+            <div class="csb-price bull">1.08472</div>
+            <div class="csb-chg bull">+0.12%</div>
+          </div>
+
+          <!-- TF bar -->
+          <div class="tf-bar">
+            <button class="tf-btn">1m</button>
+            <button class="tf-btn active">5m</button>
+            <button class="tf-btn">15m</button>
+            <button class="tf-btn">1h</button>
+            <button class="tf-btn">4h</button>
+            <button class="tf-btn">1D</button>
+            <button class="tf-btn">1W</button>
+          </div>
+
+          <!-- Chart area -->
+          <div class="chart-area">
+            <div class="ohlc-bar">
+              <div class="ohlc-i"><div class="ohlc-l">O</div><div class="ohlc-v">1.08451</div></div>
+              <div class="ohlc-i"><div class="ohlc-l">H</div><div class="ohlc-v bull">1.08489</div></div>
+              <div class="ohlc-i"><div class="ohlc-l">L</div><div class="ohlc-v bear">1.08438</div></div>
+              <div class="ohlc-i"><div class="ohlc-l">C</div><div class="ohlc-v">1.08472</div></div>
+            </div>
+
+            <!-- Candlestick SVG -->
+            <svg viewBox="0 0 300 400" preserveAspectRatio="none" style="width:100%;height:100%">
+              <!-- grid -->
+              <g stroke="#1C2028" stroke-width="0.5">
+                <line x1="0" y1="80" x2="300" y2="80"/>
+                <line x1="0" y1="160" x2="300" y2="160"/>
+                <line x1="0" y1="240" x2="300" y2="240"/>
+                <line x1="0" y1="320" x2="300" y2="320"/>
+              </g>
+              <!-- candles -->
+              <g>
+                <!-- Each candle: wick + body -->
+                <line x1="10" y1="180" x2="10" y2="260" stroke="#10D996" stroke-width="1"/><rect x="6" y="200" width="8" height="40" fill="#10D996"/>
+                <line x1="24" y1="170" x2="24" y2="250" stroke="#FF3B5C" stroke-width="1"/><rect x="20" y="200" width="8" height="30" fill="#FF3B5C"/>
+                <line x1="38" y1="190" x2="38" y2="270" stroke="#10D996" stroke-width="1"/><rect x="34" y="210" width="8" height="50" fill="#10D996"/>
+                <line x1="52" y1="170" x2="52" y2="260" stroke="#10D996" stroke-width="1"/><rect x="48" y="190" width="8" height="40" fill="#10D996"/>
+                <line x1="66" y1="160" x2="66" y2="240" stroke="#FF3B5C" stroke-width="1"/><rect x="62" y="180" width="8" height="35" fill="#FF3B5C"/>
+                <line x1="80" y1="180" x2="80" y2="260" stroke="#FF3B5C" stroke-width="1"/><rect x="76" y="200" width="8" height="40" fill="#FF3B5C"/>
+                <line x1="94" y1="190" x2="94" y2="270" stroke="#10D996" stroke-width="1"/><rect x="90" y="210" width="8" height="45" fill="#10D996"/>
+                <line x1="108" y1="150" x2="108" y2="230" stroke="#10D996" stroke-width="1"/><rect x="104" y="170" width="8" height="50" fill="#10D996"/>
+                <line x1="122" y1="140" x2="122" y2="220" stroke="#10D996" stroke-width="1"/><rect x="118" y="160" width="8" height="40" fill="#10D996"/>
+                <line x1="136" y1="130" x2="136" y2="210" stroke="#FF3B5C" stroke-width="1"/><rect x="132" y="150" width="8" height="35" fill="#FF3B5C"/>
+                <line x1="150" y1="145" x2="150" y2="220" stroke="#10D996" stroke-width="1"/><rect x="146" y="165" width="8" height="45" fill="#10D996"/>
+                <line x1="164" y1="120" x2="164" y2="195" stroke="#10D996" stroke-width="1"/><rect x="160" y="140" width="8" height="40" fill="#10D996"/>
+                <line x1="178" y1="135" x2="178" y2="210" stroke="#FF3B5C" stroke-width="1"/><rect x="174" y="155" width="8" height="30" fill="#FF3B5C"/>
+                <line x1="192" y1="115" x2="192" y2="185" stroke="#10D996" stroke-width="1"/><rect x="188" y="135" width="8" height="35" fill="#10D996"/>
+                <line x1="206" y1="100" x2="206" y2="170" stroke="#10D996" stroke-width="1"/><rect x="202" y="120" width="8" height="35" fill="#10D996"/>
+                <line x1="220" y1="110" x2="220" y2="190" stroke="#FF3B5C" stroke-width="1"/><rect x="216" y="130" width="8" height="40" fill="#FF3B5C"/>
+                <line x1="234" y1="95" x2="234" y2="165" stroke="#10D996" stroke-width="1"/><rect x="230" y="115" width="8" height="35" fill="#10D996"/>
+                <line x1="248" y1="85" x2="248" y2="155" stroke="#10D996" stroke-width="1"/><rect x="244" y="105" width="8" height="30" fill="#10D996"/>
+                <line x1="262" y1="95" x2="262" y2="175" stroke="#FF3B5C" stroke-width="1"/><rect x="258" y="115" width="8" height="40" fill="#FF3B5C"/>
+                <line x1="276" y1="75" x2="276" y2="155" stroke="#10D996" stroke-width="1"/><rect x="272" y="95" width="8" height="40" fill="#10D996"/>
+                <line x1="290" y1="60" x2="290" y2="140" stroke="#10D996" stroke-width="1"/><rect x="286" y="80" width="8" height="35" fill="#10D996"/>
+              </g>
+              <!-- volume histogram -->
+              <g opacity="0.4">
+                <rect x="6" y="360" width="8" height="20" fill="#10D996"/>
+                <rect x="20" y="350" width="8" height="30" fill="#FF3B5C"/>
+                <rect x="34" y="340" width="8" height="40" fill="#10D996"/>
+                <rect x="48" y="355" width="8" height="25" fill="#10D996"/>
+                <rect x="62" y="345" width="8" height="35" fill="#FF3B5C"/>
+                <rect x="76" y="360" width="8" height="20" fill="#FF3B5C"/>
+                <rect x="90" y="335" width="8" height="45" fill="#10D996"/>
+                <rect x="104" y="330" width="8" height="50" fill="#10D996"/>
+                <rect x="118" y="355" width="8" height="25" fill="#10D996"/>
+                <rect x="132" y="345" width="8" height="35" fill="#FF3B5C"/>
+                <rect x="146" y="340" width="8" height="40" fill="#10D996"/>
+                <rect x="160" y="360" width="8" height="20" fill="#10D996"/>
+                <rect x="174" y="355" width="8" height="25" fill="#FF3B5C"/>
+                <rect x="188" y="350" width="8" height="30" fill="#10D996"/>
+                <rect x="202" y="325" width="8" height="55" fill="#10D996"/>
+                <rect x="216" y="345" width="8" height="35" fill="#FF3B5C"/>
+                <rect x="230" y="340" width="8" height="40" fill="#10D996"/>
+                <rect x="244" y="350" width="8" height="30" fill="#10D996"/>
+                <rect x="258" y="345" width="8" height="35" fill="#FF3B5C"/>
+                <rect x="272" y="320" width="8" height="60" fill="#10D996"/>
+                <rect x="286" y="330" width="8" height="50" fill="#10D996"/>
+              </g>
+              <!-- cursor line -->
+              <line x1="240" y1="0" x2="240" y2="400" stroke="#3B82F6" stroke-width="0.5" stroke-dasharray="2 2" opacity="0.4"/>
+              <!-- current price line -->
+              <line x1="0" y1="88" x2="300" y2="88" stroke="#10D996" stroke-width="0.5" stroke-dasharray="3 2" opacity="0.8"/>
+              <rect x="260" y="82" width="40" height="13" fill="#10D996"/>
+              <text x="280" y="91" font-family="IBM Plex Mono" font-size="8" font-weight="700" fill="#062418" text-anchor="middle">1.08472</text>
+            </svg>
+          </div>
+
+          <!-- Trade bar -->
+          <div class="chart-trade-bar">
+            <button class="ctb-btn sell">▼ SELL<span class="p">1.08465</span></button>
+            <button class="ctb-btn buy">▲ BUY<span class="p">1.08472</span></button>
+          </div>
+        </div>
+
+        <div class="home-ind"></div>
+      </div>
+      <div class="cell-label"><span class="n">02</span>CHART</div>
+      <div class="cell-desc">OHLC + volume with live crosshair. 7 timeframes, one-tap side selection, haptic bid/ask.</div>
+    </div>
+
+    <!-- ═══════════════════ SCREEN 3: TRADE TICKET (bottom sheet on Chart) ═══════════════════ -->
+    <div class="cell">
+      <div class="device">
+        <div class="island"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="icons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="#E2E8F0"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#E2E8F0" strokeOpacity="0.4" fill="none"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#10D996"/></svg>
+          </div>
+        </div>
+
+        <div class="screen">
+          <!-- underlying chart (dimmed) -->
+          <div class="chart-sym-bar" style="opacity:0.4">
+            <button class="csb-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div>
+              <div class="csb-name">EUR/USD</div>
+              <div class="csb-sub">Euro vs US Dollar</div>
+            </div>
+            <div class="csb-price bull">1.08472</div>
+          </div>
+          <div class="chart-area" style="opacity:0.4"></div>
+
+          <!-- Sheet -->
+          <div class="sheet-dim"></div>
+          <div class="sheet">
+            <div class="sheet-handle"><div class="b"></div></div>
+            <div class="sheet-head">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M8 5v4M16 5v4M8 15v4M16 15v4M4 9h16M4 15h16"/></svg>
+              <div>
+                <div class="ttl">EUR/USD</div>
+                <div class="sub">Euro vs US Dollar</div>
+              </div>
+              <button class="x"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+
+            <div class="side-tog">
+              <button class="side-b buy active">▲ BUY</button>
+              <button class="side-b sell">▼ SELL</button>
+            </div>
+
+            <div class="bidask">
+              <div class="ba-side">
+                <div class="ba-l">Bid</div>
+                <div class="ba-p bear">1.08465</div>
+              </div>
+              <div class="ba-sp">
+                <div class="ba-sp-l">SPD</div>
+                <div class="ba-sp-v">0.7</div>
+              </div>
+              <div class="ba-side">
+                <div class="ba-l">Ask</div>
+                <div class="ba-p bull">1.08472</div>
+              </div>
+            </div>
+
+            <div class="otype-row">
+              <button class="ot-b active">Market</button>
+              <button class="ot-b">Limit</button>
+              <button class="ot-b">Stop</button>
+              <button class="ot-b">Stop Lmt</button>
+            </div>
+
+            <div class="lot-wheel">
+              <div class="lw-l">Volume (Lots)</div>
+              <div class="lw-row">
+                <button class="lw-btn">−</button>
+                <div>
+                  <div class="lw-disp">1.00</div>
+                  <div class="lw-unit">$108,472 notional</div>
+                </div>
+                <button class="lw-btn">+</button>
+              </div>
+              <div class="lw-preset">
+                <button class="lw-p">0.01</button>
+                <button class="lw-p">0.10</button>
+                <button class="lw-p">0.50</button>
+                <button class="lw-p">1.00</button>
+                <button class="lw-p">2.00</button>
+              </div>
+            </div>
+
+            <div class="sltp-row">
+              <div class="sltp-i">
+                <div class="sltp-l">Stop Loss</div>
+                <div class="sltp-inp">1.08200</div>
+              </div>
+              <div class="sltp-i">
+                <div class="sltp-l">Take Profit</div>
+                <div class="sltp-inp">1.08900</div>
+              </div>
+            </div>
+
+            <div class="trade-info">
+              <div class="ti-i"><span class="ti-l">Req. Margin</span><span class="ti-v">$1,084</span></div>
+              <div class="ti-i"><span class="ti-l">Pip Value</span><span class="ti-v">$10.00</span></div>
+              <div class="ti-i"><span class="ti-l">Leverage</span><span class="ti-v">1:100</span></div>
+              <div class="ti-i"><span class="ti-l">Commission</span><span class="ti-v">$7.00</span></div>
+            </div>
+
+            <button class="hold-btn buy">
+              <div class="prog"></div>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+              BUY MARKET
+            </button>
+            <div class="hold-hint">Hold to confirm · Release to cancel</div>
+          </div>
+        </div>
+
+        <div class="home-ind"></div>
+      </div>
+      <div class="cell-label"><span class="n">03</span>TRADE TICKET</div>
+      <div class="cell-desc">Bottom-sheet ticket with hold-to-confirm. Big bid/ask, lot wheel, one-glance margin math.</div>
+    </div>
+
+    <!-- ═══════════════════ SCREEN 4: PORTFOLIO ═══════════════════ -->
+    <div class="cell">
+      <div class="device">
+        <div class="island"></div>
+        <div class="status-bar">
+          <span class="time">9:41</span>
+          <div class="icons">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="#E2E8F0"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg>
+            <svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#E2E8F0" strokeOpacity="0.4" fill="none"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#10D996"/></svg>
+          </div>
+        </div>
+
+        <div class="screen">
+          <div class="mtop">
+            <div class="mt-title">Portfolio</div>
+            <div class="mt-right">
+              <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/><line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/><line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/><line x1="1" y1="14" x2="7" y2="14"/><line x1="9" y1="8" x2="15" y2="8"/><line x1="17" y1="16" x2="23" y2="16"/></svg></button>
+              <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg></button>
+            </div>
+          </div>
+
+          <div class="scroll" style="overflow-y:auto">
+            <div class="port-sum">
+              <div class="ps-l">Total Equity</div>
+              <div class="ps-eq">$52,457.92</div>
+              <div class="ps-deltas">
+                <span class="bull">+$475.90 open</span>
+                <span style="color:var(--fg3)">·</span>
+                <span class="bull">+$847 today</span>
+              </div>
+              <div style="height:32px;margin-top:8px">
+                <svg width="100%" height="32" viewBox="0 0 280 32" preserveAspectRatio="none">
+                  <polyline points="0,24 20,22 40,18 60,20 80,15 100,17 120,12 140,14 160,9 180,11 200,7 220,9 240,4 260,6 280,2" fill="none" stroke="#10D996" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <div class="ps-stats">
+                <div><div class="ps-l">Margin</div><div style="font-family:var(--font-data);font-size:12px;font-weight:600;margin-top:2px">$2,168</div></div>
+                <div><div class="ps-l">Free</div><div style="font-family:var(--font-data);font-size:12px;font-weight:600;margin-top:2px">$48,234</div></div>
+                <div><div class="ps-l">Level</div><div style="font-family:var(--font-data);font-size:12px;font-weight:600;margin-top:2px" class="bull">1,238%</div></div>
+              </div>
+            </div>
+
+            <div class="tab-row">
+              <button class="m-tab active">Open (7)</button>
+              <button class="m-tab">Pending (3)</button>
+              <button class="m-tab">History</button>
+            </div>
+
+            <div class="swipe-hint">← Swipe left on a position to close</div>
+
+            <div class="port-item">
+              <div class="pos-badge buy">BUY</div>
+              <div class="pos-info">
+                <div class="pos-sym">EUR/USD <span style="font-family:var(--font-data);font-size:10px;color:var(--fg3);font-weight:500">· 2.5 lots</span></div>
+                <div class="pos-meta">@ 1.08421 · current 1.08472</div>
+                <div class="pos-tp-sl">SL: <span class="bear">1.08200</span> · TP: <span class="bull">1.08900</span></div>
+              </div>
+              <div class="pos-pnl"><div class="pos-pnl-v bull">+$127.50</div><div class="pos-pnl-p bull">+0.47%</div></div>
+            </div>
+
+            <div class="port-item swiped">
+              <div class="pos-badge sell">SELL</div>
+              <div class="pos-info">
+                <div class="pos-sym">GBP/JPY <span style="font-family:var(--font-data);font-size:10px;color:var(--fg3);font-weight:500">· 1.0 lots</span></div>
+                <div class="pos-meta">@ 198.124 · current 198.481</div>
+                <div class="pos-tp-sl">SL: <span class="bear">199.000</span> · TP: <span class="bull">197.000</span></div>
+              </div>
+              <button class="close-btn">CLOSE</button>
+            </div>
+
+            <div class="port-item">
+              <div class="pos-badge buy">BUY</div>
+              <div class="pos-info">
+                <div class="pos-sym">BTC/USD <span style="font-family:var(--font-data);font-size:10px;color:var(--fg3);font-weight:500">· 0.05 lots</span></div>
+                <div class="pos-meta">@ 93,456 · current 94,238</div>
+                <div class="pos-tp-sl">SL: <span class="bear">91,000</span> · TP: <span class="bull">98,000</span></div>
+              </div>
+              <div class="pos-pnl"><div class="pos-pnl-v bull">+$391.20</div><div class="pos-pnl-p bull">+0.84%</div></div>
+            </div>
+
+            <div class="port-item">
+              <div class="pos-badge buy">BUY</div>
+              <div class="pos-info">
+                <div class="pos-sym">XAU/USD <span style="font-family:var(--font-data);font-size:10px;color:var(--fg3);font-weight:500">· 0.5 lots</span></div>
+                <div class="pos-meta">@ 2,642.10 · current 2,647.50</div>
+                <div class="pos-tp-sl">SL: <span class="bear">2,630.00</span> · TP: <span class="bull">2,680.00</span></div>
+              </div>
+              <div class="pos-pnl"><div class="pos-pnl-v bull">+$270.00</div><div class="pos-pnl-p bull">+0.20%</div></div>
+            </div>
+
+            <div class="port-item">
+              <div class="pos-badge sell">SELL</div>
+              <div class="pos-info">
+                <div class="pos-sym">USD/JPY <span style="font-family:var(--font-data);font-size:10px;color:var(--fg3);font-weight:500">· 1.5 lots</span></div>
+                <div class="pos-meta">@ 156.284 · current 156.412</div>
+                <div class="pos-tp-sl">SL: <span class="bear">157.000</span> · TP: —</div>
+              </div>
+              <div class="pos-pnl"><div class="pos-pnl-v bear">-$122.85</div><div class="pos-pnl-p bear">-0.08%</div></div>
+            </div>
+
+            <div style="padding:12px 14px">
+              <button style="width:100%;padding:10px;border-radius:10px;background:var(--bear-dim);border:1px solid rgba(255,59,92,0.3);color:var(--bear);font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:0.08em;cursor:pointer">CLOSE ALL 7 POSITIONS</button>
+            </div>
+          </div>
+
+          <div class="bnav">
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="bnav-l">Home</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><div class="bnav-l">Markets</div></div>
+            <div class="fab"><div class="fab-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="fab-l">Trade</div></div>
+            <div class="bnav-i active"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div><div class="bnav-l">Portfolio</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></div><div class="bnav-l">Account</div></div>
+          </div>
+        </div>
+
+        <div class="home-ind"></div>
+      </div>
+      <div class="cell-label"><span class="n">04</span>PORTFOLIO</div>
+      <div class="cell-desc">Equity summary with 30-day PnL. Swipe-left destructive close, inline SL/TP, one-tap close-all.</div>
+    </div>
+
+    <!-- ═══════════════════ SCREEN 5: MARKETS (2nd row) ═══════════════════ -->
+    <div class="cell">
+      <div class="device">
+        <div class="island"></div>
+        <div class="status-bar"><span class="time">9:41</span><div class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="#E2E8F0"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#E2E8F0" strokeOpacity="0.4" fill="none"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#10D996"/></svg></div></div>
+
+        <div class="screen">
+          <div class="mtop">
+            <div class="mt-title">Markets</div>
+            <div class="mt-right">
+              <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/></svg></button>
+              <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+            </div>
+          </div>
+
+          <div class="scroll" style="overflow-y:auto">
+            <div class="search-bar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fg3)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input placeholder="Search symbol or market…" value="eur"/>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fg3)" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </div>
+            <div class="cat-row">
+              <button class="cat-b active">All Markets</button>
+              <button class="cat-b">Forex</button>
+              <button class="cat-b">Crypto</button>
+              <button class="cat-b">Indices</button>
+              <button class="cat-b">Commod.</button>
+            </div>
+
+            <!-- market rows -->
+            <div class="mkt-row">
+              <div class="mkt-icon forex">FX</div>
+              <div class="mkt-info"><div class="mkt-s">EUR/USD</div><div class="mkt-n">Euro vs US Dollar</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,14 8,12 16,8 24,10 32,6 40,4 50,2" fill="none" stroke="#10D996" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">1.08472</div><div class="mkt-c bull">+0.12%</div></div>
+            </div>
+            <div class="mkt-row">
+              <div class="mkt-icon forex">FX</div>
+              <div class="mkt-info"><div class="mkt-s">EUR/GBP</div><div class="mkt-n">Euro vs British Pound</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,6 8,8 16,10 24,8 32,12 40,15 50,17" fill="none" stroke="#FF3B5C" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">0.83214</div><div class="mkt-c bear">-0.31%</div></div>
+            </div>
+            <div class="mkt-row">
+              <div class="mkt-icon forex">FX</div>
+              <div class="mkt-info"><div class="mkt-s">EUR/JPY</div><div class="mkt-n">Euro vs Japanese Yen</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,12 8,14 16,10 24,11 32,8 40,10 50,5" fill="none" stroke="#10D996" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">169.824</div><div class="mkt-c bull">+0.42%</div></div>
+            </div>
+            <div class="mkt-row">
+              <div class="mkt-icon forex">FX</div>
+              <div class="mkt-info"><div class="mkt-s">GBP/USD</div><div class="mkt-n">British Pound vs USD</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,8 8,6 16,10 24,8 32,11 40,14 50,16" fill="none" stroke="#FF3B5C" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">1.26382</div><div class="mkt-c bear">-0.24%</div></div>
+            </div>
+            <div class="mkt-row">
+              <div class="mkt-icon crypto">₿</div>
+              <div class="mkt-info"><div class="mkt-s">BTC/USD</div><div class="mkt-n">Bitcoin vs US Dollar</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,16 8,12 16,14 24,8 32,10 40,4 50,2" fill="none" stroke="#10D996" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">94,238</div><div class="mkt-c bull">+2.41%</div></div>
+            </div>
+            <div class="mkt-row">
+              <div class="mkt-icon crypto">₿</div>
+              <div class="mkt-info"><div class="mkt-s">ETH/USD</div><div class="mkt-n">Ethereum vs US Dollar</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,14 8,10 16,12 24,6 32,8 40,3 50,5" fill="none" stroke="#10D996" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">3,425.18</div><div class="mkt-c bull">+1.84%</div></div>
+            </div>
+            <div class="mkt-row">
+              <div class="mkt-icon indices">IX</div>
+              <div class="mkt-info"><div class="mkt-s">SPX500</div><div class="mkt-n">S&P 500 Index</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,10 8,8 16,6 24,10 32,7 40,5 50,7" fill="none" stroke="#10D996" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">5,847.32</div><div class="mkt-c bull">+0.38%</div></div>
+            </div>
+            <div class="mkt-row">
+              <div class="mkt-icon commodities">CM</div>
+              <div class="mkt-info"><div class="mkt-s">XAU/USD</div><div class="mkt-n">Gold vs US Dollar</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,12 8,10 16,8 24,6 32,4 40,5 50,3" fill="none" stroke="#10D996" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">2,647.50</div><div class="mkt-c bull">+0.68%</div></div>
+            </div>
+            <div class="mkt-row">
+              <div class="mkt-icon commodities">CM</div>
+              <div class="mkt-info"><div class="mkt-s">WTI/USD</div><div class="mkt-n">Crude Oil vs USD</div></div>
+              <div class="mkt-spark"><svg width="50" height="20" viewBox="0 0 50 20"><polyline points="0,6 8,10 16,8 24,12 32,14 40,11 50,13" fill="none" stroke="#FF3B5C" stroke-width="1.5"/></svg></div>
+              <div class="mkt-price"><div class="mkt-p">69.84</div><div class="mkt-c bear">-0.92%</div></div>
+            </div>
+          </div>
+
+          <div class="bnav">
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="bnav-l">Home</div></div>
+            <div class="bnav-i active"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><div class="bnav-l">Markets</div></div>
+            <div class="fab"><div class="fab-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="fab-l">Trade</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div><div class="bnav-l">Portfolio</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></div><div class="bnav-l">Account</div></div>
+          </div>
+        </div>
+
+        <div class="home-ind"></div>
+      </div>
+      <div class="cell-label"><span class="n">05</span>MARKETS</div>
+      <div class="cell-desc">Search + category pills. Per-row sparkline, color-coded asset class icons, tap → Chart.</div>
+    </div>
+
+    <!-- ═══════════════════ SCREEN 6: DOM SHEET ═══════════════════ -->
+    <div class="cell">
+      <div class="device">
+        <div class="island"></div>
+        <div class="status-bar"><span class="time">9:41</span><div class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="#E2E8F0"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#E2E8F0" strokeOpacity="0.4" fill="none"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#10D996"/></svg></div></div>
+
+        <div class="screen">
+          <div class="chart-sym-bar" style="opacity:0.3">
+            <button class="csb-back"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <div><div class="csb-name">EUR/USD</div></div>
+            <div class="csb-price bull">1.08472</div>
+          </div>
+          <div class="chart-area" style="opacity:0.3"></div>
+
+          <div class="sheet-dim"></div>
+          <div class="sheet" style="max-height:86%">
+            <div class="sheet-handle"><div class="b"></div></div>
+            <div class="dom-header">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+              <span class="mt-title">Depth of Market</span>
+              <span style="font-family:var(--font-data);font-size:11px;color:var(--fg3);margin-left:6px">EUR/USD</span>
+              <button class="x" style="margin-left:auto"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>
+
+            <div class="dom-cols">
+              <span>Price</span>
+              <span class="r">Volume</span>
+              <span class="r">Depth</span>
+            </div>
+
+            <div style="overflow-y:auto;max-height:420px">
+              <!-- asks (descending) -->
+              <div class="dom-row ask"><div class="bar" style="width:78%"></div><span>1.08498</span><span class="r vol">4.2K</span><span class="r">38K</span></div>
+              <div class="dom-row ask"><div class="bar" style="width:52%"></div><span>1.08491</span><span class="r vol">2.8K</span><span class="r">34K</span></div>
+              <div class="dom-row ask"><div class="bar" style="width:94%"></div><span>1.08485</span><span class="r vol">5.1K</span><span class="r">31K</span></div>
+              <div class="dom-row ask"><div class="bar" style="width:38%"></div><span>1.08479</span><span class="r vol">2.1K</span><span class="r">26K</span></div>
+              <div class="dom-row ask"><div class="bar" style="width:64%"></div><span>1.08474</span><span class="r vol">3.4K</span><span class="r">24K</span></div>
+
+              <div class="dom-spread-bar">
+                <div class="dsb-p">1.08472</div>
+                <span class="dsb-l">spread</span>
+                <span class="dsb-v">0.7 pts</span>
+              </div>
+
+              <!-- bids (descending) -->
+              <div class="dom-row bid"><div class="bar" style="width:71%"></div><span>1.08465</span><span class="r vol">3.8K</span><span class="r">28K</span></div>
+              <div class="dom-row bid"><div class="bar" style="width:88%"></div><span>1.08461</span><span class="r vol">4.7K</span><span class="r">32K</span></div>
+              <div class="dom-row bid"><div class="bar" style="width:42%"></div><span>1.08454</span><span class="r vol">2.3K</span><span class="r">27K</span></div>
+              <div class="dom-row bid"><div class="bar" style="width:96%"></div><span>1.08448</span><span class="r vol">5.2K</span><span class="r">36K</span></div>
+              <div class="dom-row bid"><div class="bar" style="width:58%"></div><span>1.08441</span><span class="r vol">3.1K</span><span class="r">31K</span></div>
+              <div class="dom-row bid"><div class="bar" style="width:34%"></div><span>1.08434</span><span class="r vol">1.8K</span><span class="r">29K</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="home-ind"></div>
+      </div>
+      <div class="cell-label"><span class="n">06</span>DOM SHEET</div>
+      <div class="cell-desc">Level-2 order book as bottom sheet. Heatmap bars show relative volume at each price.</div>
+    </div>
+
+    <!-- ═══════════════════ SCREEN 7: TOAST ON HOME ═══════════════════ -->
+    <div class="cell">
+      <div class="device">
+        <div class="island"></div>
+        <div class="status-bar"><span class="time">9:41</span><div class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="#E2E8F0"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#E2E8F0" strokeOpacity="0.4" fill="none"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#10D996"/></svg></div></div>
+
+        <div class="screen">
+          <div class="mtop">
+            <div class="mlogo"><span class="d"></span>OBSIDIAN</div>
+            <div class="mt-right">
+              <div class="live-pill"><span class="d"></span>LIVE</div>
+              <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></button>
+              <div class="avatar">AM</div>
+            </div>
+          </div>
+
+          <!-- toast shown here -->
+          <div class="m-toast">
+            <span class="d"></span>
+            <div style="flex:1">
+              <div class="t">FILLED · EUR/USD BUY 1.00</div>
+              <div class="s">Entry 1.08472 · +$12.40 immediate</div>
+            </div>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--fg3)" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+          </div>
+
+          <div class="scroll" style="overflow-y:auto">
+            <div class="equity-hero">
+              <div class="eh-label">Total Equity</div>
+              <div class="eh-amount">$52,470.32</div>
+              <div class="eh-delta">
+                <div class="delta-pill bull">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7"/><path d="M7 7h10v10"/></svg>
+                  +$859.63 today
+                </div>
+              </div>
+              <div class="spark-area">
+                <svg width="100%" height="36" viewBox="0 0 280 36" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="pnl-grad2" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#10D996" stop-opacity="0.35"/>
+                      <stop offset="100%" stop-color="#10D996" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M0,28 L20,26 L40,22 L60,20 L80,18 L100,16 L120,12 L140,14 L160,10 L180,12 L200,8 L220,6 L240,8 L260,4 L280,2 L280,36 L0,36 Z" fill="url(#pnl-grad2)"/>
+                  <polyline points="0,28 20,26 40,22 60,20 80,18 100,16 120,12 140,14 160,10 180,12 200,8 220,6 240,8 260,4 280,2" fill="none" stroke="#10D996" stroke-width="1.5"/>
+                </svg>
+              </div>
+              <div class="eh-meta">
+                <div class="eh-meta-i"><div class="eh-meta-l">Balance</div><div class="eh-meta-v">$51,610</div></div>
+                <div class="eh-meta-i"><div class="eh-meta-l">Free Mgn</div><div class="eh-meta-v">$47,150</div></div>
+                <div class="eh-meta-i"><div class="eh-meta-l">Mgn Lvl</div><div class="eh-meta-v bull">1,106%</div></div>
+                <div class="eh-meta-i"><div class="eh-meta-l">Drawdown</div><div class="eh-meta-v bear">4.2%</div></div>
+              </div>
+            </div>
+
+            <div class="qt-row" style="padding-top:14px">
+              <button class="qt-btn buy">▲ BUY<span class="p">1.08472</span></button>
+              <button class="qt-btn sell">▼ SELL<span class="p">1.08465</span></button>
+            </div>
+
+            <div class="sec-l">Recent Fills</div>
+            <div class="m-card">
+              <div class="pos-row">
+                <div class="pos-badge buy">BUY</div>
+                <div class="pos-info"><div class="pos-sym">EUR/USD · <span style="color:var(--bull);font-size:10px">FILLED</span></div><div class="pos-meta">1.0 lots @ 1.08472 · 09:41:02</div></div>
+                <div class="pos-pnl"><div class="pos-pnl-v bull">+$12.40</div></div>
+              </div>
+              <div class="pos-row">
+                <div class="pos-badge buy">BUY</div>
+                <div class="pos-info"><div class="pos-sym">XAU/USD · <span style="color:var(--bull);font-size:10px">FILLED</span></div><div class="pos-meta">0.5 lots @ 2,642.10 · 09:12:44</div></div>
+                <div class="pos-pnl"><div class="pos-pnl-v bull">+$270.00</div></div>
+              </div>
+            </div>
+
+            <div style="height:10px"></div>
+          </div>
+
+          <div class="bnav">
+            <div class="bnav-i active"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="bnav-l">Home</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><div class="bnav-l">Markets</div></div>
+            <div class="fab"><div class="fab-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="fab-l">Trade</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div><div class="bnav-l">Portfolio</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></div><div class="bnav-l">Account</div></div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+      <div class="cell-label"><span class="n">07</span>FILL TOAST</div>
+      <div class="cell-desc">Order confirmation toast under the status bar. Auto-dismiss at 4s, tap to expand.</div>
+    </div>
+
+    <!-- ═══════════════════ SCREEN 8: ACCOUNT ═══════════════════ -->
+    <div class="cell">
+      <div class="device">
+        <div class="island"></div>
+        <div class="status-bar"><span class="time">9:41</span><div class="icons"><svg width="17" height="11" viewBox="0 0 17 11" fill="#E2E8F0"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg><svg width="25" height="12" viewBox="0 0 25 12"><rect x="0.5" y="0.5" width="21" height="11" rx="3" stroke="#E2E8F0" strokeOpacity="0.4" fill="none"/><rect x="1.5" y="1.5" width="17" height="9" rx="2" fill="#10D996"/></svg></div></div>
+
+        <div class="screen">
+          <div class="mtop">
+            <div class="mt-title">Account</div>
+            <div class="mt-right">
+              <button class="icon-btn"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+              <button class="icon-btn" style="color:var(--bear)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></button>
+            </div>
+          </div>
+
+          <div class="scroll" style="overflow-y:auto">
+
+            <!-- Hero -->
+            <div style="padding:16px 14px;display:flex;align-items:center;gap:12px;background:linear-gradient(180deg,var(--bg-surface),var(--bg-base));border-bottom:1px solid var(--border)">
+              <div style="width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#6366F1);display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-size:18px;font-weight:800;color:#fff;flex-shrink:0">AM</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-family:var(--font-display);font-size:16px;font-weight:700">Alex Morgan</div>
+                <div style="font-family:var(--font-data);font-size:10.5px;color:var(--fg3);margin-top:2px">#A8821-94 · Live-1</div>
+                <div style="display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:10px;background:rgba(234,179,8,0.12);color:var(--gold);font-family:var(--font-display);font-size:9px;font-weight:700;letter-spacing:0.06em;margin-top:5px">
+                  <svg width="9" height="9" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/></svg>
+                  PRO · 1:100
+                </div>
+              </div>
+              <div style="text-align:right">
+                <div class="eh-meta-l">Equity</div>
+                <div style="font-family:var(--font-data);font-size:16px;font-weight:700;margin-top:2px">$52,457</div>
+              </div>
+            </div>
+
+            <!-- Stats grid -->
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)">
+              <div style="padding:10px 12px;background:var(--bg-panel)"><div class="qs-l">Balance</div><div class="qs-v">$51,610</div></div>
+              <div style="padding:10px 12px;background:var(--bg-panel)"><div class="qs-l">Unrealized</div><div class="qs-v bull">+$475</div></div>
+              <div style="padding:10px 12px;background:var(--bg-panel)"><div class="qs-l">Free Margin</div><div class="qs-v">$48,234</div></div>
+              <div style="padding:10px 12px;background:var(--bg-panel)"><div class="qs-l">Used Margin</div><div class="qs-v">$2,168</div></div>
+            </div>
+
+            <!-- Risk -->
+            <div style="padding:14px;background:var(--bg-panel);margin:12px 14px;border:1px solid var(--border);border-radius:10px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+                <span class="qs-l">Margin Usage</span>
+                <span class="bull" style="font-family:var(--font-data);font-size:14px;font-weight:700">4.1%</span>
+              </div>
+              <div style="height:6px;background:var(--bg-elevated);border-radius:3px;overflow:hidden">
+                <div style="height:100%;width:4.1%;background:var(--bull);border-radius:3px"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:9px;font-family:var(--font-data);color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase">
+                <span>Safe</span><span>Warning</span><span>Call</span>
+              </div>
+            </div>
+
+            <!-- 30-day P&L -->
+            <div style="margin:0 14px 12px;padding:12px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <span class="qs-l">30-Day P&L</span>
+                <span class="bull" style="font-family:var(--font-data);font-size:13px;font-weight:700">+$3,567</span>
+              </div>
+              <svg width="100%" height="44" viewBox="0 0 280 44" preserveAspectRatio="none">
+                <defs><linearGradient id="acc-g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#10D996" stop-opacity="0.3"/><stop offset="1" stop-color="#10D996" stop-opacity="0"/></linearGradient></defs>
+                <path d="M0,34 L14,36 L28,30 L42,32 L56,28 L70,25 L84,30 L98,22 L112,24 L126,18 L140,20 L154,14 L168,16 L182,10 L196,12 L210,6 L224,8 L238,4 L252,6 L266,2 L280,4 L280,44 L0,44 Z" fill="url(#acc-g)"/>
+                <polyline points="0,34 14,36 28,30 42,32 56,28 70,25 84,30 98,22 112,24 126,18 140,20 154,14 168,16 182,10 196,12 210,6 224,8 238,4 252,6 266,2 280,4" fill="none" stroke="#10D996" stroke-width="1.5"/>
+              </svg>
+            </div>
+
+            <!-- Settings rows -->
+            <div style="margin:0 14px;background:var(--bg-panel);border:1px solid var(--border);border-radius:10px;overflow:hidden">
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fg2)" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <span style="flex:1;font-size:13px">Security · Two-factor</span>
+                <span style="font-family:var(--font-data);font-size:10px;color:var(--bull)">ON</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fg2)" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>
+                <span style="flex:1;font-size:13px">Payment Methods</span>
+                <span style="color:var(--fg3)">›</span>
+              </div>
+              <div style="display:flex;align-items:center;gap:10px;padding:12px 14px">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--fg2)" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                <span style="flex:1;font-size:13px">Transaction History</span>
+                <span style="color:var(--fg3)">›</span>
+              </div>
+            </div>
+            <div style="height:14px"></div>
+          </div>
+
+          <div class="bnav">
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg></div><div class="bnav-l">Home</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10M12 20V4M6 20v-6"/></svg></div><div class="bnav-l">Markets</div></div>
+            <div class="fab"><div class="fab-btn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M23 6l-9.5 9.5-5-5L1 18"/><path d="M17 6h6v6"/></svg></div><div class="fab-l">Trade</div></div>
+            <div class="bnav-i"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></div><div class="bnav-l">Portfolio</div></div>
+            <div class="bnav-i active"><div class="bnav-ic"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="7" r="4"/><path d="M5.5 21a6.5 6.5 0 0 1 13 0"/></svg></div><div class="bnav-l">Account</div></div>
+          </div>
+        </div>
+        <div class="home-ind"></div>
+      </div>
+      <div class="cell-label"><span class="n">08</span>ACCOUNT</div>
+      <div class="cell-desc">Profile + tier, stats grid, margin usage meter, 30-day P&L spark, security & payment rows.</div>
+    </div>
+
+  </div><!-- /grid -->
+
+  <!-- Mobile-specific tokens -->
+  <div class="tokens">
+    <div class="tok">
+      <div class="tok-ttl">Mobile Type Ramp</div>
+      <div class="tok-row"><span class="tok-lbl" style="font-family:var(--font-data);font-size:26px;font-weight:600">$52,457</span><span class="tok-val">hero · 26</span></div>
+      <div class="tok-row"><span class="tok-lbl" style="font-family:var(--font-display);font-size:15px;font-weight:700">OBSIDIAN</span><span class="tok-val">brand · 15</span></div>
+      <div class="tok-row"><span class="tok-lbl" style="font-family:var(--font-data);font-size:12px;font-weight:700">EUR/USD</span><span class="tok-val">data · 12</span></div>
+      <div class="tok-row"><span class="tok-lbl" style="font-size:10px;font-family:var(--font-data);letter-spacing:0.08em;text-transform:uppercase">BALANCE</span><span class="tok-val">label · 10</span></div>
+    </div>
+    <div class="tok">
+      <div class="tok-ttl">Touch Targets</div>
+      <div class="tok-row"><div class="tok-sw" style="background:var(--accent);width:44px;height:44px;border-radius:10px"></div><span class="tok-lbl">Primary</span><span class="tok-val">44 × 44</span></div>
+      <div class="tok-row"><div class="tok-sw" style="background:var(--bg-elevated);width:36px;height:36px;border-radius:8px"></div><span class="tok-lbl">Secondary</span><span class="tok-val">36 × 36</span></div>
+      <div class="tok-row"><div class="tok-sw" style="background:var(--bg-elevated);width:30px;height:30px;border-radius:8px"></div><span class="tok-lbl">Icon btn</span><span class="tok-val">30 × 30</span></div>
+    </div>
+    <div class="tok">
+      <div class="tok-ttl">Radii</div>
+      <div class="tok-row"><div class="tok-sw" style="background:var(--bg-elevated);border-radius:4px"></div><span class="tok-lbl">sm</span><span class="tok-val">4px</span></div>
+      <div class="tok-row"><div class="tok-sw" style="background:var(--bg-elevated);border-radius:8px"></div><span class="tok-lbl">md</span><span class="tok-val">8px</span></div>
+      <div class="tok-row"><div class="tok-sw" style="background:var(--bg-elevated);border-radius:10px"></div><span class="tok-lbl">lg</span><span class="tok-val">10–12px</span></div>
+      <div class="tok-row"><div class="tok-sw" style="background:var(--bg-elevated);border-radius:20px"></div><span class="tok-lbl">sheet</span><span class="tok-val">20px top</span></div>
+    </div>
+    <div class="tok">
+      <div class="tok-ttl">Interaction</div>
+      <div class="tok-row"><span style="font-family:var(--font-data);font-size:11px;color:var(--fg2)">Hold to confirm</span><span class="tok-val">900ms</span></div>
+      <div class="tok-row"><span style="font-family:var(--font-data);font-size:11px;color:var(--fg2)">Swipe to close</span><span class="tok-val">-64px</span></div>
+      <div class="tok-row"><span style="font-family:var(--font-data);font-size:11px;color:var(--fg2)">Sheet max</span><span class="tok-val">82 / 86 dvh</span></div>
+      <div class="tok-row"><span style="font-family:var(--font-data);font-size:11px;color:var(--fg2)">Toast dismiss</span><span class="tok-val">4s auto</span></div>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>

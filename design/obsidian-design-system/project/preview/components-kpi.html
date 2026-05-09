@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body{margin:0;background:var(--bg-base);padding:18px;color:var(--fg1);display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.kpi{background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:14px;position:relative;overflow:hidden}
+.kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kpi.bull::before{background:linear-gradient(90deg,#10D996,transparent)}
+.kpi.accent::before{background:linear-gradient(90deg,#3B82F6,transparent)}
+.kpi.warn::before{background:linear-gradient(90deg,#F59E0B,transparent)}
+.kpi-lab{font-family:var(--font-ui);font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--fg3);margin-bottom:6px}
+.kpi-val{font-family:var(--font-data);font-size:22px;font-weight:600;color:var(--fg1);line-height:1}
+.kpi-sub{font-family:var(--font-data);font-size:11px;margin-top:5px}
+.up{color:#10D996}
+.down{color:#FF3B5C}
+.muted{color:var(--fg3)}
+</style></head><body>
+<div class="kpi bull">
+  <div class="kpi-lab">Equity</div>
+  <div class="kpi-val">$82,413.22</div>
+  <div class="kpi-sub up">+$1,240.00 · +1.52%</div>
+</div>
+<div class="kpi accent">
+  <div class="kpi-lab">Active Clients</div>
+  <div class="kpi-val">32</div>
+  <div class="kpi-sub muted">trading in last 30d</div>
+</div>
+<div class="kpi warn">
+  <div class="kpi-lab">Margin Level</div>
+  <div class="kpi-val">214.8%</div>
+  <div class="kpi-sub down">-12.4% vs open</div>
+</div>
+</body></html>

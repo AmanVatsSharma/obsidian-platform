@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obsidian Partners · IB Portal</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../_shared.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.hero{margin:20px;padding:24px;border-radius:12px;background:linear-gradient(135deg,#0F1216 0%,#141820 60%,rgba(59,130,246,0.08) 100%);border:1px solid var(--border-md);position:relative;overflow:hidden}
+.hero::before{content:'';position:absolute;top:-40px;right:-40px;width:200px;height:200px;background:radial-gradient(circle,rgba(168,85,247,0.15),transparent 70%);pointer-events:none}
+.hero-t{font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;color:var(--accent);margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.hero-t .tag{background:var(--accent-dim);color:var(--accent);border:1px solid rgba(59,130,246,0.3);padding:2px 8px;border-radius:3px;font-size:9px}
+.hero-h{font-family:var(--font-display);font-size:28px;font-weight:700;letter-spacing:0.01em;margin-bottom:6px;position:relative}
+.hero-h .tier{background:linear-gradient(135deg,#A855F7,#3B82F6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.hero-p{font-size:13px;color:var(--fg2);max-width:520px;line-height:1.5}
+.hero-stats{display:flex;gap:32px;margin-top:20px;padding-top:20px;border-top:1px solid var(--border)}
+.hero-st .l{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3)}
+.hero-st .v{font-family:var(--font-data);font-size:22px;font-weight:700;margin-top:2px}
+
+.ref-card{background:var(--bg-elevated);border:1px solid var(--border-md);border-radius:8px;padding:14px;display:flex;align-items:center;gap:12px;margin-top:16px;position:relative;z-index:1}
+.ref-card [data-lucide]{width:16px;height:16px;color:var(--fg3)}
+.ref-card code{flex:1;font-family:var(--font-data);font-size:13px;color:var(--fg1);background:none;border:none;padding:0;letter-spacing:0.04em}
+.ref-card .btn{flex-shrink:0}
+
+.tree{padding:14px}
+.tree-node{display:grid;grid-template-columns:auto 1fr auto auto;gap:10px;align-items:center;padding:8px 10px;border-radius:6px;position:relative}
+.tree-node:hover{background:var(--bg-hover)}
+.tree-node.l1{padding-left:10px}
+.tree-node.l2{padding-left:36px}
+.tree-node.l3{padding-left:62px}
+.tree-node.l2::before,.tree-node.l3::before{content:'';position:absolute;left:20px;top:0;bottom:50%;width:1px;background:var(--border-md)}
+.tree-node.l3::before{left:46px}
+.tree-node.l2::after,.tree-node.l3::after{content:'';position:absolute;left:20px;top:50%;width:12px;height:1px;background:var(--border-md)}
+.tree-node.l3::after{left:46px}
+.tree-n{font-size:12px;font-weight:600;color:var(--fg1)}
+.tree-m{font-family:var(--font-data);font-size:10px;color:var(--fg3);margin-top:1px}
+.tree-v{font-family:var(--font-data);font-size:12px;font-weight:600;color:var(--bull);text-align:right}
+.tree-c{font-family:var(--font-data);font-size:10px;color:var(--fg3);text-align:right}
+
+.mkt-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;padding:14px}
+.mkt-card{background:var(--bg-elevated);border:1px solid var(--border);border-radius:8px;padding:14px;display:flex;flex-direction:column;gap:10px;cursor:pointer}
+.mkt-card:hover{border-color:var(--border-hi)}
+.mkt-thumb{height:90px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-family:var(--font-display);font-weight:800;letter-spacing:0.1em;color:#fff}
+.mkt-t1{background:linear-gradient(135deg,#3B82F6,#A855F7)}
+.mkt-t2{background:linear-gradient(135deg,#0F1216,#1E2530);border:1px solid var(--border-md);color:var(--fg1)}
+.mkt-t3{background:linear-gradient(135deg,#10D996,#0891B2);color:#06080A}
+.mkt-ttl{font-size:13px;font-weight:600;color:var(--fg1)}
+.mkt-meta{font-family:var(--font-data);font-size:10px;color:var(--fg3);display:flex;gap:8px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="logo"><div class="d"></div>OBSIDIAN<div class="sep"></div><span class="sub">Partners</span></div>
+    <div class="tb-spacer"></div>
+    <div class="tb-actions">
+      <button class="btn"><i data-lucide="download"></i>Payout Statement</button>
+      <button class="tb-btn"><i data-lucide="bell"></i></button>
+      <div class="chip"><div class="ava av-4">JR</div><div><div class="n">Jordan Rhee</div><div class="r">IB · Gold</div></div></div>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="sidebar">
+      <div class="sb-section">Partner</div>
+      <div class="sb-list">
+        <div class="sb-item active"><i data-lucide="layout-dashboard"></i>Overview</div>
+        <div class="sb-item"><i data-lucide="dollar-sign"></i>Earnings</div>
+        <div class="sb-item"><i data-lucide="users"></i>Referred Clients<span class="b">184</span></div>
+        <div class="sb-item"><i data-lucide="git-branch"></i>Sub-IB Network</div>
+      </div>
+      <div class="sb-section">Grow</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="link-2"></i>Referral Links</div>
+        <div class="sb-item"><i data-lucide="image"></i>Marketing Kit</div>
+        <div class="sb-item"><i data-lucide="book-open"></i>Playbooks</div>
+      </div>
+      <div class="sb-section">Account</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="wallet"></i>Payouts</div>
+        <div class="sb-item"><i data-lucide="settings"></i>Settings</div>
+      </div>
+      <div class="sb-footer">
+        <div class="st" style="flex:1">
+          <div class="sl">Next Payout</div>
+          <div class="sv" style="color:var(--accent);font-size:12px"><i data-lucide="calendar" style="width:12px;height:12px"></i>May 1 · $12.4K</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="hero">
+        <div class="hero-t"><span class="tag">GOLD TIER</span>Partner since Aug 2024</div>
+        <div class="hero-h">Welcome back, Jordan. You're <span class="tier">34 clients</span> from Platinum.</div>
+        <div class="hero-p">Your network generated $8.2M volume this month. Platinum unlocks 45% rev-share, dedicated IB manager, and priority withdrawal processing.</div>
+        <div class="ref-card">
+          <i data-lucide="link-2"></i>
+          <code>obsidian.trade/r/JORDAN-RHEE-2048</code>
+          <button class="btn"><i data-lucide="copy"></i>Copy</button>
+          <button class="btn primary"><i data-lucide="share-2"></i>Share</button>
+        </div>
+        <div class="hero-stats">
+          <div class="hero-st"><div class="l">Lifetime Earnings</div><div class="v bull">$142,820</div></div>
+          <div class="hero-st"><div class="l">MTD Earnings</div><div class="v bull">+$12,410</div></div>
+          <div class="hero-st"><div class="l">Active Clients</div><div class="v">184</div></div>
+          <div class="hero-st"><div class="l">Network Volume · MTD</div><div class="v">$8.2M</div></div>
+          <div class="hero-st"><div class="l">Rev-Share</div><div class="v" style="color:var(--gold)">38%</div></div>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi">
+          <div class="kpi-l"><i data-lucide="trending-up"></i>Conversion Rate</div>
+          <div class="kpi-v">62.4%</div>
+          <div class="kpi-d up"><i data-lucide="arrow-up-right"></i>+4.2% vs last month</div>
+        </div>
+        <div class="kpi bull">
+          <div class="kpi-l"><i data-lucide="user-plus"></i>New Signups · 30D</div>
+          <div class="kpi-v">28</div>
+          <div class="kpi-d up"><i data-lucide="arrow-up-right"></i>+12 from last period</div>
+        </div>
+        <div class="kpi purple">
+          <div class="kpi-l"><i data-lucide="git-branch"></i>Sub-IBs</div>
+          <div class="kpi-v">6</div>
+          <div class="kpi-d flat">Tier-2 earnings: $4.1K</div>
+        </div>
+        <div class="kpi">
+          <div class="kpi-l"><i data-lucide="activity"></i>Avg Client Volume</div>
+          <div class="kpi-v">$44.5K</div>
+          <div class="kpi-d up"><i data-lucide="arrow-up-right"></i>+8.1%</div>
+        </div>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>Sub-IB Network · Tier Tree</h3>
+            <div class="right"><button class="filter active">By Volume</button><button class="filter">By Earnings</button></div>
+          </div>
+          <div class="panel-body">
+            <div class="tree">
+              <div class="tree-node l1">
+                <div class="avatar-init av-4">JR</div>
+                <div><div class="tree-n">Jordan Rhee <span class="tag gold" style="margin-left:8px">GOLD · YOU</span></div><div class="tree-m">ID IB-2048 · 184 direct clients</div></div>
+                <div class="tree-v">$12,410</div>
+                <div class="tree-c">MTD</div>
+              </div>
+              <div class="tree-node l2">
+                <div class="avatar-init av-2">LM</div>
+                <div><div class="tree-n">Liam Moreau <span class="tag silver" style="margin-left:6px;background:var(--bg-elevated);color:var(--fg1);border:1px solid var(--border-md)">SILVER</span></div><div class="tree-m">ID IB-2112 · 42 clients · SUB-IB</div></div>
+                <div class="tree-v">$2,240</div>
+                <div class="tree-c">10% of $22.4K</div>
+              </div>
+              <div class="tree-node l3">
+                <div class="avatar-init av-5">AO</div>
+                <div><div class="tree-n">Anna Oyelowo</div><div class="tree-m">ID IB-2301 · 14 clients</div></div>
+                <div class="tree-v">$620</div>
+                <div class="tree-c">sub of Liam</div>
+              </div>
+              <div class="tree-node l3">
+                <div class="avatar-init av-3">KD</div>
+                <div><div class="tree-n">Kenji Doi</div><div class="tree-m">ID IB-2318 · 8 clients</div></div>
+                <div class="tree-v">$380</div>
+                <div class="tree-c">sub of Liam</div>
+              </div>
+              <div class="tree-node l2">
+                <div class="avatar-init av-1">SP</div>
+                <div><div class="tree-n">Sofia Papadopoulos <span class="tag silver" style="margin-left:6px;background:var(--bg-elevated);color:var(--fg1);border:1px solid var(--border-md)">SILVER</span></div><div class="tree-m">ID IB-2184 · 28 clients · SUB-IB</div></div>
+                <div class="tree-v">$1,480</div>
+                <div class="tree-c">10% of $14.8K</div>
+              </div>
+              <div class="tree-node l2">
+                <div class="avatar-init av-3">DF</div>
+                <div><div class="tree-n">Diego Fernández</div><div class="tree-m">ID IB-2240 · 12 clients · Basic</div></div>
+                <div class="tree-v">$410</div>
+                <div class="tree-c">5% of $8.2K</div>
+              </div>
+              <div class="tree-node l2">
+                <div class="avatar-init av-4">IW</div>
+                <div><div class="tree-n">Isabella Weiss</div><div class="tree-m">ID IB-2302 · 18 clients · Basic</div></div>
+                <div class="tree-v">$820</div>
+                <div class="tree-c">5% of $16.4K</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h3>Tier Progress</h3></div>
+          <div class="panel-body">
+            <div style="padding:18px 16px">
+              <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+                <div><div style="font-family:var(--font-display);font-size:10px;letter-spacing:0.08em;color:var(--fg3);text-transform:uppercase">Current</div><div style="font-family:var(--font-display);font-size:16px;font-weight:700;color:var(--gold)">GOLD</div></div>
+                <div style="text-align:right"><div style="font-family:var(--font-display);font-size:10px;letter-spacing:0.08em;color:var(--fg3);text-transform:uppercase">Next</div><div style="font-family:var(--font-display);font-size:16px;font-weight:700;background:linear-gradient(135deg,#A855F7,#3B82F6);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">PLATINUM</div></div>
+              </div>
+              <div style="height:8px;background:var(--bg-elevated);border-radius:4px;overflow:hidden;margin:12px 0 6px">
+                <div style="height:100%;width:84%;background:linear-gradient(90deg,#EAB308,#A855F7);border-radius:4px"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-family:var(--font-data);font-size:10px;color:var(--fg3)">
+                <span>150 active clients</span><span style="color:var(--fg1)">184 / 250 · 74%</span><span>250</span>
+              </div>
+              <div style="height:8px;background:var(--bg-elevated);border-radius:4px;overflow:hidden;margin:14px 0 6px">
+                <div style="height:100%;width:68%;background:linear-gradient(90deg,#EAB308,#A855F7);border-radius:4px"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-family:var(--font-data);font-size:10px;color:var(--fg3)">
+                <span>$10M monthly volume</span><span style="color:var(--fg1)">$8.2M / $12M · 68%</span><span>$12M</span>
+              </div>
+            </div>
+            <div style="padding:16px;border-top:1px solid var(--border)">
+              <div class="panel-title" style="margin-bottom:10px">Platinum Unlocks</div>
+              <div style="display:flex;flex-direction:column;gap:7px;font-size:12px;color:var(--fg2)">
+                <div style="display:flex;gap:8px;align-items:center"><i data-lucide="check" style="width:13px;height:13px;color:var(--bull)"></i>45% rev-share (vs 38% Gold)</div>
+                <div style="display:flex;gap:8px;align-items:center"><i data-lucide="check" style="width:13px;height:13px;color:var(--bull)"></i>Dedicated IB manager</div>
+                <div style="display:flex;gap:8px;align-items:center"><i data-lucide="check" style="width:13px;height:13px;color:var(--bull)"></i>Priority withdrawal</div>
+                <div style="display:flex;gap:8px;align-items:center"><i data-lucide="check" style="width:13px;height:13px;color:var(--bull)"></i>Custom landing pages</div>
+                <div style="display:flex;gap:8px;align-items:center"><i data-lucide="check" style="width:13px;height:13px;color:var(--bull)"></i>Co-branded marketing</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panels" style="grid-template-columns:1fr">
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>Marketing Kit · Approved Creative</h3>
+            <div class="right"><button class="filter active">All</button><button class="filter">Banners</button><button class="filter">Social</button><button class="filter">Video</button></div>
+          </div>
+          <div class="mkt-grid">
+            <div class="mkt-card"><div class="mkt-thumb mkt-t1">OBSIDIAN</div><div class="mkt-ttl">Trade Beyond · Master Banner</div><div class="mkt-meta"><span>728×90 · 300×250 · 970×250</span></div></div>
+            <div class="mkt-card"><div class="mkt-thumb mkt-t2">0.0 PIP</div><div class="mkt-ttl">Raw Spreads · Performance Set</div><div class="mkt-meta"><span>PNG · MP4 · 12 sizes</span></div></div>
+            <div class="mkt-card"><div class="mkt-thumb mkt-t3">FX · CRYPTO · GOLD</div><div class="mkt-ttl">Multi-Asset Social Pack</div><div class="mkt-meta"><span>IG · TikTok · 1080²</span></div></div>
+            <div class="mkt-card"><div class="mkt-thumb mkt-t1">⟶ DEMO</div><div class="mkt-ttl">Demo Account CTA Pack</div><div class="mkt-meta"><span>Banner + Landing Hero</span></div></div>
+            <div class="mkt-card"><div class="mkt-thumb mkt-t2">LIVE · 2.4ms</div><div class="mkt-ttl">Low-Latency Trust Set</div><div class="mkt-meta"><span>Banner · Story · Email</span></div></div>
+            <div class="mkt-card"><div class="mkt-thumb mkt-t3">+38% REV</div><div class="mkt-ttl">IB Recruitment Pack</div><div class="mkt-meta"><span>For sub-IB outreach</span></div></div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="status">
+    <div class="status-i"><span class="status-d"></span>Partner portal · operational</div>
+    <div class="status-i">Tracking cookies: 2,184 active</div>
+    <div class="status-i">Last click: 3 min ago</div>
+    <div class="status-i">Payout cycle: monthly · next May 1</div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ArcaFX · Broker Workstation</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../_shared.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.kpi-grid{grid-template-columns:repeat(4,1fr)}
+.client-cell{display:flex;align-items:center;gap:10px}
+.client-cell .meta{display:flex;flex-direction:column;gap:1px}
+.client-cell .name{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--fg1)}
+.client-cell .id{font-family:var(--font-data);font-size:10px;color:var(--fg3);letter-spacing:0.04em}
+.tier{display:inline-flex;gap:4px;align-items:center;padding:2px 7px;border-radius:3px;font-size:9px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase}
+.tier.plat{background:rgba(168,85,247,0.12);color:var(--purple);border:1px solid rgba(168,85,247,0.25)}
+.tier.gold{background:rgba(234,179,8,0.12);color:var(--gold);border:1px solid rgba(234,179,8,0.25)}
+.tier.silver{background:var(--bg-elevated);color:var(--fg1);border:1px solid var(--border-md)}
+.tier.basic{background:var(--bg-elevated);color:var(--fg3);border:1px solid var(--border)}
+.ring{position:relative;width:120px;height:120px}
+.ring svg{transform:rotate(-90deg)}
+.ring .r-text{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .r-v{font-family:var(--font-data);font-size:22px;font-weight:700;color:var(--fg1)}
+.ring .r-l{font-family:var(--font-display);font-size:9px;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--fg3);margin-top:2px}
+.stat-row{display:flex;gap:14px;padding:14px;align-items:center;border-top:1px solid var(--border)}
+.stat-row:first-child{border-top:none}
+.stat-row .dot{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.stat-row .lab{flex:1;font-size:12px;color:var(--fg2)}
+.stat-row .val{font-family:var(--font-data);font-size:13px;font-weight:600;color:var(--fg1)}
+.kyc-queue{display:flex;flex-direction:column;gap:1px;background:var(--border)}
+.kyc-row{background:var(--bg-panel);padding:12px 14px;display:grid;grid-template-columns:auto 1fr auto auto;align-items:center;gap:12px}
+.kyc-row:hover{background:var(--bg-hover)}
+.kyc-n{font-family:var(--font-ui);font-size:13px;font-weight:600;color:var(--fg1)}
+.kyc-m{font-family:var(--font-data);font-size:11px;color:var(--fg3)}
+.audit-log{padding:2px 0}
+.audit-item{display:flex;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:flex-start}
+.audit-item .t{font-family:var(--font-data);font-size:10px;color:var(--fg3);min-width:48px;padding-top:2px}
+.audit-item .d{flex:1;font-size:12px;color:var(--fg2);line-height:1.45}
+.audit-item .d b{color:var(--fg1);font-weight:600}
+.audit-item .i{color:var(--fg3)}
+.audit-item .i [data-lucide]{width:13px;height:13px}
+.loading-bar{height:3px;background:var(--bg-elevated);border-radius:2px;overflow:hidden}
+.loading-bar .fill{height:100%;background:var(--accent);border-radius:2px}
+.loading-bar.bull .fill{background:var(--bull)}
+.loading-bar.warn .fill{background:var(--warn)}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="logo"><div class="d"></div>OBSIDIAN<div class="sep"></div><span class="sub">ArcaFX · Broker</span></div>
+    <div class="tb-search">
+      <i data-lucide="search" style="width:13px;height:13px"></i>
+      <span>Search clients, tickets, transactions…</span>
+      <span class="kbd">⌘K</span>
+    </div>
+    <div class="tb-actions">
+      <button class="tb-btn"><i data-lucide="bell"></i><span class="notif"></span></button>
+      <button class="tb-btn"><i data-lucide="inbox"></i></button>
+      <button class="tb-btn"><i data-lucide="settings"></i></button>
+      <div class="chip"><div class="ava">SK</div><div><div class="n">S. Kováč</div><div class="r">Admin</div></div></div>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="sidebar">
+      <div class="sb-section">Overview</div>
+      <div class="sb-list">
+        <div class="sb-item active"><i data-lucide="layout-dashboard"></i>Dashboard</div>
+        <div class="sb-item"><i data-lucide="activity"></i>Live Exposure</div>
+      </div>
+      <div class="sb-section">CRM</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="users"></i>Clients<span class="b">2,184</span></div>
+        <div class="sb-item"><i data-lucide="shield-check"></i>KYC Queue<span class="b">47</span></div>
+        <div class="sb-item"><i data-lucide="git-branch"></i>IB Network</div>
+        <div class="sb-item"><i data-lucide="ticket"></i>Tickets<span class="b">12</span></div>
+      </div>
+      <div class="sb-section">Finance</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="arrow-down-to-line"></i>Deposits</div>
+        <div class="sb-item"><i data-lucide="arrow-up-from-line"></i>Withdrawals<span class="b">8</span></div>
+        <div class="sb-item"><i data-lucide="wallet"></i>Accounts</div>
+        <div class="sb-item"><i data-lucide="file-text"></i>Statements</div>
+      </div>
+      <div class="sb-section">Risk · Ops</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="shield-alert"></i>AML / Surveillance</div>
+        <div class="sb-item"><i data-lucide="sliders-horizontal"></i>Pricing &amp; Spreads</div>
+        <div class="sb-item"><i data-lucide="layers"></i>Symbols</div>
+        <div class="sb-item"><i data-lucide="file-bar-chart"></i>Reports</div>
+      </div>
+      <div class="sb-footer">
+        <div class="ava" style="width:28px;height:28px">SK</div>
+        <div class="st">
+          <div class="sl">System</div>
+          <div class="sv"><span class="dot"></span>Operational</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-hd">
+        <div>
+          <div class="crumb">Overview <span>/</span> <span class="cur">Dashboard</span></div>
+          <h1>Broker Dashboard</h1>
+        </div>
+        <div class="right">
+          <button class="btn ghost"><i data-lucide="calendar"></i>Apr 18, 2026</button>
+          <button class="btn"><i data-lucide="download"></i>Export</button>
+          <button class="btn primary"><i data-lucide="plus"></i>New Client</button>
+        </div>
+      </div>
+
+      <div class="kpi-grid">
+        <div class="kpi bull">
+          <div class="kpi-l"><i data-lucide="users"></i>Active Clients</div>
+          <div class="kpi-v">2,184</div>
+          <div class="kpi-d up"><i data-lucide="trending-up"></i>+48 this week</div>
+          <svg class="spark" viewBox="0 0 70 28" preserveAspectRatio="none"><path d="M0,20 L8,18 L16,14 L24,16 L32,10 L40,12 L48,6 L56,8 L64,4 L70,6" fill="none" stroke="#10D996" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi">
+          <div class="kpi-l"><i data-lucide="dollar-sign"></i>Net Deposits · MTD</div>
+          <div class="kpi-v">$4.82M</div>
+          <div class="kpi-d up"><i data-lucide="arrow-up-right"></i>+18.4% vs last month</div>
+          <svg class="spark" viewBox="0 0 70 28" preserveAspectRatio="none"><path d="M0,24 L8,20 L16,22 L24,16 L32,18 L40,12 L48,14 L56,8 L64,10 L70,4" fill="none" stroke="#3B82F6" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi warn">
+          <div class="kpi-l"><i data-lucide="activity"></i>Net Exposure</div>
+          <div class="kpi-v warn-text">$1.24M</div>
+          <div class="kpi-d flat"><i data-lucide="minus"></i>USD short bias</div>
+          <svg class="spark" viewBox="0 0 70 28" preserveAspectRatio="none"><path d="M0,14 L8,12 L16,18 L24,10 L32,16 L40,8 L48,14 L56,6 L64,12 L70,10" fill="none" stroke="#F59E0B" stroke-width="1.5"/></svg>
+        </div>
+        <div class="kpi purple">
+          <div class="kpi-l"><i data-lucide="bar-chart-3"></i>Broker Revenue · MTD</div>
+          <div class="kpi-v bull">$284.7K</div>
+          <div class="kpi-d up"><i data-lucide="trending-up"></i>+22.1% vs last month</div>
+          <svg class="spark" viewBox="0 0 70 28" preserveAspectRatio="none"><path d="M0,26 L8,22 L16,24 L24,18 L32,20 L40,14 L48,10 L56,12 L64,6 L70,4" fill="none" stroke="#A855F7" stroke-width="1.5"/></svg>
+        </div>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>Top Clients · By Volume 30D</h3>
+            <div class="right">
+              <button class="filter active">Volume</button>
+              <button class="filter">P&amp;L</button>
+              <button class="filter">Deposits</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <table>
+              <thead><tr><th>Client</th><th>Tier</th><th style="text-align:right">Balance</th><th style="text-align:right">Volume · 30D</th><th style="text-align:right">P&amp;L</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="text"><div class="client-cell"><div class="avatar-init av-1">MR</div><div class="meta"><div class="name">Marcus Reinhardt</div><div class="id">ID · 100284 · DE</div></div></div></td>
+                  <td><span class="tier plat">Platinum</span></td>
+                  <td class="num bull">$412,820.50</td>
+                  <td class="num">$28.4M</td>
+                  <td class="num bull">+$42,180</td>
+                  <td><span class="tag bull"><span class="dot"></span>Active</span></td>
+                  <td><i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--fg3)"></i></td>
+                </tr>
+                <tr>
+                  <td class="text"><div class="client-cell"><div class="avatar-init av-2">AN</div><div class="meta"><div class="name">Aiko Nakamura</div><div class="id">ID · 100311 · JP</div></div></div></td>
+                  <td><span class="tier gold">Gold</span></td>
+                  <td class="num bull">$184,200.00</td>
+                  <td class="num">$14.2M</td>
+                  <td class="num bear">−$8,420</td>
+                  <td><span class="tag bull"><span class="dot"></span>Active</span></td>
+                  <td><i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--fg3)"></i></td>
+                </tr>
+                <tr>
+                  <td class="text"><div class="client-cell"><div class="avatar-init av-3">CT</div><div class="meta"><div class="name">Carlos Teixeira</div><div class="id">ID · 100402 · BR</div></div></div></td>
+                  <td><span class="tier gold">Gold</span></td>
+                  <td class="num bull">$98,140.22</td>
+                  <td class="num">$11.8M</td>
+                  <td class="num bull">+$6,240</td>
+                  <td><span class="tag warn"><span class="dot"></span>Margin Call</span></td>
+                  <td><i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--fg3)"></i></td>
+                </tr>
+                <tr>
+                  <td class="text"><div class="client-cell"><div class="avatar-init av-4">LP</div><div class="meta"><div class="name">Léa Petit</div><div class="id">ID · 100518 · FR</div></div></div></td>
+                  <td><span class="tier silver">Silver</span></td>
+                  <td class="num">$42,610.00</td>
+                  <td class="num">$8.4M</td>
+                  <td class="num bull">+$1,820</td>
+                  <td><span class="tag bull"><span class="dot"></span>Active</span></td>
+                  <td><i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--fg3)"></i></td>
+                </tr>
+                <tr>
+                  <td class="text"><div class="client-cell"><div class="avatar-init av-5">DO</div><div class="meta"><div class="name">David Okafor</div><div class="id">ID · 100620 · NG</div></div></div></td>
+                  <td><span class="tier silver">Silver</span></td>
+                  <td class="num">$28,420.00</td>
+                  <td class="num">$6.2M</td>
+                  <td class="num bear">−$2,140</td>
+                  <td><span class="tag bull"><span class="dot"></span>Active</span></td>
+                  <td><i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--fg3)"></i></td>
+                </tr>
+                <tr>
+                  <td class="text"><div class="client-cell"><div class="avatar-init av-1">RV</div><div class="meta"><div class="name">Rohit Verma</div><div class="id">ID · 100714 · IN</div></div></div></td>
+                  <td><span class="tier basic">Basic</span></td>
+                  <td class="num">$8,240.00</td>
+                  <td class="num">$2.1M</td>
+                  <td class="num bull">+$410</td>
+                  <td><span class="tag neutral"><span class="dot"></span>Dormant</span></td>
+                  <td><i data-lucide="chevron-right" style="width:14px;height:14px;color:var(--fg3)"></i></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h3>Compliance Health</h3></div>
+          <div class="panel-body">
+            <div style="display:flex;justify-content:center;padding:20px 0">
+              <div class="ring">
+                <svg width="120" height="120" viewBox="0 0 120 120">
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#141820" stroke-width="10"/>
+                  <circle cx="60" cy="60" r="50" fill="none" stroke="#10D996" stroke-width="10" stroke-dasharray="282 314" stroke-linecap="round"/>
+                </svg>
+                <div class="r-text"><div class="r-v">92%</div><div class="r-l">Healthy</div></div>
+              </div>
+            </div>
+            <div class="stat-row"><span class="dot" style="background:var(--bull)"></span><span class="lab">KYC Verified</span><span class="val bull">1,984</span></div>
+            <div class="stat-row"><span class="dot" style="background:var(--warn)"></span><span class="lab">Pending Review</span><span class="val warn-text">47</span></div>
+            <div class="stat-row"><span class="dot" style="background:var(--bear)"></span><span class="lab">AML Flags · 24h</span><span class="val bear">3</span></div>
+            <div class="stat-row"><span class="dot" style="background:var(--accent)"></span><span class="lab">Pending Withdrawals</span><span class="val">8 · $142K</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panels">
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>KYC Queue · Awaiting Review</h3>
+            <div class="right">
+              <span class="tag warn">47 Pending</span>
+              <button class="btn ghost"><i data-lucide="filter"></i>Filter</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="kyc-queue">
+              <div class="kyc-row">
+                <div class="avatar-init av-2" style="width:32px;height:32px">JO</div>
+                <div>
+                  <div class="kyc-n">Jakub Ostrowski</div>
+                  <div class="kyc-m">Submitted 12 min ago · Passport · POL · Docs: 3/3</div>
+                </div>
+                <div style="width:140px"><div class="loading-bar bull"><div class="fill" style="width:92%"></div></div><div style="font-family:var(--font-data);font-size:10px;color:var(--fg3);margin-top:4px">AUTO-CHECK · 92%</div></div>
+                <div style="display:flex;gap:6px"><button class="btn"><i data-lucide="eye"></i>Review</button><button class="btn primary">Approve</button></div>
+              </div>
+              <div class="kyc-row">
+                <div class="avatar-init av-4" style="width:32px;height:32px">MT</div>
+                <div>
+                  <div class="kyc-n">Maria Torres</div>
+                  <div class="kyc-m">Submitted 48 min ago · National ID · ESP · Docs: 3/3</div>
+                </div>
+                <div style="width:140px"><div class="loading-bar warn"><div class="fill" style="width:64%"></div></div><div style="font-family:var(--font-data);font-size:10px;color:var(--fg3);margin-top:4px">ADDRESS MISMATCH</div></div>
+                <div style="display:flex;gap:6px"><button class="btn"><i data-lucide="eye"></i>Review</button><button class="btn danger">Reject</button></div>
+              </div>
+              <div class="kyc-row">
+                <div class="avatar-init av-5" style="width:32px;height:32px">HW</div>
+                <div>
+                  <div class="kyc-n">Hassan Walid</div>
+                  <div class="kyc-m">Submitted 1h 24m ago · Passport · ARE · Docs: 2/3 · Missing POA</div>
+                </div>
+                <div style="width:140px"><div class="loading-bar warn"><div class="fill" style="width:40%"></div></div><div style="font-family:var(--font-data);font-size:10px;color:var(--fg3);margin-top:4px">INCOMPLETE</div></div>
+                <div style="display:flex;gap:6px"><button class="btn ghost"><i data-lucide="mail"></i>Request Docs</button></div>
+              </div>
+              <div class="kyc-row">
+                <div class="avatar-init av-1" style="width:32px;height:32px">ES</div>
+                <div>
+                  <div class="kyc-n">Elena Sokolova</div>
+                  <div class="kyc-m">Submitted 2h 12m ago · Passport · CYP · Docs: 3/3 · PEP flag</div>
+                </div>
+                <div style="width:140px"><div class="loading-bar"><div class="fill" style="width:100%;background:var(--bear)"></div></div><div style="font-family:var(--font-data);font-size:10px;color:var(--bear);margin-top:4px">MANUAL REVIEW</div></div>
+                <div style="display:flex;gap:6px"><button class="btn"><i data-lucide="shield-alert"></i>Escalate</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-hd"><h3>Audit Log · Live</h3><div class="right"><span class="tag bull"><span class="dot" style="animation:blink 2s infinite"></span>Streaming</span></div></div>
+          <div class="panel-body">
+            <div class="audit-log">
+              <div class="audit-item"><div class="i"><i data-lucide="check-circle-2" style="color:var(--bull)"></i></div><div class="t">10:42</div><div class="d"><b>S. Kováč</b> approved KYC for <b>Petra Holm</b> (ID 100824).</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="arrow-down-to-line" style="color:var(--accent)"></i></div><div class="t">10:41</div><div class="d">Deposit <b>$24,000.00</b> received · Marcus Reinhardt · Wire · verified.</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="shield-alert" style="color:var(--warn)"></i></div><div class="t">10:38</div><div class="d">AML flag raised on account <b>100402</b> · large round-trip withdrawal.</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="sliders-horizontal" style="color:var(--purple)"></i></div><div class="t">10:35</div><div class="d"><b>Pricing desk</b> widened EUR/USD spread to <b>0.6 pips</b> · high-vol session.</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="user-plus" style="color:var(--bull)"></i></div><div class="t">10:31</div><div class="d">New client registered · <b>Noah Lindqvist</b> (SWE) · referred by IB-2048.</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="x-circle" style="color:var(--bear)"></i></div><div class="t">10:28</div><div class="d">Withdrawal request <b>$8,200</b> rejected · insufficient free margin.</div></div>
+              <div class="audit-item"><div class="i"><i data-lucide="ticket" style="color:var(--fg2)"></i></div><div class="t">10:24</div><div class="d">Support ticket <b>#4182</b> opened by <b>Aiko Nakamura</b> · 2FA reset.</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="status">
+    <div class="status-i"><span class="status-d"></span>All systems operational</div>
+    <div class="status-i">Region: EU-WEST · LD4</div>
+    <div class="status-i">Active sessions: <span class="bull">1,284</span></div>
+    <div class="status-i">Queue lag: 12ms</div>
+    <div class="status-i">Build v4.18.2 · 10:42:18 UTC</div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

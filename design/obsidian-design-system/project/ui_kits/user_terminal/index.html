@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obsidian User Terminal</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;background:var(--bg-base);color:var(--fg1);font-family:var(--font-ui);font-size:13px;overflow:hidden}
+::-webkit-scrollbar{width:4px;height:4px}::-webkit-scrollbar-thumb{background:var(--border-md);border-radius:2px}
+.app{display:flex;flex-direction:column;height:100vh}
+/* TOPBAR */
+.topbar{height:52px;background:var(--bg-surface);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 16px;gap:0;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-size:16px;font-weight:700;letter-spacing:0.08em;margin-right:20px}
+.logo .d{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.sym{display:flex;align-items:center;gap:10px;padding:0 14px;height:100%;border-left:1px solid var(--border);cursor:pointer;font-family:var(--font-data);font-size:12px}
+.sym:hover{background:var(--bg-hover)}
+.sym .s{font-weight:600;color:var(--fg1)}
+.bull{color:var(--bull)}.bear{color:var(--bear)}
+.sym .c{font-size:10px}
+.sess{display:flex;gap:6px;margin-left:auto}
+.pill{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:20px;font-family:var(--font-data);font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase}
+.pill.open{background:var(--bull-dim);color:var(--bull);border:1px solid rgba(16,217,150,0.2)}
+.pill.closed{background:var(--bg-elevated);color:var(--fg3);border:1px solid var(--border)}
+.pill .dot{width:5px;height:5px;border-radius:50%}
+.pill.open .dot{background:var(--bull);animation:blink 1.5s infinite}
+.pill.closed .dot{background:var(--fg3)}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:0.3}}
+.tb-btn{width:32px;height:32px;border-radius:6px;background:none;border:none;color:var(--fg2);cursor:pointer;display:flex;align-items:center;justify-content:center;margin-left:4px}
+.tb-btn:hover{background:var(--bg-hover);color:var(--fg1)}
+.chip{display:flex;align-items:center;gap:8px;padding:0 12px;height:32px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;margin-left:8px;cursor:pointer}
+.ava{width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,var(--accent),#6366F1);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;color:#fff;font-family:var(--font-display)}
+.chip .bal{font-family:var(--font-data);font-size:12px;font-weight:600}
+.chip .l{font-size:10px;color:var(--fg3)}
+
+/* BODY */
+.body{display:flex;flex:1;overflow:hidden}
+/* WATCHLIST */
+.wl{width:220px;background:var(--bg-surface);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.wl-hd{padding:10px 12px 8px;border-bottom:1px solid var(--border)}
+.wl-ttl{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3)}
+.wl-search{display:flex;align-items:center;gap:6px;background:var(--bg-elevated);border:1px solid var(--border);border-radius:4px;padding:4px 8px;margin-top:8px;font-family:var(--font-ui);font-size:11px;color:var(--fg3)}
+.cats{display:flex;gap:2px;padding:6px 12px;border-bottom:1px solid var(--border);overflow-x:auto}
+.cat{padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;background:none;border:1px solid transparent;color:var(--fg3);cursor:pointer;white-space:nowrap}
+.cat.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(59,130,246,0.25)}
+.wl-list{flex:1;overflow-y:auto}
+.wi{padding:8px 12px;display:grid;grid-template-columns:1fr auto;gap:2px 8px;cursor:pointer;border-bottom:1px solid var(--border);position:relative}
+.wi:hover{background:var(--bg-hover)}
+.wi.active{background:var(--bg-active)}
+.wi.active::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--accent)}
+.wi-s{font-family:var(--font-data);font-size:12px;font-weight:600;color:var(--fg1)}
+.wi-b{font-family:var(--font-data);font-size:12px;font-weight:500;text-align:right}
+.wi-n{font-size:10px;color:var(--fg3)}
+.wi-c{font-family:var(--font-data);font-size:10px;font-weight:600;text-align:right}
+
+/* MAIN */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.chart-row{display:flex;flex:1;overflow:hidden;min-height:0}
+.chart-sec{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.chart-tools{display:flex;align-items:center;gap:6px;padding:0 12px;height:36px;background:var(--bg-surface);border-bottom:1px solid var(--border);flex-shrink:0}
+.csd{display:flex;align-items:center;gap:8px;margin-right:8px}
+.csd-s{font-family:var(--font-display);font-size:14px;font-weight:700}
+.csd-p{font-family:var(--font-data);font-size:14px;font-weight:600}
+.csd-c{font-family:var(--font-data);font-size:11px;padding:2px 6px;border-radius:4px}
+.csd-c.bull{background:var(--bull-dim)}
+.divv{width:1px;height:18px;background:var(--border)}
+.tf{padding:2px 7px;border-radius:4px;font-family:var(--font-data);font-size:11px;font-weight:500;background:none;border:1px solid transparent;color:var(--fg3);cursor:pointer}
+.tf.active{background:var(--accent-dim);color:var(--accent);border-color:rgba(59,130,246,0.3)}
+.tf:hover:not(.active){color:var(--fg1)}
+.ind{display:flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-size:11px;background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg2);cursor:pointer}
+
+/* CHART */
+.chart{flex:1;position:relative;min-height:0;background:var(--bg-base);overflow:hidden}
+.chart svg{width:100%;height:100%;display:block}
+.ohlc{position:absolute;top:10px;left:10px;display:flex;gap:12px;background:rgba(6,8,10,0.85);backdrop-filter:blur(8px);border:1px solid var(--border);padding:6px 10px;border-radius:6px}
+.ohlc-i{display:flex;flex-direction:column;gap:1px}
+.ohlc-l{font-size:9px;color:var(--fg3);font-family:var(--font-data);letter-spacing:0.06em}
+.ohlc-v{font-size:12px;font-family:var(--font-data);font-weight:500}
+
+/* DOM */
+.dom{width:220px;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0}
+.dom-hd{padding:0 10px;height:36px;display:flex;align-items:center;background:var(--bg-elevated);border-bottom:1px solid var(--border)}
+.dom-cols{display:grid;grid-template-columns:1fr 80px 60px;padding:4px 10px;font-size:9px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data);border-bottom:1px solid var(--border)}
+.dom-list{flex:1;overflow-y:auto}
+.dom-r{display:grid;grid-template-columns:1fr 80px 60px;padding:3px 10px;align-items:center;position:relative}
+.dom-r .bar{position:absolute;top:0;bottom:0;right:0;opacity:0.12}
+.dom-r.ask .bar{background:var(--bear)}
+.dom-r.bid .bar{background:var(--bull)}
+.dom-p{font-family:var(--font-data);font-size:12px;font-weight:500;z-index:1}
+.dom-r.ask .dom-p{color:var(--bear)}
+.dom-r.bid .dom-p{color:var(--bull)}
+.dom-v,.dom-d{font-family:var(--font-data);font-size:10px;color:var(--fg2);text-align:right;z-index:1}
+.dom-spread{padding:5px 10px;background:var(--bg-elevated);border-top:1px solid var(--border);border-bottom:1px solid var(--border);text-align:center;font-family:var(--font-data);font-size:10px;color:var(--fg3)}
+.dom-spread strong{color:var(--warn);margin-left:6px}
+
+/* RIGHT SIDEBAR */
+.rs{width:260px;border-left:1px solid var(--border);background:var(--bg-surface);display:flex;flex-direction:column;flex-shrink:0;overflow:hidden}
+.oe{border-bottom:1px solid var(--border);flex-shrink:0}
+.oe-tabs{display:flex}
+.oe-tab{flex:1;padding:10px;font-family:var(--font-display);font-size:12px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;background:none;border:none;cursor:pointer;color:var(--fg3);position:relative}
+.oe-tab.buy.active{color:var(--bull);background:var(--bull-dim)}
+.oe-tab.sell.active{color:var(--bear);background:var(--bear-dim)}
+.oe-tab.buy.active::after{content:'';position:absolute;bottom:0;left:0;right:0;height:2px;background:var(--bull)}
+.oe-body{padding:12px;display:flex;flex-direction:column;gap:10px}
+.oe-row{display:flex;flex-direction:column;gap:4px}
+.oe-l{font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;color:var(--fg3)}
+.oe-i{display:flex;align-items:center;background:var(--bg-elevated);border:1px solid var(--border);border-radius:6px;overflow:hidden;height:30px}
+.oe-i input{flex:1;background:none;border:none;outline:none;padding:0 10px;font-family:var(--font-data);font-size:13px;font-weight:500;color:var(--fg1);width:100%}
+.oe-u{padding:0 10px;font-size:11px;color:var(--fg3);font-family:var(--font-data);border-left:1px solid var(--border);display:flex;align-items:center;height:100%}
+.oe-type{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px}
+.oe-t{padding:5px;border-radius:4px;font-size:10px;font-weight:600;letter-spacing:0.04em;background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg3);cursor:pointer;text-align:center}
+.oe-t.active{background:var(--accent-dim);border-color:rgba(59,130,246,0.3);color:var(--accent)}
+.oe-info{display:flex;justify-content:space-between;padding:6px 10px;background:var(--bg-base);border-radius:6px;border:1px solid var(--border)}
+.oe-info-i{display:flex;flex-direction:column;align-items:center;gap:2px}
+.oe-info-l{font-size:9px;color:var(--fg3);font-family:var(--font-data);letter-spacing:0.06em;text-transform:uppercase}
+.oe-info-v{font-family:var(--font-data);font-size:13px;font-weight:600}
+.oe-submit{padding:11px;border-radius:6px;border:none;font-family:var(--font-display);font-size:13px;font-weight:700;letter-spacing:0.06em;text-transform:uppercase;cursor:pointer;width:100%;margin-top:4px}
+.oe-submit.buy{background:var(--bull);color:#000;box-shadow:0 0 20px rgba(16,217,150,0.15)}
+.oe-submit.sell{background:var(--bear);color:#fff;box-shadow:0 0 20px rgba(255,59,92,0.15)}
+
+/* ACCOUNT */
+.acct{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.acct-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.acct-s{background:var(--bg-panel);padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.acct-sl{font-size:9px;color:var(--fg3);font-family:var(--font-data);letter-spacing:0.08em;text-transform:uppercase}
+.acct-sv{font-family:var(--font-data);font-size:14px;font-weight:600}
+.risk{padding:12px;border-top:1px solid var(--border)}
+.risk-t{font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);margin-bottom:8px}
+.risk-bar{height:6px;background:var(--bg-elevated);border-radius:3px;overflow:hidden}
+.risk-f{height:100%;width:42%;background:var(--warn);border-radius:3px}
+.risk-labs{display:flex;justify-content:space-between;margin-top:4px;font-size:9px;font-family:var(--font-data);color:var(--fg3)}
+.pnl{padding:12px;border-top:1px solid var(--border)}
+
+/* BOTTOM */
+.bot{height:240px;border-top:1px solid var(--border);background:var(--bg-surface);display:flex;flex-direction:column;flex-shrink:0}
+.bot-tabs{display:flex;border-bottom:1px solid var(--border);padding:0 8px;flex-shrink:0}
+.bot-tab{padding:0 12px;height:36px;display:flex;align-items:center;gap:5px;font-family:var(--font-display);font-size:11px;font-weight:600;letter-spacing:0.04em;text-transform:uppercase;background:none;border:none;color:var(--fg3);cursor:pointer;border-bottom:2px solid transparent;position:relative;top:1px}
+.bot-tab.active{color:var(--fg1);border-bottom-color:var(--accent)}
+.bot-tab .b{background:var(--bg-elevated);border:1px solid var(--border);padding:1px 5px;border-radius:10px;font-size:9px;font-family:var(--font-data)}
+.bot-tab.active .b{background:var(--accent-dim);border-color:rgba(59,130,246,0.3);color:var(--accent)}
+.bot-content{flex:1;overflow:auto}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{padding:6px 12px;text-align:left;font-size:9px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3);font-family:var(--font-data);background:var(--bg-elevated);border-bottom:1px solid var(--border);white-space:nowrap}
+th:first-child{padding-left:16px}
+td{padding:7px 12px;border-bottom:1px solid var(--border);font-family:var(--font-data);white-space:nowrap;color:var(--fg2)}
+td:first-child{padding-left:16px}
+tr:hover td{background:var(--bg-hover)}
+.td-s{color:var(--fg1);font-weight:600}
+.td-tag{display:inline-flex;padding:2px 7px;border-radius:3px;font-size:10px;font-weight:700;letter-spacing:0.04em}
+.td-tag.buy{background:var(--bull-dim);color:var(--bull)}
+.td-tag.sell{background:var(--bear-dim);color:var(--bear)}
+.td-btn{padding:2px 8px;border-radius:4px;font-size:10px;font-weight:600;background:var(--bg-elevated);border:1px solid var(--border);color:var(--fg3);cursor:pointer;font-family:var(--font-ui)}
+.td-btn.close{border-color:rgba(255,59,92,0.3);color:var(--bear)}
+
+/* STATUS */
+.status{height:24px;display:flex;align-items:center;background:var(--bg-surface);border-top:1px solid var(--border);padding:0 12px;flex-shrink:0;font-family:var(--font-data);font-size:10px;color:var(--fg3)}
+.status-i{display:flex;align-items:center;gap:5px;padding:0 10px;border-right:1px solid var(--border);height:100%}
+.status-i:last-child{border-right:none;margin-left:auto;border-left:1px solid var(--border);padding-left:10px}
+.status-d{width:6px;height:6px;border-radius:50%}
+.status-d.g{background:var(--bull);animation:blink 2s infinite}
+
+[data-lucide]{width:14px;height:14px;stroke-width:2}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <div class="logo"><div class="d"></div>OBSIDIAN</div>
+    <div class="sym"><span class="s">EUR/USD</span><span class="bull">1.08452</span><span class="c bull">+0.18%</span></div>
+    <div class="sym"><span class="s">GBP/USD</span><span class="bear">1.26340</span><span class="c bear">-0.22%</span></div>
+    <div class="sym"><span class="s">XAU/USD</span><span class="bull">2341.20</span><span class="c bull">+1.04%</span></div>
+    <div class="sym"><span class="s">BTC/USD</span><span class="bear">67,980</span><span class="c bear">-0.65%</span></div>
+    <div class="sess">
+      <span class="pill open"><span class="dot"></span>NY</span>
+      <span class="pill open"><span class="dot"></span>LON</span>
+      <span class="pill closed"><span class="dot"></span>TKY</span>
+      <span class="pill closed"><span class="dot"></span>SYD</span>
+    </div>
+    <button class="tb-btn"><i data-lucide="bell"></i></button>
+    <button class="tb-btn"><i data-lucide="settings"></i></button>
+    <div class="chip">
+      <div class="ava">AM</div>
+      <div><div class="l">Balance</div><div class="bal">$82,413.22</div></div>
+    </div>
+  </header>
+
+  <!-- BODY -->
+  <div class="body">
+    <!-- WATCHLIST -->
+    <aside class="wl">
+      <div class="wl-hd">
+        <div class="wl-ttl">Watchlist</div>
+        <div class="wl-search"><i data-lucide="search" style="width:11px;height:11px"></i><span>Filter…</span></div>
+      </div>
+      <div class="cats">
+        <button class="cat active">All</button>
+        <button class="cat">FX</button>
+        <button class="cat">Crypto</button>
+        <button class="cat">Idx</button>
+      </div>
+      <div class="wl-list">
+        <div class="wi active"><span class="wi-s">EUR/USD</span><span class="wi-b bull">1.08452</span><span class="wi-n">Euro / US Dollar</span><span class="wi-c bull">+0.18%</span></div>
+        <div class="wi"><span class="wi-s">GBP/USD</span><span class="wi-b bear">1.26340</span><span class="wi-n">British Pound</span><span class="wi-c bear">-0.22%</span></div>
+        <div class="wi"><span class="wi-s">USD/JPY</span><span class="wi-b bull">151.24</span><span class="wi-n">US Dollar / Yen</span><span class="wi-c bull">+0.34%</span></div>
+        <div class="wi"><span class="wi-s">AUD/USD</span><span class="wi-b bear">0.65120</span><span class="wi-n">Australian Dollar</span><span class="wi-c bear">-0.09%</span></div>
+        <div class="wi"><span class="wi-s">USD/CAD</span><span class="wi-b bull">1.37820</span><span class="wi-n">US Dollar / CAD</span><span class="wi-c bull">+0.11%</span></div>
+        <div class="wi"><span class="wi-s">XAU/USD</span><span class="wi-b bull">2341.20</span><span class="wi-n">Gold</span><span class="wi-c bull">+1.04%</span></div>
+        <div class="wi"><span class="wi-s">XAG/USD</span><span class="wi-b bull">28.14</span><span class="wi-n">Silver</span><span class="wi-c bull">+0.62%</span></div>
+        <div class="wi"><span class="wi-s">BTC/USD</span><span class="wi-b bear">67,980</span><span class="wi-n">Bitcoin</span><span class="wi-c bear">-0.65%</span></div>
+        <div class="wi"><span class="wi-s">ETH/USD</span><span class="wi-b bull">3,742</span><span class="wi-n">Ethereum</span><span class="wi-c bull">+2.18%</span></div>
+        <div class="wi"><span class="wi-s">SPX500</span><span class="wi-b bull">5,214</span><span class="wi-n">S&amp;P 500</span><span class="wi-c bull">+0.42%</span></div>
+        <div class="wi"><span class="wi-s">NAS100</span><span class="wi-b bear">18,240</span><span class="wi-n">Nasdaq 100</span><span class="wi-c bear">-0.18%</span></div>
+      </div>
+    </aside>
+
+    <!-- MAIN -->
+    <section class="main">
+      <div class="chart-row">
+        <div class="chart-sec">
+          <div class="chart-tools">
+            <div class="csd">
+              <span class="csd-s">EUR/USD</span>
+              <span class="csd-p bull">1.08452</span>
+              <span class="csd-c bull">+0.18%</span>
+            </div>
+            <div class="divv"></div>
+            <button class="tf">1m</button>
+            <button class="tf active">5m</button>
+            <button class="tf">15m</button>
+            <button class="tf">1h</button>
+            <button class="tf">4h</button>
+            <button class="tf">1D</button>
+            <div class="divv"></div>
+            <button class="ind"><i data-lucide="candlestick-chart"></i>Candle</button>
+            <button class="ind"><i data-lucide="activity"></i>Indicators</button>
+          </div>
+          <!-- CHART SVG (mock) -->
+          <div class="chart">
+            <div class="ohlc">
+              <div class="ohlc-i"><div class="ohlc-l">O</div><div class="ohlc-v">1.08421</div></div>
+              <div class="ohlc-i"><div class="ohlc-l">H</div><div class="ohlc-v bull">1.08478</div></div>
+              <div class="ohlc-i"><div class="ohlc-l">L</div><div class="ohlc-v bear">1.08404</div></div>
+              <div class="ohlc-i"><div class="ohlc-l">C</div><div class="ohlc-v bull">1.08452</div></div>
+            </div>
+            <svg viewBox="0 0 800 400" preserveAspectRatio="none">
+              <defs>
+                <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+                  <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1C2028" stroke-width="1"/>
+                </pattern>
+              </defs>
+              <rect width="800" height="400" fill="url(#grid)"/>
+              <!-- candles -->
+              <g>
+                <g transform="translate(40,0)"><line x1="0" y1="180" x2="0" y2="240" stroke="#FF3B5C"/><rect x="-4" y="195" width="8" height="35" fill="#FF3B5C"/></g>
+                <g transform="translate(70,0)"><line x1="0" y1="170" x2="0" y2="230" stroke="#10D996"/><rect x="-4" y="180" width="8" height="30" fill="#10D996"/></g>
+                <g transform="translate(100,0)"><line x1="0" y1="160" x2="0" y2="220" stroke="#10D996"/><rect x="-4" y="170" width="8" height="35" fill="#10D996"/></g>
+                <g transform="translate(130,0)"><line x1="0" y1="150" x2="0" y2="210" stroke="#FF3B5C"/><rect x="-4" y="165" width="8" height="32" fill="#FF3B5C"/></g>
+                <g transform="translate(160,0)"><line x1="0" y1="145" x2="0" y2="205" stroke="#10D996"/><rect x="-4" y="155" width="8" height="40" fill="#10D996"/></g>
+                <g transform="translate(190,0)"><line x1="0" y1="130" x2="0" y2="200" stroke="#10D996"/><rect x="-4" y="140" width="8" height="45" fill="#10D996"/></g>
+                <g transform="translate(220,0)"><line x1="0" y1="125" x2="0" y2="195" stroke="#FF3B5C"/><rect x="-4" y="140" width="8" height="35" fill="#FF3B5C"/></g>
+                <g transform="translate(250,0)"><line x1="0" y1="120" x2="0" y2="185" stroke="#10D996"/><rect x="-4" y="135" width="8" height="35" fill="#10D996"/></g>
+                <g transform="translate(280,0)"><line x1="0" y1="110" x2="0" y2="175" stroke="#10D996"/><rect x="-4" y="120" width="8" height="40" fill="#10D996"/></g>
+                <g transform="translate(310,0)"><line x1="0" y1="105" x2="0" y2="180" stroke="#FF3B5C"/><rect x="-4" y="115" width="8" height="50" fill="#FF3B5C"/></g>
+                <g transform="translate(340,0)"><line x1="0" y1="130" x2="0" y2="200" stroke="#FF3B5C"/><rect x="-4" y="145" width="8" height="40" fill="#FF3B5C"/></g>
+                <g transform="translate(370,0)"><line x1="0" y1="140" x2="0" y2="215" stroke="#10D996"/><rect x="-4" y="155" width="8" height="45" fill="#10D996"/></g>
+                <g transform="translate(400,0)"><line x1="0" y1="135" x2="0" y2="200" stroke="#10D996"/><rect x="-4" y="148" width="8" height="40" fill="#10D996"/></g>
+                <g transform="translate(430,0)"><line x1="0" y1="120" x2="0" y2="185" stroke="#10D996"/><rect x="-4" y="130" width="8" height="45" fill="#10D996"/></g>
+                <g transform="translate(460,0)"><line x1="0" y1="115" x2="0" y2="180" stroke="#FF3B5C"/><rect x="-4" y="128" width="8" height="40" fill="#FF3B5C"/></g>
+                <g transform="translate(490,0)"><line x1="0" y1="130" x2="0" y2="195" stroke="#10D996"/><rect x="-4" y="140" width="8" height="45" fill="#10D996"/></g>
+                <g transform="translate(520,0)"><line x1="0" y1="120" x2="0" y2="185" stroke="#10D996"/><rect x="-4" y="130" width="8" height="45" fill="#10D996"/></g>
+                <g transform="translate(550,0)"><line x1="0" y1="110" x2="0" y2="180" stroke="#FF3B5C"/><rect x="-4" y="120" width="8" height="50" fill="#FF3B5C"/></g>
+                <g transform="translate(580,0)"><line x1="0" y1="130" x2="0" y2="200" stroke="#10D996"/><rect x="-4" y="145" width="8" height="40" fill="#10D996"/></g>
+                <g transform="translate(610,0)"><line x1="0" y1="115" x2="0" y2="180" stroke="#10D996"/><rect x="-4" y="128" width="8" height="45" fill="#10D996"/></g>
+                <g transform="translate(640,0)"><line x1="0" y1="105" x2="0" y2="170" stroke="#10D996"/><rect x="-4" y="115" width="8" height="45" fill="#10D996"/></g>
+                <g transform="translate(670,0)"><line x1="0" y1="100" x2="0" y2="175" stroke="#FF3B5C"/><rect x="-4" y="112" width="8" height="50" fill="#FF3B5C"/></g>
+                <g transform="translate(700,0)"><line x1="0" y1="115" x2="0" y2="185" stroke="#10D996"/><rect x="-4" y="128" width="8" height="45" fill="#10D996"/></g>
+                <g transform="translate(730,0)"><line x1="0" y1="105" x2="0" y2="170" stroke="#10D996"/><rect x="-4" y="118" width="8" height="42" fill="#10D996"/></g>
+              </g>
+              <!-- volume histogram -->
+              <g transform="translate(0,340)">
+                <rect x="36" y="30" width="8" height="15" fill="rgba(255,59,92,0.35)"/>
+                <rect x="66" y="20" width="8" height="25" fill="rgba(16,217,150,0.35)"/>
+                <rect x="96" y="15" width="8" height="30" fill="rgba(16,217,150,0.35)"/>
+                <rect x="126" y="25" width="8" height="20" fill="rgba(255,59,92,0.35)"/>
+                <rect x="156" y="10" width="8" height="35" fill="rgba(16,217,150,0.35)"/>
+                <rect x="186" y="5" width="8" height="40" fill="rgba(16,217,150,0.35)"/>
+                <rect x="216" y="18" width="8" height="27" fill="rgba(255,59,92,0.35)"/>
+                <rect x="246" y="20" width="8" height="25" fill="rgba(16,217,150,0.35)"/>
+                <rect x="276" y="12" width="8" height="33" fill="rgba(16,217,150,0.35)"/>
+                <rect x="306" y="8" width="8" height="37" fill="rgba(255,59,92,0.35)"/>
+                <rect x="336" y="15" width="8" height="30" fill="rgba(255,59,92,0.35)"/>
+                <rect x="366" y="10" width="8" height="35" fill="rgba(16,217,150,0.35)"/>
+                <rect x="396" y="22" width="8" height="23" fill="rgba(16,217,150,0.35)"/>
+                <rect x="426" y="14" width="8" height="31" fill="rgba(16,217,150,0.35)"/>
+                <rect x="456" y="20" width="8" height="25" fill="rgba(255,59,92,0.35)"/>
+                <rect x="486" y="16" width="8" height="29" fill="rgba(16,217,150,0.35)"/>
+                <rect x="516" y="12" width="8" height="33" fill="rgba(16,217,150,0.35)"/>
+                <rect x="546" y="8" width="8" height="37" fill="rgba(255,59,92,0.35)"/>
+                <rect x="576" y="18" width="8" height="27" fill="rgba(16,217,150,0.35)"/>
+                <rect x="606" y="10" width="8" height="35" fill="rgba(16,217,150,0.35)"/>
+                <rect x="636" y="6" width="8" height="39" fill="rgba(16,217,150,0.35)"/>
+                <rect x="666" y="4" width="8" height="41" fill="rgba(255,59,92,0.35)"/>
+                <rect x="696" y="14" width="8" height="31" fill="rgba(16,217,150,0.35)"/>
+                <rect x="726" y="10" width="8" height="35" fill="rgba(16,217,150,0.35)"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        <!-- DOM -->
+        <aside class="dom">
+          <div class="dom-hd">
+            <div style="font-family:var(--font-display);font-size:10px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg3)">Depth of Market</div>
+          </div>
+          <div class="dom-cols"><div>Price</div><div style="text-align:right">Volume</div><div style="text-align:right">Depth</div></div>
+          <div class="dom-list">
+            <div class="dom-r ask"><div class="bar" style="width:42%"></div><div class="dom-p">1.08465</div><div class="dom-v">2.4M</div><div class="dom-d">4.2</div></div>
+            <div class="dom-r ask"><div class="bar" style="width:55%"></div><div class="dom-p">1.08462</div><div class="dom-v">3.1M</div><div class="dom-d">3.8</div></div>
+            <div class="dom-r ask"><div class="bar" style="width:38%"></div><div class="dom-p">1.08459</div><div class="dom-v">2.2M</div><div class="dom-d">3.2</div></div>
+            <div class="dom-r ask"><div class="bar" style="width:70%"></div><div class="dom-p">1.08456</div><div class="dom-v">3.9M</div><div class="dom-d">2.6</div></div>
+            <div class="dom-r ask"><div class="bar" style="width:48%"></div><div class="dom-p">1.08454</div><div class="dom-v">2.7M</div><div class="dom-d">1.8</div></div>
+            <div class="dom-spread"><span>Spread</span><strong>0.2 pips</strong></div>
+            <div class="dom-r bid"><div class="bar" style="width:52%"></div><div class="dom-p">1.08452</div><div class="dom-v">2.9M</div><div class="dom-d">1.4</div></div>
+            <div class="dom-r bid"><div class="bar" style="width:62%"></div><div class="dom-p">1.08450</div><div class="dom-v">3.4M</div><div class="dom-d">2.1</div></div>
+            <div class="dom-r bid"><div class="bar" style="width:45%"></div><div class="dom-p">1.08447</div><div class="dom-v">2.5M</div><div class="dom-d">2.9</div></div>
+            <div class="dom-r bid"><div class="bar" style="width:58%"></div><div class="dom-p">1.08444</div><div class="dom-v">3.2M</div><div class="dom-d">3.6</div></div>
+            <div class="dom-r bid"><div class="bar" style="width:40%"></div><div class="dom-p">1.08441</div><div class="dom-v">2.3M</div><div class="dom-d">4.2</div></div>
+          </div>
+        </aside>
+      </div>
+
+      <!-- BOTTOM -->
+      <div class="bot">
+        <div class="bot-tabs">
+          <button class="bot-tab active">Positions<span class="b">3</span></button>
+          <button class="bot-tab">Orders<span class="b">2</span></button>
+          <button class="bot-tab">History</button>
+          <button class="bot-tab">Calendar</button>
+          <button class="bot-tab">News</button>
+        </div>
+        <div class="bot-content">
+          <table>
+            <thead><tr><th>Symbol</th><th>Side</th><th style="text-align:right">Volume</th><th style="text-align:right">Entry</th><th style="text-align:right">Current</th><th style="text-align:right">SL</th><th style="text-align:right">TP</th><th style="text-align:right">Swap</th><th style="text-align:right">P&amp;L</th><th></th></tr></thead>
+            <tbody>
+              <tr><td class="td-s">EUR/USD</td><td><span class="td-tag buy">BUY</span></td><td style="text-align:right">0.50</td><td style="text-align:right">1.08412</td><td style="text-align:right">1.08452</td><td style="text-align:right">1.08380</td><td style="text-align:right">1.08520</td><td style="text-align:right">-0.14</td><td style="text-align:right" class="bull">+$20.00</td><td style="text-align:right"><button class="td-btn close">Close</button></td></tr>
+              <tr><td class="td-s">XAU/USD</td><td><span class="td-tag sell">SELL</span></td><td style="text-align:right">0.25</td><td style="text-align:right">2341.20</td><td style="text-align:right">2338.45</td><td style="text-align:right">2348.00</td><td style="text-align:right">2330.00</td><td style="text-align:right">-0.42</td><td style="text-align:right" class="bull">+$68.75</td><td style="text-align:right"><button class="td-btn close">Close</button></td></tr>
+              <tr><td class="td-s">BTC/USD</td><td><span class="td-tag buy">BUY</span></td><td style="text-align:right">0.10</td><td style="text-align:right">68,420</td><td style="text-align:right">67,980</td><td style="text-align:right">67,500</td><td style="text-align:right">69,800</td><td style="text-align:right">0.00</td><td style="text-align:right" class="bear">-$44.00</td><td style="text-align:right"><button class="td-btn close">Close</button></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT SIDEBAR (order entry + account) -->
+    <aside class="rs">
+      <div class="oe">
+        <div class="oe-tabs">
+          <button class="oe-tab buy active">Buy</button>
+          <button class="oe-tab sell">Sell</button>
+        </div>
+        <div class="oe-body">
+          <div class="oe-row"><div class="oe-l">Volume</div><div class="oe-i"><input value="0.10"><span class="oe-u">LOT</span></div></div>
+          <div class="oe-row"><div class="oe-l">Type</div><div class="oe-type"><button class="oe-t active">Market</button><button class="oe-t">Limit</button><button class="oe-t">Stop</button></div></div>
+          <div class="oe-row"><div class="oe-l">Stop Loss</div><div class="oe-i"><input value="1.08380"></div></div>
+          <div class="oe-row"><div class="oe-l">Take Profit</div><div class="oe-i"><input value="1.08520"></div></div>
+          <div class="oe-info">
+            <div class="oe-info-i"><div class="oe-info-l">Bid</div><div class="oe-info-v bull">1.08452</div></div>
+            <div class="oe-info-i"><div class="oe-info-l">Spread</div><div class="oe-info-v" style="color:var(--warn)">0.2</div></div>
+            <div class="oe-info-i"><div class="oe-info-l">Ask</div><div class="oe-info-v bear">1.08454</div></div>
+          </div>
+          <button class="oe-submit buy">BUY 0.10 LOT</button>
+          <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--fg3);font-family:var(--font-data)"><span>Margin: $108.45</span><span>Pip value: $1.00</span></div>
+        </div>
+      </div>
+
+      <div class="acct">
+        <div class="acct-grid">
+          <div class="acct-s"><div class="acct-sl">Balance</div><div class="acct-sv">$82,413.22</div></div>
+          <div class="acct-s"><div class="acct-sl">Equity</div><div class="acct-sv bull">$82,458.97</div></div>
+          <div class="acct-s"><div class="acct-sl">Free Margin</div><div class="acct-sv">$81,650.52</div></div>
+          <div class="acct-s"><div class="acct-sl">Margin Level</div><div class="acct-sv" style="color:var(--warn)">10,204%</div></div>
+        </div>
+        <div class="risk">
+          <div class="risk-t">Risk Usage</div>
+          <div class="risk-bar"><div class="risk-f"></div></div>
+          <div class="risk-labs"><span>0%</span><span>42%</span><span>100%</span></div>
+        </div>
+        <div class="pnl">
+          <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px">
+            <div class="risk-t" style="margin-bottom:0">30-Day P&amp;L</div>
+            <div class="acct-sv bull">+$4,182.50</div>
+          </div>
+          <svg width="100%" height="48" viewBox="0 0 240 48" preserveAspectRatio="none">
+            <defs><linearGradient id="pg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#10D996" stop-opacity="0.25"/><stop offset="100%" stop-color="#10D996" stop-opacity="0.02"/></linearGradient></defs>
+            <path d="M 0,40 L 10,38 L 20,34 L 30,36 L 40,30 L 50,28 L 60,24 L 70,26 L 80,20 L 90,22 L 100,18 L 110,14 L 120,16 L 130,10 L 140,12 L 150,8 L 160,14 L 170,10 L 180,12 L 190,8 L 200,6 L 210,10 L 220,6 L 230,4 L 240,8 L 240,48 L 0,48 Z" fill="url(#pg)"/>
+            <path d="M 0,40 L 10,38 L 20,34 L 30,36 L 40,30 L 50,28 L 60,24 L 70,26 L 80,20 L 90,22 L 100,18 L 110,14 L 120,16 L 130,10 L 140,12 L 150,8 L 160,14 L 170,10 L 180,12 L 190,8 L 200,6 L 210,10 L 220,6 L 230,4 L 240,8" fill="none" stroke="#10D996" stroke-width="1.5"/>
+          </svg>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <!-- STATUS -->
+  <div class="status">
+    <div class="status-i"><span class="status-d g"></span>Connected</div>
+    <div class="status-i">Server: OBS-LON-4</div>
+    <div class="status-i">Latency: <span style="color:var(--bull)">12ms</span></div>
+    <div class="status-i">Feed: LD4 · Aggregated</div>
+    <div class="status-i">10:42:18 UTC</div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

@@ -1,0 +1,150 @@
+/* ─── OBSIDIAN DESIGN SYSTEM — CORE TOKENS ────────────────────────────────
+ * Dark terminal aesthetic for professional trading platforms.
+ * Base palette, type stack, semantic colors, radii, shadows, and
+ * pre-composed semantic type classes (h1, h2, code, p, data, label).
+ * ───────────────────────────────────────────────────────────────────── */
+
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@300;400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* ─── BACKGROUNDS (terminal-dark, layered) ─────────────────────── */
+  --bg-base:     #06080A;   /* deepest — window bg */
+  --bg-surface:  #0C0E12;   /* sidebar, status bar */
+  --bg-panel:    #0F1216;   /* card, panel body */
+  --bg-elevated: #141820;   /* headers, inputs, elevated */
+  --bg-hover:    #1A1F28;   /* row hover */
+  --bg-active:   #1E2530;   /* pressed, selected */
+
+  /* ─── BORDERS ──────────────────────────────────────────────────── */
+  --border:      #1C2028;   /* default hairline */
+  --border-md:   #252C38;   /* mid-strength */
+  --border-hi:   #2E3847;   /* hovered, accented */
+
+  /* ─── FOREGROUND / TYPE ────────────────────────────────────────── */
+  --fg1:            #E2E8F0;   /* primary text */
+  --fg2:            #8B95A3;   /* secondary text */
+  --fg3:            #4A5568;   /* muted / labels */
+  --fg4:            #2D3748;   /* disabled */
+  --text-primary:   var(--fg1);
+  --text-secondary: var(--fg2);
+  --text-muted:     var(--fg3);
+  --text-disabled:  var(--fg4);
+
+  /* ─── SEMANTIC COLORS ─────────────────────────────────────────── */
+  --bull:        #10D996;   /* green — long, up, success */
+  --bull-dim:    rgba(16,217,150,0.10);
+  --bull-glow:   rgba(16,217,150,0.20);
+  --bear:        #FF3B5C;   /* red — short, down, danger */
+  --bear-dim:    rgba(255,59,92,0.10);
+  --bear-glow:   rgba(255,59,92,0.20);
+  --accent:      #3B82F6;   /* blue — primary brand / CTA */
+  --accent-dim:  rgba(59,130,246,0.08);
+  --accent-glow: rgba(59,130,246,0.20);
+  --warn:        #F59E0B;   /* amber — caution, spread */
+  --warn-dim:    rgba(245,158,11,0.12);
+  --purple:      #A855F7;   /* rare — tier badges, gradient mix */
+  --gold:        #EAB308;   /* rare — VIP, premium */
+
+  /* ─── FONT STACK ──────────────────────────────────────────────── */
+  --font-display: 'Syne', sans-serif;           /* UPPERCASE labels, panel titles, logo */
+  --font-ui:      'DM Sans', sans-serif;        /* body, buttons, table cells */
+  --font-data:    'IBM Plex Mono', monospace;   /* prices, numbers, timestamps, symbols */
+  --font-serif-display: 'Syne', sans-serif;     /* alias */
+
+  /* ─── RADII ───────────────────────────────────────────────────── */
+  --r-sm: 4px;
+  --r-md: 6px;
+  --r-lg: 8px;
+  --r-xl: 12px;
+
+  /* ─── SHADOWS ─────────────────────────────────────────────────── */
+  --shadow-panel:       0 0 0 1px var(--border), 0 4px 24px rgba(0,0,0,0.4);
+  --shadow-float:       0 0 0 1px var(--border-md), 0 8px 40px rgba(0,0,0,0.6);
+  --shadow-glow-bull:   0 0 20px rgba(16,217,150,0.15);
+  --shadow-glow-bear:   0 0 20px rgba(255,59,92,0.15);
+  --shadow-glow-accent: 0 0 20px rgba(59,130,246,0.20);
+
+  /* ─── SPACING ─────────────────────────────────────────────────── */
+  --space-1:  4px;
+  --space-2:  8px;
+  --space-3:  12px;
+  --space-4:  16px;
+  --space-5:  24px;
+  --space-6:  32px;
+
+  /* ─── MOTION ──────────────────────────────────────────────────── */
+  --ease:      cubic-bezier(0.4, 0, 0.2, 1);
+  --dur-fast:  120ms;
+  --dur:       180ms;
+  --dur-slow:  300ms;
+}
+
+/* ─── SEMANTIC TYPE CLASSES ──────────────────────────────────────── */
+.h1, h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 28px;
+  line-height: 1.1;
+  letter-spacing: 0.01em;
+  color: var(--fg1);
+}
+.h2, h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 20px;
+  line-height: 1.15;
+  color: var(--fg1);
+}
+.h3, h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 15px;
+  line-height: 1.2;
+  color: var(--fg1);
+}
+.panel-title, .eyebrow {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--fg3);
+}
+.label {
+  font-family: var(--font-data);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--fg3);
+}
+.p, p, .body {
+  font-family: var(--font-ui);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--fg1);
+}
+.body-sm { font-family: var(--font-ui); font-size: 11px; line-height: 1.4; color: var(--fg2); }
+.data, .mono {
+  font-family: var(--font-data);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg1);
+  font-feature-settings: "tnum" 1;
+}
+.data-xl { font-family: var(--font-data); font-size: 22px; font-weight: 600; color: var(--fg1); }
+.data-lg { font-family: var(--font-data); font-size: 16px; font-weight: 600; color: var(--fg1); }
+.data-sm { font-family: var(--font-data); font-size: 11px; font-weight: 500; color: var(--fg2); }
+code, .code {
+  font-family: var(--font-data);
+  font-size: 12px;
+  background: var(--bg-elevated);
+  padding: 1px 5px;
+  border-radius: 3px;
+  border: 1px solid var(--border);
+  color: var(--fg1);
+}
+.bull { color: var(--bull); }
+.bear { color: var(--bear); }
+.warn-text { color: var(--warn); }
+.accent-text { color: var(--accent); }

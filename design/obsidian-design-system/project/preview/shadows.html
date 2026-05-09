@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body{margin:0;background:var(--bg-base);padding:24px;color:var(--fg1);display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.card{background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:18px}
+.card.float{box-shadow:0 0 0 1px var(--border-md),0 8px 40px rgba(0,0,0,0.6)}
+.card.glow-bull{box-shadow:0 0 20px rgba(16,217,150,0.25);border-color:rgba(16,217,150,0.3)}
+.card.glow-accent{box-shadow:0 0 20px rgba(59,130,246,0.25);border-color:rgba(59,130,246,0.3)}
+.lbl{font-family:var(--font-data);font-size:9px;color:var(--fg3);letter-spacing:0.08em;text-transform:uppercase;margin-top:6px}
+.ttl{font-family:var(--font-display);font-size:13px;font-weight:700;color:var(--fg1)}
+</style></head><body>
+<div class="card"><div class="ttl">Panel (border-only)</div><div class="lbl">default · 1px border · no shadow</div></div>
+<div class="card float"><div class="ttl">Float</div><div class="lbl">modal · toast · drawer</div></div>
+<div class="card glow-bull"><div class="ttl">Glow bull</div><div class="lbl">buy cta · confirmation</div></div>
+<div class="card glow-accent"><div class="ttl">Glow accent</div><div class="lbl">active alert · focus</div></div>
+</body></html>

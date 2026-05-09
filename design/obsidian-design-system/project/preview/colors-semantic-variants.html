@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body{margin:0;background:var(--bg-base);padding:20px;color:var(--fg1);font-family:var(--font-ui)}
+.row{display:grid;grid-template-columns:80px 1fr 1fr 1fr;gap:0;border-bottom:1px solid var(--border);padding:6px 0;align-items:center}
+.row:last-child{border-bottom:none}
+.lbl{font-family:var(--font-data);font-size:10px;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase;font-weight:600}
+.tok{display:flex;align-items:center;gap:8px;font-family:var(--font-data);font-size:10px;color:var(--fg2)}
+.sw{width:32px;height:18px;border-radius:3px;border:1px solid var(--border)}
+</style></head><body>
+<div class="row"><div class="lbl">Solid</div>
+  <div class="tok"><div class="sw" style="background:#10D996"></div>bull</div>
+  <div class="tok"><div class="sw" style="background:#FF3B5C"></div>bear</div>
+  <div class="tok"><div class="sw" style="background:#3B82F6"></div>accent</div>
+</div>
+<div class="row"><div class="lbl">Dim 10%</div>
+  <div class="tok"><div class="sw" style="background:rgba(16,217,150,0.10)"></div>bull-dim</div>
+  <div class="tok"><div class="sw" style="background:rgba(255,59,92,0.10)"></div>bear-dim</div>
+  <div class="tok"><div class="sw" style="background:rgba(59,130,246,0.08)"></div>accent-dim</div>
+</div>
+<div class="row"><div class="lbl">Glow 20%</div>
+  <div class="tok"><div class="sw" style="background:rgba(16,217,150,0.20)"></div>bull-glow</div>
+  <div class="tok"><div class="sw" style="background:rgba(255,59,92,0.20)"></div>bear-glow</div>
+  <div class="tok"><div class="sw" style="background:rgba(59,130,246,0.20)"></div>accent-glow</div>
+</div>
+</body></html>

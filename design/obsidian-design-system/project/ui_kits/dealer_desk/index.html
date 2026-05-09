@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Obsidian Dealer Desk</title>
+<link rel="stylesheet" href="../../colors_and_type.css">
+<link rel="stylesheet" href="../_shared.css">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+.exposure-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--border)}
+.exp-cell{background:var(--bg-panel);padding:14px 16px}
+.exp-s{font-family:var(--font-data);font-size:11px;color:var(--fg3);letter-spacing:0.06em;text-transform:uppercase;display:flex;justify-content:space-between;align-items:center}
+.exp-v{font-family:var(--font-data);font-size:20px;font-weight:600;margin-top:4px}
+.exp-bar{margin-top:6px;height:4px;background:var(--bg-elevated);border-radius:2px;overflow:hidden;position:relative}
+.exp-bar .f{position:absolute;top:0;bottom:0;left:50%;background:var(--bull);transform-origin:left}
+.exp-bar.short .f{left:auto;right:50%;background:var(--bear)}
+.rfq-row{display:grid;grid-template-columns:40px 1.2fr 1fr 1fr 1fr auto;gap:12px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:center}
+.rfq-row:hover{background:var(--bg-hover)}
+.rfq-row .timer{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--font-data);font-size:11px;font-weight:700;color:var(--warn);background:var(--warn-dim);border:1px solid rgba(245,158,11,0.3)}
+.rfq-row.hot .timer{color:var(--bear);background:var(--bear-dim);border-color:rgba(255,59,92,0.3)}
+.rfq-c{font-family:var(--font-ui);font-size:12px;font-weight:600;color:var(--fg1)}
+.rfq-c .id{font-family:var(--font-data);font-size:10px;color:var(--fg3);font-weight:400;display:block;margin-top:2px}
+.rfq-pair{font-family:var(--font-data);font-size:14px;font-weight:600;color:var(--fg1)}
+.rfq-pair .vol{font-size:11px;color:var(--fg3);display:block;margin-top:2px}
+.rfq-q{display:flex;gap:8px;align-items:center}
+.rfq-q .bid,.rfq-q .ask{font-family:var(--font-data);font-size:13px;font-weight:600;padding:3px 8px;border-radius:3px}
+.rfq-q .bid{background:var(--bull-dim);color:var(--bull)}
+.rfq-q .ask{background:var(--bear-dim);color:var(--bear)}
+.rfq-q .sp{font-family:var(--font-data);font-size:10px;color:var(--warn);letter-spacing:0.04em}
+.bar-chart{display:flex;flex-direction:column;gap:6px;padding:14px}
+.bar-r{display:grid;grid-template-columns:60px 1fr 60px;gap:10px;align-items:center;font-family:var(--font-data);font-size:11px}
+.bar-r .lab{color:var(--fg2);font-weight:600}
+.bar-r .num{text-align:right;font-weight:600;color:var(--fg1)}
+.bar-r .track{height:18px;background:var(--bg-elevated);border-radius:3px;position:relative;overflow:hidden}
+.bar-r .fill{position:absolute;top:0;bottom:0;left:0;background:linear-gradient(90deg,var(--accent),rgba(59,130,246,0.3));border-radius:3px}
+.bar-r.bull .fill{background:linear-gradient(90deg,var(--bull),rgba(16,217,150,0.3))}
+.bar-r.bear .fill{background:linear-gradient(90deg,var(--bear),rgba(255,59,92,0.3))}
+.book-grid{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--border)}
+.book-side{background:var(--bg-panel);padding:14px}
+.book-side h4{font-family:var(--font-display);font-size:10px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;margin-bottom:8px}
+.book-side.a h4{color:var(--bull)}
+.book-side.b h4{color:var(--bear)}
+.book-row{display:flex;justify-content:space-between;padding:4px 0;font-family:var(--font-data);font-size:11px;border-bottom:1px dotted var(--border)}
+.book-row span:first-child{color:var(--fg2)}
+.book-side.a .book-row span:last-child{color:var(--bull)}
+.book-side.b .book-row span:last-child{color:var(--bear)}
+.alert-row{display:flex;gap:10px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:flex-start}
+.alert-row .i{width:24px;height:24px;border-radius:5px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.alert-row.bear .i{background:var(--bear-dim);color:var(--bear)}
+.alert-row.warn .i{background:var(--warn-dim);color:var(--warn)}
+.alert-row.bull .i{background:var(--bull-dim);color:var(--bull)}
+.alert-row .c{flex:1}
+.alert-row .t{font-size:12px;color:var(--fg1);font-weight:600}
+.alert-row .m{font-size:11px;color:var(--fg3);margin-top:2px;font-family:var(--font-data)}
+.alert-row [data-lucide]{width:13px;height:13px}
+</style>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div class="logo"><div class="d"></div>OBSIDIAN<div class="sep"></div><span class="sub">Dealer Desk</span></div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <span class="tag bull"><span class="dot" style="animation:blink 2s infinite"></span>Market Open · LON</span>
+      <span class="tag accent">A-Book 62% · B-Book 38%</span>
+    </div>
+    <div class="tb-spacer"></div>
+    <div class="tb-actions">
+      <button class="btn danger"><i data-lucide="zap"></i>Hedge Now</button>
+      <button class="tb-btn"><i data-lucide="bell"></i><span class="notif"></span></button>
+      <button class="tb-btn"><i data-lucide="settings"></i></button>
+      <div class="chip"><div class="ava av-3">DM</div><div><div class="n">D. Matthews</div><div class="r">Dealer · L2</div></div></div>
+    </div>
+  </header>
+
+  <div class="body">
+    <aside class="sidebar">
+      <div class="sb-section">Desk</div>
+      <div class="sb-list">
+        <div class="sb-item active"><i data-lucide="activity"></i>Live Book</div>
+        <div class="sb-item"><i data-lucide="message-square-quote"></i>RFQ Queue<span class="b">7</span></div>
+        <div class="sb-item"><i data-lucide="layers"></i>Aggregated Exposure</div>
+        <div class="sb-item"><i data-lucide="target"></i>Hedging</div>
+      </div>
+      <div class="sb-section">Risk</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="shield-alert"></i>Alerts<span class="b">4</span></div>
+        <div class="sb-item"><i data-lucide="trending-up"></i>P&amp;L Attribution</div>
+        <div class="sb-item"><i data-lucide="sliders-horizontal"></i>Limits</div>
+      </div>
+      <div class="sb-section">Feeds</div>
+      <div class="sb-list">
+        <div class="sb-item"><i data-lucide="wifi"></i>LPs · 8 Connected</div>
+        <div class="sb-item"><i data-lucide="git-merge"></i>Aggregation</div>
+        <div class="sb-item"><i data-lucide="file-bar-chart"></i>Reports</div>
+      </div>
+      <div class="sb-footer">
+        <div class="st" style="flex:1">
+          <div class="sl">Desk P&amp;L · Session</div>
+          <div class="sv" style="color:var(--bull);font-size:14px;font-weight:600"><span class="dot"></span>+$18,420.50</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="page-hd">
+        <div>
+          <div class="crumb">Desk <span>/</span> <span class="cur">Live Book</span></div>
+          <h1>Dealer Desk</h1>
+        </div>
+        <div class="right">
+          <button class="btn ghost"><i data-lucide="pause"></i>Pause Quoting</button>
+          <button class="btn"><i data-lucide="file-down"></i>Session Report</button>
+        </div>
+      </div>
+
+      <!-- EXPOSURE STRIP -->
+      <div style="padding:0 20px 12px">
+        <div class="panel-hd" style="background:transparent;border:none;padding:12px 0">
+          <h3 style="font-family:var(--font-display);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;color:var(--fg2)">Net Exposure · Live</h3>
+        </div>
+        <div class="exposure-grid" style="border:1px solid var(--border);border-radius:8px;overflow:hidden">
+          <div class="exp-cell"><div class="exp-s">EUR/USD<span class="bull">LONG</span></div><div class="exp-v bull">+€2.4M</div><div class="exp-bar"><div class="f" style="width:48%"></div></div></div>
+          <div class="exp-cell"><div class="exp-s">GBP/USD<span class="bear">SHORT</span></div><div class="exp-v bear">−£1.8M</div><div class="exp-bar short"><div class="f" style="width:36%"></div></div></div>
+          <div class="exp-cell"><div class="exp-s">USD/JPY<span class="bull">LONG</span></div><div class="exp-v bull">+¥420M</div><div class="exp-bar"><div class="f" style="width:64%"></div></div></div>
+          <div class="exp-cell"><div class="exp-s">XAU/USD<span class="bear">SHORT</span></div><div class="exp-v bear">−$840K</div><div class="exp-bar short"><div class="f" style="width:22%"></div></div></div>
+          <div class="exp-cell"><div class="exp-s">BTC/USD<span class="bull">LONG</span></div><div class="exp-v bull">+$1.1M</div><div class="exp-bar"><div class="f" style="width:40%"></div></div></div>
+          <div class="exp-cell"><div class="exp-s">ETH/USD<span class="bull">LONG</span></div><div class="exp-v bull">+$320K</div><div class="exp-bar"><div class="f" style="width:15%"></div></div></div>
+          <div class="exp-cell"><div class="exp-s">AUD/USD<span class="bear">SHORT</span></div><div class="exp-v bear">−A$420K</div><div class="exp-bar short"><div class="f" style="width:18%"></div></div></div>
+          <div class="exp-cell"><div class="exp-s">SPX500<span class="bull">LONG</span></div><div class="exp-v bull">+$280K</div><div class="exp-bar"><div class="f" style="width:10%"></div></div></div>
+        </div>
+      </div>
+
+      <div class="panels" style="grid-template-columns:2fr 1fr">
+        <!-- RFQ QUEUE -->
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>RFQ Queue · Awaiting Price</h3>
+            <div class="right">
+              <span class="tag warn"><span class="dot"></span>7 Pending</span>
+              <button class="filter active">All</button>
+              <button class="filter">&gt;$1M</button>
+              <button class="filter">Hot</button>
+            </div>
+          </div>
+          <div class="panel-body">
+            <div class="rfq-row hot">
+              <div class="timer">0:08</div>
+              <div class="rfq-c">Marcus Reinhardt<span class="id">ID 100284 · Platinum</span></div>
+              <div class="rfq-pair">EUR/USD<span class="vol">BUY · 5.0 LOT · €500K</span></div>
+              <div class="rfq-q"><span class="bid">1.08452</span><span class="sp">0.2</span><span class="ask">1.08454</span></div>
+              <div style="font-family:var(--font-data);font-size:11px;color:var(--fg3)">LP: CITI</div>
+              <button class="btn primary">Quote</button>
+            </div>
+            <div class="rfq-row">
+              <div class="timer">0:24</div>
+              <div class="rfq-c">Aiko Nakamura<span class="id">ID 100311 · Gold</span></div>
+              <div class="rfq-pair">USD/JPY<span class="vol">SELL · 2.5 LOT · $250K</span></div>
+              <div class="rfq-q"><span class="bid">151.24</span><span class="sp">0.3</span><span class="ask">151.27</span></div>
+              <div style="font-family:var(--font-data);font-size:11px;color:var(--fg3)">LP: JPM</div>
+              <button class="btn primary">Quote</button>
+            </div>
+            <div class="rfq-row">
+              <div class="timer">0:42</div>
+              <div class="rfq-c">Hedge Fund Omega<span class="id">INST-0024 · Platinum</span></div>
+              <div class="rfq-pair">XAU/USD<span class="vol">BUY · 10.0 LOT · 1000oz</span></div>
+              <div class="rfq-q"><span class="bid">2341.20</span><span class="sp">0.8</span><span class="ask">2342.00</span></div>
+              <div style="font-family:var(--font-data);font-size:11px;color:var(--fg3)">LP: GS + UBS</div>
+              <button class="btn primary">Quote</button>
+            </div>
+            <div class="rfq-row">
+              <div class="timer">1:14</div>
+              <div class="rfq-c">Carlos Teixeira<span class="id">ID 100402 · Gold</span></div>
+              <div class="rfq-pair">GBP/USD<span class="vol">SELL · 1.0 LOT · £100K</span></div>
+              <div class="rfq-q"><span class="bid">1.26340</span><span class="sp">0.2</span><span class="ask">1.26342</span></div>
+              <div style="font-family:var(--font-data);font-size:11px;color:var(--fg3)">AUTO-QUOTE</div>
+              <button class="btn">Override</button>
+            </div>
+            <div class="rfq-row">
+              <div class="timer">1:32</div>
+              <div class="rfq-c">Léa Petit<span class="id">ID 100518 · Silver</span></div>
+              <div class="rfq-pair">BTC/USD<span class="vol">BUY · 0.5 LOT · ₿0.5</span></div>
+              <div class="rfq-q"><span class="bid">67,980</span><span class="sp">14</span><span class="ask">67,994</span></div>
+              <div style="font-family:var(--font-data);font-size:11px;color:var(--fg3)">AUTO-QUOTE</div>
+              <button class="btn">Override</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ALERTS -->
+        <div class="panel">
+          <div class="panel-hd"><h3>Risk Alerts</h3><div class="right"><span class="tag bear"><span class="dot"></span>4 Active</span></div></div>
+          <div class="panel-body">
+            <div class="alert-row bear">
+              <div class="i"><i data-lucide="alert-octagon"></i></div>
+              <div class="c"><div class="t">EUR/USD exposure limit approaching</div><div class="m">€2.4M / €3.0M · 80% · auto-hedge at 90%</div></div>
+            </div>
+            <div class="alert-row warn">
+              <div class="i"><i data-lucide="alert-triangle"></i></div>
+              <div class="c"><div class="t">Spread widening · GBP/USD</div><div class="m">0.2 → 0.6 pips on LP-3 · suspect news print</div></div>
+            </div>
+            <div class="alert-row warn">
+              <div class="i"><i data-lucide="trending-down"></i></div>
+              <div class="c"><div class="t">Client drawdown · ID 100402</div><div class="m">Margin level 128% · call at 100%</div></div>
+            </div>
+            <div class="alert-row bull">
+              <div class="i"><i data-lucide="check-circle-2"></i></div>
+              <div class="c"><div class="t">Hedge executed · CITI</div><div class="m">Sold €1.2M EUR/USD @ 1.08453 · net exposure reduced</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panels" style="grid-template-columns:1fr 1fr">
+        <!-- LP DISTRIBUTION -->
+        <div class="panel">
+          <div class="panel-hd"><h3>Volume by LP · Session</h3></div>
+          <div class="bar-chart">
+            <div class="bar-r"><div class="lab">CITI</div><div class="track"><div class="fill" style="width:82%"></div></div><div class="num">$48.2M</div></div>
+            <div class="bar-r"><div class="lab">JPM</div><div class="track"><div class="fill" style="width:68%"></div></div><div class="num">$39.8M</div></div>
+            <div class="bar-r"><div class="lab">UBS</div><div class="track"><div class="fill" style="width:54%"></div></div><div class="num">$32.1M</div></div>
+            <div class="bar-r"><div class="lab">GS</div><div class="track"><div class="fill" style="width:42%"></div></div><div class="num">$24.8M</div></div>
+            <div class="bar-r"><div class="lab">DB</div><div class="track"><div class="fill" style="width:28%"></div></div><div class="num">$16.4M</div></div>
+            <div class="bar-r"><div class="lab">HSBC</div><div class="track"><div class="fill" style="width:22%"></div></div><div class="num">$13.1M</div></div>
+            <div class="bar-r"><div class="lab">XTX</div><div class="track"><div class="fill" style="width:18%"></div></div><div class="num">$10.8M</div></div>
+            <div class="bar-r"><div class="lab">BNP</div><div class="track"><div class="fill" style="width:12%"></div></div><div class="num">$7.2M</div></div>
+          </div>
+        </div>
+
+        <!-- ORDER BOOK SNAPSHOT -->
+        <div class="panel">
+          <div class="panel-hd">
+            <h3>EUR/USD · Aggregated Book</h3>
+            <div class="right"><span class="tag neutral">8 LPs</span></div>
+          </div>
+          <div class="book-grid">
+            <div class="book-side b">
+              <h4>Bids</h4>
+              <div class="book-row"><span>1.08452</span><span>€3.2M · CITI, JPM</span></div>
+              <div class="book-row"><span>1.08451</span><span>€1.8M · GS</span></div>
+              <div class="book-row"><span>1.08450</span><span>€2.4M · UBS, DB</span></div>
+              <div class="book-row"><span>1.08449</span><span>€1.2M · HSBC</span></div>
+              <div class="book-row"><span>1.08448</span><span>€0.8M · XTX</span></div>
+              <div class="book-row"><span>1.08447</span><span>€2.1M · BNP, CITI</span></div>
+            </div>
+            <div class="book-side a">
+              <h4>Asks</h4>
+              <div class="book-row"><span>1.08454</span><span>€2.8M · CITI, UBS</span></div>
+              <div class="book-row"><span>1.08455</span><span>€1.4M · GS</span></div>
+              <div class="book-row"><span>1.08456</span><span>€2.2M · JPM</span></div>
+              <div class="book-row"><span>1.08457</span><span>€0.9M · DB</span></div>
+              <div class="book-row"><span>1.08458</span><span>€1.6M · XTX, HSBC</span></div>
+              <div class="book-row"><span>1.08459</span><span>€1.1M · BNP</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <div class="status">
+    <div class="status-i"><span class="status-d"></span>Quoting active</div>
+    <div class="status-i">LPs: <span class="bull">8/8</span></div>
+    <div class="status-i">Avg latency: <span class="bull">2.4ms</span></div>
+    <div class="status-i">RFQs today: 1,284 · filled 98.4%</div>
+    <div class="status-i">Session: LON · 10:42:18 UTC</div>
+  </div>
+</div>
+<script>lucide.createIcons();</script>
+</body>
+</html>

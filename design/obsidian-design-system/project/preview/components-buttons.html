@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<link rel="stylesheet" href="../colors_and_type.css">
+<style>
+body{margin:0;background:var(--bg-base);padding:24px;display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 14px;border-radius:6px;font-family:var(--font-ui);font-size:12px;font-weight:500;cursor:pointer;border:1px solid transparent;transition:all 180ms}
+.btn-primary{background:#3B82F6;color:#fff}
+.btn-success{background:#10D996;color:#000;font-family:var(--font-display);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:9px 18px;box-shadow:0 0 20px rgba(16,217,150,0.15)}
+.btn-danger{background:#FF3B5C;color:#fff;font-family:var(--font-display);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;padding:9px 18px;box-shadow:0 0 20px rgba(255,59,92,0.15)}
+.btn-ghost{background:transparent;color:var(--fg2);border-color:var(--border)}
+.btn-ghost:hover{background:var(--bg-hover);color:var(--fg1);border-color:var(--border-hi)}
+.btn-sm{padding:4px 10px;font-size:11px}
+</style></head><body>
+<button class="btn btn-success">BUY</button>
+<button class="btn btn-danger">SELL</button>
+<button class="btn btn-primary">Confirm</button>
+<button class="btn btn-ghost">Cancel</button>
+<button class="btn btn-ghost btn-sm">Edit</button>
+</body></html>
