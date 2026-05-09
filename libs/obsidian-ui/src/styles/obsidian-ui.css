@@ -1,0 +1,37 @@
+/**
+ * @file obsidian-ui.css
+ * @module obsidian-ui
+ * @description Obsidian UI base styles — import once per app root.
+ *              Uses dark-terminal tokens from tokens.css.
+ * @author BharatERP
+ * @last-updated 2026-04-24
+ */
+
+@import './tokens.css';
+
+body.obsidian-root,
+.obsidian-root {
+  font-family: var(--font-ui);
+  background-color: var(--bg-base);
+  color: var(--fg1);
+}
+
+.obsidian-root :where(a) {
+  color: var(--accent);
+  text-underline-offset: 2px;
+}
+
+.obsidian-root :where(a:hover) {
+  color: var(--obs-action-primary-hover);
+}
+
+.obsidian-root :focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+@media (forced-colors: active) {
+  .obsidian-root :focus-visible {
+    outline-color: ButtonText;
+  }
+}

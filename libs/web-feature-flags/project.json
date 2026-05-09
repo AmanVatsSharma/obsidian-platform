@@ -1,0 +1,18 @@
+{
+  "name": "web-feature-flags",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/web-feature-flags/src",
+  "projectType": "library",
+  "tags": ["type:lib", "scope:web", "layer:domain"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/web-feature-flags/**/*.ts",
+          "libs/web-feature-flags/**/*.tsx"
+        ]
+      }
+    }
+  }
+}

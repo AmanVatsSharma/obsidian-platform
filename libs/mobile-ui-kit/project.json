@@ -1,0 +1,1 @@
+{"name":"mobile-ui-kit","$schema":"../../node_modules/nx/schemas/project-schema.json","sourceRoot":"libs/mobile-ui-kit/src","projectType":"library","tags":["type:lib","scope:mobile","layer:domain"],"targets":{"lint":{"executor":"@nx/eslint:lint","options":{"lintFilePatterns":["libs/mobile-ui-kit/**/*.ts","libs/mobile-ui-kit/**/*.tsx"]}}}}

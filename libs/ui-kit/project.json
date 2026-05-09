@@ -1,0 +1,15 @@
+{
+  "name": "ui-kit",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "libs/ui-kit/src",
+  "projectType": "library",
+  "tags": ["type:lib", "scope:web", "layer:domain"],
+  "targets": {
+    "lint": {
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "lintFilePatterns": ["libs/ui-kit/**/*.ts", "libs/ui-kit/**/*.tsx"]
+      }
+    }
+  }
+}

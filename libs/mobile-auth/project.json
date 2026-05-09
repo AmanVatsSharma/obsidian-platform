@@ -1,0 +1,1 @@
+{"name":"mobile-auth","$schema":"../../node_modules/nx/schemas/project-schema.json","sourceRoot":"libs/mobile-auth/src","projectType":"library","tags":["type:lib","scope:mobile","layer:domain"],"targets":{"lint":{"executor":"@nx/eslint:lint","options":{"lintFilePatterns":["libs/mobile-auth/**/*.ts","libs/mobile-auth/**/*.tsx"]}}}}

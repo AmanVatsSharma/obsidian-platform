@@ -1,0 +1,1 @@
+{"name":"mobile-api-client","$schema":"../../node_modules/nx/schemas/project-schema.json","sourceRoot":"libs/mobile-api-client/src","projectType":"library","tags":["type:lib","scope:mobile","layer:domain"],"targets":{"lint":{"executor":"@nx/eslint:lint","options":{"lintFilePatterns":["libs/mobile-api-client/**/*.ts","libs/mobile-api-client/**/*.tsx"]}}}}

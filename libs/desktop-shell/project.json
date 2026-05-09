@@ -1,0 +1,1 @@
+{"name":"desktop-shell","$schema":"../../node_modules/nx/schemas/project-schema.json","sourceRoot":"libs/desktop-shell/src","projectType":"library","tags":["type:lib","scope:desktop","layer:domain"],"targets":{"lint":{"executor":"@nx/eslint:lint","options":{"lintFilePatterns":["libs/desktop-shell/**/*.ts","libs/desktop-shell/**/*.tsx"]}}}}

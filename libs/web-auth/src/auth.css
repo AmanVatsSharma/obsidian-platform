@@ -1,0 +1,62 @@
+/**
+ * File:        libs/web-auth/src/auth.css
+ * Module:      web-auth · Auth UI Animations
+ * Purpose:     Keyframe animations for Obsidian auth screens — pulse dot, blink cursor.
+ *              Import once per app that uses @obsidian/web-auth components.
+ *
+ * Side-effects:
+ *   - Adds global @keyframes obs-pulse and obs-blink
+ *   - Styles range inputs with Obsidian tokens
+ *
+ * Key invariants:
+ *   - Must be imported after tokens.css so var(--accent) etc. resolve
+ *   - Idempotent — importing twice is harmless (browsers deduplicate keyframes)
+ *
+ * Author:       BharatERP
+ * Last-updated: 2026-05-09
+ */
+
+@keyframes obs-pulse {
+  0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--accent); }
+  50% { opacity: 0.55; box-shadow: 0 0 16px var(--accent); }
+}
+
+@keyframes obs-blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Range input — Obsidian accent thumb */
+.obs-auth-root input[type=range] {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: var(--bg-elevated);
+  border-radius: 2px;
+  outline: none;
+  width: 100%;
+}
+.obs-auth-root input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--bg-base);
+  cursor: pointer;
+  box-shadow: 0 0 12px rgba(59,130,246,0.6);
+}
+.obs-auth-root input[type=range]::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid var(--bg-base);
+  cursor: pointer;
+}
+
+/* Scrollbar */
+.obs-auth-root ::-webkit-scrollbar { width: 4px; height: 4px; }
+.obs-auth-root ::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 2px; }
+.obs-auth-root ::-webkit-scrollbar-track { background: transparent; }

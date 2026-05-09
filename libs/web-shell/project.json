@@ -1,0 +1,1 @@
+{"name":"web-shell","$schema":"../../node_modules/nx/schemas/project-schema.json","sourceRoot":"libs/web-shell/src","projectType":"library","tags":["type:lib","scope:web","layer:domain"],"targets":{"lint":{"executor":"@nx/eslint:lint","options":{"lintFilePatterns":["libs/web-shell/**/*.ts","libs/web-shell/**/*.tsx"]}}}}
