@@ -19,8 +19,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { cn } from '@obsidian/obsidian-ui';
-import { CheckCircle, Loader2 } from 'lucide-react';
-import { api } from '../../lib/api/endpoints';
+import { CheckCircle, Copy, Loader2 } from 'lucide-react';
+import { api, OnboardBrokerResponse } from '../../lib/api/endpoints';
 import { ApiError } from '../../lib/api/client';
 
 interface FormState {
@@ -100,6 +100,8 @@ export function OnboardBrokerForm() {
   const [error, setError] = useState<string | null>(null);
   const [requestId, setRequestId] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [result, setResult] = useState<OnboardBrokerResponse | null>(null);
+  const [copied, setCopied] = useState(false);
 
   function update(field: keyof FormState) {
     return (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -114,7 +116,7 @@ export function OnboardBrokerForm() {
     setLoading(true);
 
     try {
-      await api.onboardBroker({
+      const res = await api.onboardBroker({
         brokerCode: form.brokerCode.toLowerCase().trim(),
         brokerDisplayName: form.brokerDisplayName.trim(),
         adminMobileE164: form.adminMobileE164.trim(),
@@ -123,6 +125,7 @@ export function OnboardBrokerForm() {
         timezone: form.timezone,
         jurisdictionProfile: form.jurisdictionProfile,
       });
+      setResult(res);
       setSuccess(true);
       setTimeout(() => router.push(`/brokers/${form.brokerCode}`), 1200);
     } catch (err) {
@@ -137,13 +140,77 @@ export function OnboardBrokerForm() {
     }
   }
 
-  if (success) {
+  if (success && result) {
+    const localDevUrl = `http://localhost:4500?tenant=${result.brokerCode}`;
+    const prodLoginUrl = `https://${result.brokerCode}.obsidian.io/login`;
+
+    function copyCredentials() {
+      navigator.clipboard.writeText(localDevUrl).then(() => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      });
+    }
+
     return (
-      <div className="flex items-center justify-center gap-3 rounded-r-lg border border-[var(--bull)] bg-[var(--bull-dim,#10D9961A)] p-6">
-        <CheckCircle size={20} className="text-bull" />
-        <div>
-          <p className="font-display text-[12px] uppercase tracking-[0.08em] text-bull">Broker provisioned</p>
-          <p className="font-mono text-[11px] text-fg3">Redirecting to broker detail…</p>
+      <div className="space-y-3 rounded-r-lg border border-[var(--bull)] bg-[var(--bg-panel)] p-5">
+        {/* Header */}
+        <div className="flex items-center gap-2 border-b border-[var(--border)] pb-3">
+          <CheckCircle size={16} className="text-bull" />
+          <p className="font-display text-[11px] uppercase tracking-[0.1em] text-bull">Broker provisioned</p>
+        </div>
+
+        {/* Credential rows */}
+        <div className="space-y-2 font-mono text-[12px]">
+          <div className="flex justify-between rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1.5">
+            <span className="text-fg3">BROKER CODE</span>
+            <span className="text-bull">{result.brokerCode}</span>
+          </div>
+          <div className="flex justify-between rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1.5">
+            <span className="text-fg3">ADMIN MOBILE</span>
+            <span className="text-fg1">{form.adminMobileE164}</span>
+          </div>
+          <div className="flex flex-col gap-1 rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1.5">
+            <div className="flex justify-between">
+              <span className="text-fg3">LOCAL DEV</span>
+              <button
+                onClick={copyCredentials}
+                className="flex items-center gap-1 text-[10px] uppercase tracking-[0.06em] transition-colors"
+              >
+                {copied ? (
+                  <>
+                    <CheckCircle size={10} className="text-bull" />
+                    <span className="text-bull">COPIED</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy size={10} className="text-fg3" />
+                    <span className="text-fg3">COPY</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <span className="text-[11px] text-fg1 break-all">{localDevUrl}</span>
+          </div>
+          <div className="flex justify-between rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-1.5">
+            <span className="text-fg3">PRODUCTION LOGIN</span>
+            <span className="text-[11px] text-fg1 break-all">{prodLoginUrl}</span>
+          </div>
+        </div>
+
+        {/* SMS notice */}
+        <div className="rounded border border-[var(--border-hi)] bg-[var(--bg-elevated)] px-3 py-2">
+          <p className="font-mono text-[11px] text-fg2">
+            Login credentials sent via SMS to{' '}
+            <span className="text-bull">{form.adminMobileE164}</span>
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-[var(--border)] pt-2">
+          <p className="font-mono text-[10px] text-fg3">Redirecting to broker detail…</p>
+          <div className="h-1 w-24 overflow-hidden rounded-full bg-[var(--bg-elevated)]">
+            <div className="h-full animate-pulse-fast bg-bull" style={{ width: '100%' }} />
+          </div>
         </div>
       </div>
     );

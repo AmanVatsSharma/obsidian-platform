@@ -15,6 +15,7 @@
  */
 
 @import '../../../../libs/obsidian-ui/src/styles/tokens.css';
+@import '../../../../libs/web-auth/src/auth.css';
 
 @tailwind base;
 @tailwind components;
@@ -46,5 +47,23 @@
   ::-webkit-scrollbar-thumb {
     background: var(--border-hi);
     border-radius: 2px;
+  }
+}
+
+@layer utilities {
+  .animate-shimmer-slow {
+    background: linear-gradient(
+      90deg,
+      var(--bg-elevated) 0%,
+      var(--bg-hover) 40%,
+      var(--bg-elevated) 100%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.8s ease-in-out infinite;
+  }
+
+  @keyframes shimmer {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
   }
 }

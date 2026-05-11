@@ -14,6 +14,7 @@ export default tseslint.config(
       '**/.nx/**',
       '**/coverage/**',
       '.cursor/**',
+      'apps/platform-owner/legacy/**',
     ],
   },
   eslint.configs.recommended,

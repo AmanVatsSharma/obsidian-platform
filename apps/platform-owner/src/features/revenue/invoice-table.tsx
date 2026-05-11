@@ -32,7 +32,7 @@ const STATUS_STYLE: Record<string, string> = {
 
 export function InvoiceTable({ invoices, brokers }: InvoiceTableProps) {
   const brokerName = (id: string) => {
-    const b = brokers.find((br) => br.id === Number(id.replace('t-', '')) || `t-00${br.id}` === id || id === `t-00${br.id}`);
+    const b = brokers.find((br) => br.id === id.replace(/^t-0*/, '') || `t-00${br.id}` === id || id === `t-00${br.id}`);
     return b?.name ?? id;
   };
 

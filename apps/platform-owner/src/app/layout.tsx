@@ -10,7 +10,6 @@
  * Depends on:
  *   - next/font/google                   — self-hosted Syne, IBM Plex Mono, DM Sans
  *   - @obsidian/obsidian-ui             — ObsidianProvider
- *   - ../lib/mock-data-context           — MockDataProvider
  *   - ../shared/sidebar/sidebar          — Sidebar nav
  *   - ../shared/topbar/topbar            — Topbar chrome
  *
@@ -28,10 +27,10 @@
 import './global.css';
 import { DM_Sans, IBM_Plex_Mono, Syne } from 'next/font/google';
 import { ObsidianProvider } from '@obsidian/obsidian-ui';
-import { MockDataProvider } from '../lib/mock-data-context';
 import { AuthProvider } from '../lib/auth/auth-context';
 import { AuthGuard } from '../lib/auth/auth-guard';
 import { AppShell } from '../lib/auth/app-shell';
+import { ErrorBoundary } from '../components/ErrorBoundary';
 
 const syne = Syne({
   subsets: ['latin'],
@@ -68,13 +67,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-bg-base text-fg1 antialiased">
         <ObsidianProvider defaultTheme="dark">
           <AuthProvider>
-            <MockDataProvider>
-              <AuthGuard>
-                <AppShell>
-                  {children}
-                </AppShell>
-              </AuthGuard>
-            </MockDataProvider>
+            <AuthGuard>
+              <ErrorBoundary>
+              <AppShell>
+                {children}
+              </AppShell>
+            </ErrorBoundary>
+            </AuthGuard>
           </AuthProvider>
         </ObsidianProvider>
       </body>

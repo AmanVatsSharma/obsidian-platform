@@ -63,9 +63,9 @@ export async function apiRequest<T = unknown>(
     try { body = await res.json(); } catch { /* empty body */ }
     throw new ApiError(
       res.status,
-      String(body['code'] ?? 'UNKNOWN_ERROR'),
-      String(body['message'] ?? res.statusText),
-      body['requestId'] as string | undefined,
+      typeof body['code'] === 'string' ? body['code'] : 'UNKNOWN_ERROR',
+      typeof body['message'] === 'string' ? body['message'] : res.statusText,
+      typeof body['requestId'] === 'string' ? body['requestId'] : undefined,
     );
   }
 

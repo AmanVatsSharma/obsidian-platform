@@ -25,12 +25,24 @@ export interface OtpVerifyResponse {
   tokenId: string;
 }
 
+export interface ApiBrokerMetrics {
+  aum: string;
+  clients: number;
+  monthlyRevenue: string;
+  monthlyRevenuePrev: string;
+  healthScore: number;
+  lastActivityAt: string | null;
+  computedAt: string | null;
+}
+
 export interface ApiBroker {
   id: string;
   tenantId: string;
   brokerCode: string;
   displayName: string;
+  status: string;
   createdAt: string;
+  metrics?: ApiBrokerMetrics;
 }
 
 export interface OnboardBrokerRequest {
@@ -80,5 +92,144 @@ export const api = {
     apiRequest<void>(`/saas/brokers/${tenantCode}/suspend`, {
       method: 'POST',
       body: JSON.stringify({ reason }),
+    }),
+
+  listBrokersWithMetrics: () =>
+    apiRequest<ApiBroker[]>('/saas/brokers/metrics'),
+
+  getBrokerMetrics: (tenantCode: string) =>
+    apiRequest<ApiBrokerMetrics>(`/saas/brokers/${tenantCode}/metrics`),
+
+  getPlatformStats: () =>
+    apiRequest<{
+      totalBrokers: number;
+      activeBrokers: number;
+      totalClients: number;
+      totalAum: string;
+      totalMonthlyRevenue: string;
+      totalMonthlyRevenuePrev: string;
+    }>('/saas/stats'),
+
+  getRevenueSeries: () =>
+    apiRequest<Array<{ month: string; mrr: number; newBusiness: number; churn: number }>>('/saas/revenue-series'),
+
+  listAllBilling: () =>
+    apiRequest<Array<{
+      id: string;
+      tenantId: string;
+      invoiceNumber: string;
+      amount: string;
+      currency: string;
+      status: string;
+      createdAt: string;
+      updatedAt: string;
+    }>>('/saas/billing/invoices'),
+
+  createBilling: (dto: { tenantId: string; invoiceNumber: string; amount: string; currency: string }) =>
+    apiRequest<{ id: string; invoiceNumber: string }>('/saas/billing/invoices', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+    }),
+
+  listAllEntitlements: () =>
+    apiRequest<Array<{
+      id: string;
+      tenantId: string;
+      planCode: string;
+      entitlements: Record<string, unknown>;
+      featureFlags: Record<string, boolean>;
+      createdAt: string;
+      updatedAt: string;
+    }>>('/saas/entitlements'),
+
+  upsertEntitlements: (dto: {
+    tenantId: string;
+    planCode: string;
+    entitlements: Record<string, unknown>;
+    featureFlags: Record<string, boolean>;
+  }) =>
+    apiRequest<{
+      id: string;
+      tenantId: string;
+      planCode: string;
+    }>('/saas/entitlements', {
+      method: 'POST',
+      body: JSON.stringify(dto),
+    }),
+
+  listTenants: () =>
+    apiRequest<Array<{
+      id: string;
+      code: string;
+      displayName: string;
+      status: string;
+      timezone: string;
+      jurisdictionProfile: string;
+      createdAt: string;
+      updatedAt: string;
+    }>>('/saas/brokers'),
+
+  getPlanRevenueBreakdown: () =>
+    apiRequest<Array<{ plan: string; amount: number; tenants: number }>>('/saas/revenue/plan-breakdown'),
+
+  getPlatformHealth: () =>
+    apiRequest<{
+      services: Array<{ name: string; status: string; uptime: string; latency: string; description: string }>;
+      nodes: Array<{ id: string; location: string; load: number; memory: number; status: string; tenants: number }>;
+      liquidityProviders: Array<{ id: number; name: string; type: string; status: string; latency: number; instruments: number; uptime: string; creditLimit: number; creditUsed: number }>;
+    }>('/saas/health'),
+
+  listAllAudit: () =>
+    apiRequest<Array<{
+      id: string;
+      tenantId: string;
+      actorUserId: string;
+      targetUserId: string;
+      reason: string;
+      action: string;
+      createdAt: string;
+    }>>('/saas/audit/impersonations'),
+
+  // Phase 2: Activity / Onboarding Queue / Suspended
+
+  getLiveActivity: () =>
+    apiRequest<Array<{
+      id: string;
+      type: string;
+      message: string;
+      time: string;
+      brokerCode: string;
+      severity: string;
+    }>>('/saas/activity'),
+
+  listPendingOnboarding: () =>
+    apiRequest<Array<{
+      tenantId: string;
+      tenantCode: string;
+      displayName: string;
+      provisioningStatus: string;
+      requestedBy: string;
+      createdAt: string;
+      daysPending: number;
+    }>>('/saas/onboarding/queue'),
+
+  advanceProvisioning: (tenantId: string) =>
+    apiRequest<void>(`/saas/onboarding/${tenantId}/advance`, {
+      method: 'POST',
+    }),
+
+  listSuspendedBrokers: () =>
+    apiRequest<Array<{
+      id: string;
+      tenantId: string;
+      brokerCode: string;
+      displayName: string;
+      status: string;
+      createdAt: string;
+    }>>('/saas/suspended'),
+
+  reactivateBroker: (tenantCode: string) =>
+    apiRequest<{ id: string; brokerCode: string }>(`/saas/suspended/${tenantCode}/reactivate`, {
+      method: 'POST',
     }),
 };

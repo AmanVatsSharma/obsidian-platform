@@ -102,7 +102,7 @@ export type BrokerPlan = 'STARTER' | 'GROWTH' | 'PRO' | 'ENTERPRISE';
 export type BrokerStatus = 'ACTIVE' | 'SUSPENDED' | 'TRIAL' | 'PENDING';
 
 export interface Broker {
-  id: number;
+  id: string;
   name: string;
   plan: BrokerPlan;
   country: string;
