@@ -61,6 +61,12 @@ export class IbCommissionLedgerEntity {
   @Column({ name: 'period_key', type: 'varchar', length: 8, nullable: true })
   periodKey?: string | null;
 
+  @Column({ name: 'paid_at', type: 'timestamptz', nullable: true })
+  paidAt?: Date | null;
+
+  @Column({ name: 'paid_by', type: 'uuid', nullable: true })
+  paidBy?: string | null;
+
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
   createdAt!: Date;
 

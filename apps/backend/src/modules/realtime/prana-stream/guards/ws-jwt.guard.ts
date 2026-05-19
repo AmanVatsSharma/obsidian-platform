@@ -26,7 +26,7 @@ export class WsJwtGuard implements CanActivate {
     if (!token) throw new UnauthorizedException('Missing token');
     try {
       const payload = await this.jwt.verifyAsync(token, {
-        secret: process.env.JWT_ACCESS_SECRET!,
+        secret: process.env.JWT_ACCESS_SECRET,
       });
       // Attach user to handshake auth for downstream usage
       client.handshake.auth = {
@@ -42,7 +42,7 @@ export class WsJwtGuard implements CanActivate {
   }
 
   private extractToken(client: Socket): string | undefined {
-    const header = client.handshake.headers['authorization'] as string | undefined;
+    const header = client.handshake.headers['authorization'];
     if (header && header.startsWith('Bearer ')) return header.slice(7);
     const fromAuth = (client.handshake.auth as any)?.token as string | undefined;
     return fromAuth;

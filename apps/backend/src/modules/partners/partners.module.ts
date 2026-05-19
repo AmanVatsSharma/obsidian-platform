@@ -14,6 +14,7 @@ import { PartnerEntity } from './entities/partner.entity';
 import { PartnerIntegrationEntity } from './entities/partner-integration.entity';
 import { PartnersService } from './services/partners.service';
 import { RbacModule } from '../rbac/rbac.module';
+import { PartnersResolver } from './partners.resolver';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { RbacModule } from '../rbac/rbac.module';
     TypeOrmModule.forFeature([PartnerEntity, PartnerIntegrationEntity]),
   ],
   controllers: [PartnersController],
-  providers: [PartnersService],
+  providers: [PartnersService, PartnersResolver],
   exports: [PartnersService],
 })
 export class PartnersModule {}

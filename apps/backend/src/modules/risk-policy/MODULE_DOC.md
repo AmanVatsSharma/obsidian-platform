@@ -5,20 +5,29 @@ maintainer: BharatERP
 ---
 
 ## Purpose
-Scaffolds jurisdiction risk rules and assignment APIs for broker-admin and platform-owner controls.
+Jurisdiction risk rules, pre-trade enforcement, and aggregated risk dashboard for broker-admin.
 
 ## Entities
-- RiskPolicyEntity
-- TenantRiskPolicyEntity
+- `RiskPolicyEntity` — jurisdiction-level risk constraints (maxLeverage, maxOrderNotional, restrictedProducts, sanctionsCheckRequired)
+- `TenantRiskPolicyEntity` — risk policy assignments to scopes (TENANT/BROKER/DESK/ACCOUNT)
 
-## APIs
-- POST /risk-policy/policies
-- POST /risk-policy/assignments
-- GET /risk-policy/policies?tenantId=...
+## Public routes
+
+| Method | Path | Auth | Description |
+|--------|------|------|-------------|
+| GET | /admin/risk/policies | JwtAuth + TenantGuard + oms:admin | List all risk policies (paginated) |
+| GET | /admin/risk/exposure | JwtAuth + TenantGuard + oms:admin | Net/gross exposure per instrument |
+| GET | /admin/risk/dashboard | JwtAuth + TenantGuard + oms:admin | Aggregated dashboard (instruments + totals) |
+| GET | /admin/risk/alerts | JwtAuth + TenantGuard + oms:admin | Paginated surveillance alerts |
+| POST | /risk-policy/policies | — | Create risk policy |
+| POST | /risk-policy/assignments | — | Assign policy to scope |
 
 ## Dependencies
-- Shared logger
-- TypeORM repositories
+- SharedModule (AppLoggerService), ComplianceModule (SurveillanceAlertEntity for risk-dashboard queries), TenantEntity
+
+## Idempotency
+- Risk policy upsert keyed on tenantId + jurisdictionCode
 
 ## Changelog
+- 2026-05-16: Added RiskDashboardService (getDashboard, getAlerts, dismissAlert) wired into AdminRiskController. RiskPolicyModule imports ComplianceModule to access SurveillanceAlertEntity.
 - 2026-02-17 IST: Added risk policy scaffolding with policy/assignment entities, DTOs, APIs, tests, and docs.

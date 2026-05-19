@@ -80,6 +80,15 @@ export class UsersService {
     return user;
   }
 
+  /**
+   * Lightweight user lookup by ID — used by cross-module enrichment
+   * (e.g. KYC document list needs userName, email, countryCode).
+   * Does NOT throw; returns null if user not found.
+   */
+  async findById(id: string): Promise<UserEntity | null> {
+    return this.repo.findOne({ where: { id } });
+  }
+
   async update(id: string, dto: UpdateUserDto): Promise<UserEntity> {
     this.logger.debug('update() called');
     const toUpdate: QueryDeepPartialEntity<UserEntity> = {} as any;
@@ -210,12 +219,22 @@ export class UsersService {
   }
 
   async reactivate(tenantId: string, id: string): Promise<UserEntity> {
-    this.logger.debug('reactivate() called');
+    this.logger.debug('reactactivate() called');
     const user = await this.findOneOrThrow(tenantId, id);
     await this.repo.update(
       { id: user.id },
       { isActive: true, deactivatedAt: null, deactivatedReason: null },
     );
     return this.findOneOrThrow(tenantId, id);
+  }
+
+  /**
+   * Counts active, non-locked users for a tenant. Used by BrokerMetricsService to
+   * report "clients" per broker without loading full user rows.
+   */
+  async countActiveByTenant(tenantId: string): Promise<number> {
+    return this.repo.count({
+      where: { tenantId, isActive: true, isLocked: false },
+    });
   }
 }

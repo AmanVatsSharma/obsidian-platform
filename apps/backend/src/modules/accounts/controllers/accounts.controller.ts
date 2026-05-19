@@ -10,6 +10,7 @@ import {
   Body,
   Controller,
   Get,
+  Headers,
   Param,
   Post,
   Query,
@@ -65,6 +66,16 @@ export class AccountsController {
   listMyAccounts() {
     this.logger.debug('listMyAccounts called');
     return this.service.listMyAccounts();
+  }
+
+  @Get('all')
+  @Permissions('accounts:read')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Admin list — all accounts for the tenant (optionally filtered by userId)' })
+  @ApiResponse({ status: 200, description: 'Accounts for tenant' })
+  listAll(@Headers('x-tenant-id') tenantId: string, @Query('userId') userId?: string) {
+    this.logger.debug('listAll called', { tenantId, userId });
+    return this.service.listByTenant(tenantId, userId);
   }
 
   @Get(':id')

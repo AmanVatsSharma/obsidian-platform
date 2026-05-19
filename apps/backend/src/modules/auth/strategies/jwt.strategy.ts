@@ -17,7 +17,7 @@ export class JwtAccessStrategy extends PassportStrategy(Strategy, 'jwt') {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: process.env.JWT_ACCESS_SECRET as string,
+      secretOrKey: process.env.JWT_ACCESS_SECRET,
       // Pass Express request so we can validate x-tenant-id header vs JWT claim
       passReqToCallback: true,
     });

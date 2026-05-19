@@ -7,6 +7,7 @@
  */
 
 export * from './risk-policy.module';
+export * from './risk-policy.resolver';
 export * from './services/risk-policy.service';
 export * from './entities/risk-policy.entity';
 export * from './entities/tenant-risk-policy.entity';

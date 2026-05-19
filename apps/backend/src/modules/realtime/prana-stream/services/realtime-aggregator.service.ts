@@ -62,7 +62,7 @@ export class RealtimeAggregatorService {
       const key = `${t.exchange}:${t.symbol}`;
       for (const userId of watchers) {
         if (!this.tickBuffers.has(userId)) this.tickBuffers.set(userId, new Map());
-        this.tickBuffers.get(userId)!.set(key, t);
+        this.tickBuffers.get(userId).set(key, t);
         this.scheduleFlush(userId);
       }
     }

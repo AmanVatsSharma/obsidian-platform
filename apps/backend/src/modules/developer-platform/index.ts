@@ -7,6 +7,7 @@
  */
 
 export * from './developer-platform.module';
+export * from './developer-platform.resolver';
 export * from './services/developer-platform.service';
 export * from './entities/api-key.entity';
 export * from './entities/developer-app.entity';

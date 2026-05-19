@@ -14,6 +14,7 @@ import { ApiKeyEntity } from './entities/api-key.entity';
 import { DeveloperAppEntity } from './entities/developer-app.entity';
 import { DeveloperPlatformService } from './services/developer-platform.service';
 import { RbacModule } from '../rbac/rbac.module';
+import { DeveloperPlatformResolver } from './developer-platform.resolver';
 
 @Module({
   imports: [
@@ -22,7 +23,7 @@ import { RbacModule } from '../rbac/rbac.module';
     TypeOrmModule.forFeature([ApiKeyEntity, DeveloperAppEntity]),
   ],
   controllers: [DeveloperPlatformController],
-  providers: [DeveloperPlatformService],
+  providers: [DeveloperPlatformService, DeveloperPlatformResolver],
   exports: [DeveloperPlatformService],
 })
 export class DeveloperPlatformModule {}

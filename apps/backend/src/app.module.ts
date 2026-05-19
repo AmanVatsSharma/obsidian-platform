@@ -7,6 +7,8 @@
  */
 
 import { Module, MiddlewareConsumer } from '@nestjs/common';
+import { GraphQLModule } from '@nestjs/graphql';
+import { ApolloDriver, ApolloDriverConfig } from '@nestjs/apollo';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { ConfigModule } from '@nestjs/config';
@@ -50,9 +52,24 @@ import { SupportModule } from '@obsidian/backend-support';
 import { PartnersModule } from '@obsidian/backend-partners';
 import { DeveloperPlatformModule } from '@obsidian/backend-developer-platform';
 import { PlatformTenantSeeder } from './shared/bootstrap/platform-tenant-seeder';
+import { RulesEngineModule } from './modules/rules-engine/rules-engine.module';
+import { PammModule } from './modules/pamm/pamm.module';
+import { CopyTradingModule } from './modules/copy-trading/copy-trading.module';
+import { LpRoutingModule } from './modules/lp-routing/lp-routing.module';
+import { CrmModule } from './modules/crm/crm.module';
+import { PromotionsModule } from './modules/promotions/promotions.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
+    GraphQLModule.forRoot<ApolloDriverConfig>({
+      driver: ApolloDriver,
+      autoSchemaFile: join(process.cwd(), 'src/generated/schema.gql'),
+      sortSchema: true,
+      playground: process.env['NODE_ENV'] !== 'production',
+      introspection: process.env['NODE_ENV'] !== 'production',
+      context: ({ req }) => ({ req }),
+    }),
     ServeStaticModule.forRoot({
       rootPath: join(process.cwd(), 'docs', 'ws'),
       serveRoot: '/docs/ws',
@@ -89,6 +106,13 @@ import { PlatformTenantSeeder } from './shared/bootstrap/platform-tenant-seeder'
     OutboxModule,
     AuditModule,
     ObservabilityModule,
+    RulesEngineModule,
+    PammModule,
+    CopyTradingModule,
+    LpRoutingModule,
+    CrmModule,
+    PromotionsModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService, { provide: APP_GUARD, useClass: TenantThrottlerGuard }, PlatformTenantSeeder],

@@ -6,17 +6,18 @@
  * @created 2026-02-19
  */
 
-import { IsIn, IsNumberString, IsObject, IsString, IsUUID } from 'class-validator';
+import { IsIn, IsNumberString, IsObject, IsOptional, IsString } from 'class-validator';
 
 export class CreateDealDto {
-  @IsUUID()
-  tenantId!: string;
+  @IsOptional()
+  @IsString()
+  tenantId?: string;
 
   @IsString()
   instrumentId!: string;
 
-  @IsIn(['BUY', 'SELL'])
-  side!: 'BUY' | 'SELL';
+  @IsIn(['BUY', 'SELL', 'BUY_HEDGE', 'SELL_HEDGE'])
+  side!: 'BUY' | 'SELL' | 'BUY_HEDGE' | 'SELL_HEDGE';
 
   @IsNumberString()
   quantity!: string;
@@ -26,4 +27,6 @@ export class CreateDealDto {
 
   @IsObject()
   metadata!: Record<string, unknown>;
+
+  status?: string;
 }

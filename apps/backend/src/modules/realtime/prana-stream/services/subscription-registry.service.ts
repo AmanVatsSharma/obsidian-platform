@@ -92,7 +92,7 @@ export class SubscriptionRegistryService {
     for (const s of symbols) {
       const key = `${s.exchange}:${s.symbol}`;
       if (!this.symbolWatchers.has(key)) this.symbolWatchers.set(key, new Set());
-      const set = this.symbolWatchers.get(key)!;
+      const set = this.symbolWatchers.get(key);
       if (add) set.add(userId);
       else set.delete(userId);
       if (set.size === 0) this.symbolWatchers.delete(key);

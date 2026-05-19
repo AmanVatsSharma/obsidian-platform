@@ -6,7 +6,7 @@
  * @created 2026-02-19
  */
 
-import { MessageEnvelope } from './contracts';
+import { MessageEnvelope } from './messaging-contracts';
 
 /**
  * Consumer handler signature.

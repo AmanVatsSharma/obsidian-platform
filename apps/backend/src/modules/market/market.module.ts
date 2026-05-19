@@ -42,6 +42,8 @@ import { DataProviderRegistry } from './providers/data-provider.registry';
 import { GenericRestDataProviderAdapter } from './providers/generic-rest/generic-rest.adapter';
 import { KiteDataProviderAdapter } from './providers/kite/kite-data-provider.adapter';
 import { MarketAdminController } from './controllers/market-admin.controller';
+import { AdminInstrumentsController } from './controllers/admin-instruments.controller';
+import { MarketResolver } from './market.resolver';
 
 @Module({
   imports: [
@@ -52,7 +54,7 @@ import { MarketAdminController } from './controllers/market-admin.controller';
       WatchlistItemEntity,
     ]),
   ],
-  controllers: [InstrumentsController, WatchlistsController, QuotesController, MarketAdminController],
+  controllers: [InstrumentsController, WatchlistsController, QuotesController, MarketAdminController, AdminInstrumentsController],
   providers: [
     InstrumentsService,
     WatchlistsService,
@@ -60,6 +62,7 @@ import { MarketAdminController } from './controllers/market-admin.controller';
     DataProviderRegistry,
     GenericRestDataProviderAdapter,
     KiteDataProviderAdapter,
+    MarketResolver,
   ],
   exports: [InstrumentsService, WatchlistsService, PriceFeedService],
 })

@@ -20,6 +20,9 @@ import { TenantGuard } from './guards/tenant.guard';
 import { RbacSeeder } from './rbac.seeder';
 import { AdminRolesController } from './controllers/admin-roles.controller';
 import { AdminPermissionsController } from './controllers/admin-permissions.controller';
+import { AdminTeamController } from './controllers/admin-team.controller';
+import { UserEntity } from '../users/entities/user.entity';
+import { RbacResolver } from './rbac.resolver';
 
 @Module({
   imports: [
@@ -28,10 +31,11 @@ import { AdminPermissionsController } from './controllers/admin-permissions.cont
       PermissionEntity,
       UserRoleEntity,
       RolePermissionEntity,
+      UserEntity,
     ]),
   ],
-  controllers: [AdminRolesController, AdminPermissionsController],
-  providers: [RbacService, PermissionsGuard, PlatformOwnerGuard, RolesGuard, TenantGuard, RbacSeeder],
+  controllers: [AdminRolesController, AdminPermissionsController, AdminTeamController],
+  providers: [RbacService, PermissionsGuard, PlatformOwnerGuard, RolesGuard, TenantGuard, RbacSeeder, RbacResolver],
   exports: [RbacService, PermissionsGuard, PlatformOwnerGuard, RolesGuard, TenantGuard],
 })
 export class RbacModule {}

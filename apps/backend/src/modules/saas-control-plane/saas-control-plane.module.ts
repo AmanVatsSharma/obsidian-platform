@@ -28,12 +28,15 @@ import { TenantEntity } from '../tenancy/entities/tenant.entity';
 import { RefreshTokenEntity } from '../auth/entities/refresh-token.entity';
 import { SaasControlPlaneController } from './controllers/saas-control-plane.controller';
 import { BrokerOnboardingController } from './controllers/broker-onboarding.controller';
+import { BrokerSetupController } from './controllers/broker-setup.controller';
+import { PlatformDashboardController } from './controllers/platform-dashboard.controller';
 import { BillingInvoicePlaceholderEntity } from './entities/billing-invoice-placeholder.entity';
 import { EntitlementPlanEntity } from './entities/entitlement-plan.entity';
 import { SupportImpersonationAuditEntity } from './entities/support-impersonation-audit.entity';
 import { TenantProvisioningEntity } from './entities/tenant-provisioning.entity';
 import { SaasControlPlaneService } from './services/saas-control-plane.service';
 import { BrokerOnboardingService } from './services/broker-onboarding.service';
+import { SaasControlPlaneResolver } from './saas-control-plane.resolver';
 
 @Module({
   imports: [
@@ -52,8 +55,8 @@ import { BrokerOnboardingService } from './services/broker-onboarding.service';
       RefreshTokenEntity,
     ]),
   ],
-  controllers: [SaasControlPlaneController, BrokerOnboardingController],
-  providers: [SaasControlPlaneService, BrokerOnboardingService],
+  controllers: [SaasControlPlaneController, BrokerOnboardingController, BrokerSetupController, PlatformDashboardController],
+  providers: [SaasControlPlaneService, BrokerOnboardingService, SaasControlPlaneResolver],
   exports: [SaasControlPlaneService, BrokerOnboardingService],
 })
 export class SaasControlPlaneModule {}

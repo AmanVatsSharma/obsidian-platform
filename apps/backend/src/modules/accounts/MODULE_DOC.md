@@ -40,6 +40,15 @@ Manages trading accounts, cash/position ledgers, balances, statements, holds, wi
 - POST /accounts/:id/withdrawals/:wid/approve — approve
 - POST /accounts/:id/withdrawals/:wid/reject — reject
 
+## GraphQL (accounts.resolver.ts)
+- Query myAccounts — list accounts for current user (accounts:read)
+- Query account(id) — get account by UUID (accounts:read)
+- Query allAccounts(userId?) — admin list by tenant (accounts:read)
+- Query accountBalance(accountId, currency?) — cash/equity/buying-power (accounts:read)
+- Mutation createAccount — create account (accounts:write)
+- Mutation disableAccount(id) — disable account (accounts:write)
+- Mutation enableAccount(id) — enable account (accounts:write)
+
 ## Security
 JWT required; Tenant header enforced; RBAC permissions: accounts:read|write, ledger:read|write, statements:read
 
@@ -62,5 +71,6 @@ IST by default; per-account timezone preference to be respected later.
 - 2025-01-09 IST: Added bank accounts linking/listing, deposit requests with admin approval, and entities/migrations; enhanced EOD statements computation (cash flows, MTM)
 - 2026-02-17 IST: Realtime account/position publish now prefers request-context userId routing (fallback to accountId), and module registered as Nx domain library boundary.
 - 2026-03-15: Added accountType (LIVE | DEMO) to AccountEntity and CreateAccountDto; listByUserAndType; reject deposits and withdrawals for DEMO accounts (DemoAccountOperationError).
+- 2026-05-19: Added accounts.resolver.ts — GraphQL Query/Mutation surface mirroring REST endpoints; accounts.index.ts barrel exports AccountsResolver.
 
 

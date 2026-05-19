@@ -26,6 +26,7 @@ import { OrderEntity } from '../../oms/entities/order.entity';
 import { PositionLedgerEntryEntity } from '../../accounts/entities/position-ledger-entry.entity';
 import { CashLedgerEntryEntity } from '../../accounts/entities/cash-ledger-entry.entity';
 import { HoldEntity } from '../../accounts/entities/hold.entity';
+import { RealtimeResolver } from './realtime.resolver';
 
 @Module({
   imports: [
@@ -50,6 +51,7 @@ import { HoldEntity } from '../../accounts/entities/hold.entity';
     VortexMarketDataAdapter,
     MockMarketDataAdapter,
     WsJwtGuard,
+    RealtimeResolver,
   ],
   exports: [RealtimeAggregatorService, RealtimePublisherService],
   controllers: [AdminPranaController],

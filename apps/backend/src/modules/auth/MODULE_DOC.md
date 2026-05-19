@@ -45,4 +45,4 @@ Change-log:
 - 2025-09-24 IST: Session management admin endpoints; sessions include ipAddress, userAgent, deviceInfo, createdAt; user.lastLoginAt updated on OTP verify
 - 2025-09-24 IST: Added filters for admin sessions and user history endpoint
 - 2026-02-17 IST: Refactored controller async flows to async/await, hardened refresh-token decode/validation, and added module `index.ts` for Nx domain boundaries.
-- 2026-05-09 IST: Updated OTP SMS body from "NestTrade" to "Obsidian" branding.
+- 2026-05-18: Updated "NestTrade" to "Obsidian" branding throughout.

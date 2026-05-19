@@ -7,4 +7,5 @@
  */
 
 export { DemoAccountsModule } from './demo-accounts.module';
+export { DemoAccountsResolver } from './demo-accounts.resolver';
 export { DemoAccountService } from './services/demo-account.service';

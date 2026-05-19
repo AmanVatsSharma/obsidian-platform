@@ -15,11 +15,12 @@ import { UsersController } from './users.controller';
 import { AdminUsersController } from './controllers/admin-users.controller';
 import { RbacModule } from '../rbac/rbac.module';
 import { ProfileController } from './controllers/profile.controller';
+import { UsersResolver } from './users.resolver';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity]), SharedModule, RbacModule],
   controllers: [UsersController, AdminUsersController, ProfileController],
-  providers: [UsersService],
+  providers: [UsersService, UsersResolver],
   exports: [UsersService, TypeOrmModule],
 })
 export class UsersModule {}

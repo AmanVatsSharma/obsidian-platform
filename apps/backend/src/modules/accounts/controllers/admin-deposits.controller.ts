@@ -33,7 +33,7 @@ export class AdminDepositsController {
   @ApiResponse({ status: 200, description: 'Deposit requests' })
   async listAll() {
     this.logger.debug('GET /admin/accounts/deposits');
-    return this.service.listAll();
+    return this.service.listAllAdmin();
   }
 
   @Post(':id/approve')

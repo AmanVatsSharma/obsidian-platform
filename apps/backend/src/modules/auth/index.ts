@@ -10,4 +10,6 @@ export * from './auth.module';
 export * from './auth.service';
 export * from './auth.controller';
 export * from './controllers/admin-auth.controller';
+export * from './auth.resolver';
 export * from './entities/refresh-token.entity';
+export * from './guards/jwt-auth.guard';

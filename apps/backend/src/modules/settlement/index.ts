@@ -10,3 +10,4 @@ export * from './settlement.module';
 export * from './services/settlement.service';
 export * from './entities/settlement-job.entity';
 export * from './dtos/create-settlement-job.dto';
+export * from './settlement.resolver';

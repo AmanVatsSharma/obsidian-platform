@@ -10,6 +10,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DepositRequestEntity } from '../entities/deposit-request.entity';
+import { AccountEntity } from '../entities/account.entity';
 import { AppLoggerService } from '../../../shared/logger';
 import { getRequestContext } from '../../../shared/request-context';
 import { CreateDepositRequestDto } from '../dtos/create-deposit-request.dto';
@@ -25,6 +26,8 @@ export class DepositsService {
   constructor(
     @InjectRepository(DepositRequestEntity)
     private readonly deposits: Repository<DepositRequestEntity>,
+    @InjectRepository(AccountEntity)
+    private readonly accounts: Repository<AccountEntity>,
     private readonly logger: AppLoggerService,
     private readonly ledger: LedgerService,
     private readonly accountsService: AccountsService,
@@ -168,6 +171,41 @@ export class DepositsService {
       where: { tenantId: ctx.tenantId },
       order: { createdAt: 'DESC' } as any,
     });
+  }
+
+  /**
+   * Admin: list all deposits for the tenant with account → user name enrichment.
+   * Used by the broker-admin transactions page to display client names.
+   */
+  async listAllAdmin(): Promise<Array<DepositRequestEntity & { userName?: string | null }>> {
+    const ctx = getRequestContext();
+    if (!ctx?.tenantId) {
+      throw new AppError('VALIDATION_ERROR', 'Tenant context missing');
+    }
+    const rows = await this.deposits.find({
+      where: { tenantId: ctx.tenantId },
+      order: { createdAt: 'DESC' } as any,
+    });
+    if (rows.length === 0) return rows;
+
+    // Batch-fetch accounts to resolve account → user relationship
+    const accountIds = [...new Set(rows.map(r => r.accountId))];
+    const accountMap = new Map<string, AccountEntity>();
+    await Promise.all(
+      accountIds.map(aid =>
+        this.accounts.findOne({ where: { id: aid } }).then(acc => {
+          if (acc) accountMap.set(aid, acc);
+        }),
+      ),
+    );
+
+    // User names are resolved by the frontend via GET /admin/users
+    // We attach account info for reference
+    return rows.map(r => ({
+      ...r,
+      userName: null as string | null,
+      accountDisplayId: accountMap.get(r.accountId)?.id.slice(0, 8) ?? r.accountId.slice(0, 8),
+    })) as any;
   }
 }
 

@@ -50,7 +50,7 @@ export class PositionsService {
       .addSelect('COALESCE(SUM(p.quantity_delta::numeric), 0)', 'netQty')
       .addSelect('COALESCE(SUM(p.quantity_delta::numeric * p.price::numeric), 0)', 'sumQtyPrice')
       .where('p.tenant_id = :tenantId AND p.account_id = :accountId', {
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
       })
       .groupBy('p.instrument_id')
@@ -82,6 +82,91 @@ export class PositionsService {
     }
 
     return { count: result.length, rows: result };
+  }
+
+  async listAll(opts: {
+    accountId?: string;
+    currency?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const ctx = getRequestContext();
+    const { limit = 100, offset = 0 } = opts;
+    this.logger.debug('listAll:start', { ctx, opts });
+
+    const qb = this.posLedger
+      .createQueryBuilder('p')
+      .select('p.instrument_id', 'instrumentId')
+      .addSelect('COALESCE(SUM(p.quantity_delta::numeric), 0)', 'netQty')
+      .addSelect(
+        'COALESCE(SUM(p.quantity_delta::numeric * p.price::numeric), 0)',
+        'sumQtyPrice',
+      )
+      .leftJoin('accounts', 'a', 'a.id = p.account_id')
+      .addSelect('a.account_type', 'accountType')
+      .where('p.tenant_id = :tenantId', { tenantId: ctx.tenantId });
+
+    if (opts.accountId) {
+      qb.andWhere('p.account_id = :accountId', { accountId: opts.accountId });
+    }
+
+    qb.groupBy('p.instrument_id').addGroupBy('a.account_type');
+
+    const [rawRows, total] = await Promise.all([
+      qb.skip(offset).take(limit).getRawMany<{
+        instrumentId: string;
+        netQty: string;
+        sumQtyPrice: string;
+        accountType: string;
+      }>(),
+      qb.clone().select('COUNT(DISTINCT p.instrument_id)', 'cnt').getRawOne(),
+    ]);
+
+    const data: PositionRow[] = [];
+    for (const r of rawRows) {
+      const netQty = Number(r.netQty);
+      if (netQty === 0) continue;
+      const avgPrice = netQty !== 0 ? Number(r.sumQtyPrice) / netQty : 0;
+      const inst = (await this.instruments.listByIds([r.instrumentId]))[0];
+      let lastPrice = 0;
+      if (inst) {
+        const snap = this.prices.getSnapshot([
+          { exchange: inst.exchangeCode, symbol: inst.symbol },
+        ]);
+        if (snap.length > 0) lastPrice = snap[0].price;
+      }
+      const mtmPnl = (lastPrice - avgPrice) * netQty;
+      const value = lastPrice * netQty;
+      data.push({
+        instrumentId: r.instrumentId,
+        netQty,
+        avgPrice,
+        realizedPnl: 0,
+        lastPrice,
+        mtmPnl,
+        value,
+      });
+    }
+
+    if (opts.currency && opts.currency !== 'INR') {
+      for (const p of data) {
+        p.avgPrice = Number(
+          await this.fx.convert(p.avgPrice.toFixed(8), 'INR', opts.currency),
+        );
+        p.lastPrice = Number(
+          await this.fx.convert(p.lastPrice.toFixed(8), 'INR', opts.currency),
+        );
+        p.mtmPnl = Number(
+          await this.fx.convert(p.mtmPnl.toFixed(8), 'INR', opts.currency),
+        );
+        p.value = Number(
+          await this.fx.convert(p.value.toFixed(8), 'INR', opts.currency),
+        );
+      }
+    }
+
+    this.logger.debug('listAll:end', { total, returned: data.length });
+    return { data, total, limit, offset };
   }
 }
 

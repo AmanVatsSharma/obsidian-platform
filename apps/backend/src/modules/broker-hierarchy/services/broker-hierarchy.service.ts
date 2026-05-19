@@ -1,9 +1,28 @@
 /**
- * @file src/modules/broker-hierarchy/services/broker-hierarchy.service.ts
- * @module broker-hierarchy
- * @description Service for broker branch/desk/dealer hierarchy and delegated role mapping
- * @author BharatERP
- * @created 2026-02-17
+ * File:        apps/backend/src/modules/broker-hierarchy/services/broker-hierarchy.service.ts
+ * Module:      broker-hierarchy
+ * Purpose:     Service for broker branch/desk/dealer hierarchy and delegated role mapping.
+ *
+ * Exports:
+ *   - BrokerHierarchyService — all broker/branch/desk/dealer CRUD
+ *
+ * Depends on:
+ *   - BrokerEntity           — broker root entity
+ *   - BranchEntity           — broker branches
+ *   - DeskEntity             — branch desks
+ *   - DealerEntity           — desk dealers
+ *
+ * Side-effects:  DB writes only
+ *
+ * Key invariants:
+ *   - getHierarchy uses batch queries to avoid N+1 — branch/desk/dealer IDs never iterated for per-row queries.
+ *
+ * Read order:
+ *   1. Broker CRUD — createBroker, findBrokerByCode, listAllBrokers
+ *   2. Hierarchy aggregation — getHierarchy (batched, not N+1)
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-14
  */
 
 import { Injectable } from '@nestjs/common';
@@ -50,8 +69,36 @@ export class BrokerHierarchyService {
     return this.brokers.findOne({ where: { tenantId, brokerCode } });
   }
 
-  listAllBrokers(): Promise<BrokerEntity[]> {
+  /**
+   * List all brokers with optional cursor-based pagination.
+   * @param options.limit  Max results (default 50, max 200)
+   * @param options.offset Skip N results (default 0)
+   * @returns Promise<{ brokers: BrokerEntity[]; total: number }>
+   */
+  async listAllBrokers(options: { limit?: number; offset?: number } = {}): Promise<{ brokers: BrokerEntity[]; total: number }> {
+    const limit = Math.min(options.limit ?? 50, 200);
+    const offset = options.offset ?? 0;
+    const [brokers, total] = await this.brokers.findAndCount({
+      order: { createdAt: 'DESC' },
+      take: limit,
+      skip: offset,
+    });
+    return { brokers, total };
+  }
+
+  /**
+   * Legacy overload — returns all brokers (no pagination).
+   * @deprecated Use listAllBrokers({ limit, offset }) for production.
+   */
+  listAllBrokersFlat(): Promise<BrokerEntity[]> {
     return this.brokers.find({ order: { createdAt: 'DESC' } });
+  }
+
+  listBrokersByStatus(status: string, options: { limit?: number; offset?: number } = {}): Promise<{ brokers: BrokerEntity[]; total: number }> {
+    const limit = Math.min(options.limit ?? 50, 200);
+    const offset = options.offset ?? 0;
+    return this.brokers.findAndCount({ where: { status }, order: { createdAt: 'DESC' }, take: limit, skip: offset })
+      .then(([brokers, total]) => ({ brokers, total }));
   }
 
   async createBranch(dto: CreateBranchDto): Promise<BranchEntity> {

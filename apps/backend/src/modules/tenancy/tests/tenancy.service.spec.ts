@@ -8,10 +8,12 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { AppLoggerService } from '../../../shared/logger';
 import { LegalEntityEntity } from '../entities/legal-entity.entity';
 import { TenantEntity } from '../entities/tenant.entity';
 import { TenantBrandConfigEntity } from '../entities/tenant-brand-config.entity';
+import { TenantDomainEntity } from '../entities/tenant-domain.entity';
 import { TenancyService } from '../services/tenancy.service';
 
 describe('TenancyService', () => {
@@ -32,6 +34,12 @@ describe('TenancyService', () => {
     create: jest.fn().mockImplementation((x: any) => x),
     save: jest.fn().mockImplementation(async (x: any) => ({ id: 'bc-1', ...x })),
   };
+  const domainsRepo = {
+    findOne: jest.fn().mockResolvedValue(null),
+    create: jest.fn(),
+    save: jest.fn(),
+    find: jest.fn(),
+  };
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -40,6 +48,8 @@ describe('TenancyService', () => {
         { provide: getRepositoryToken(TenantEntity), useValue: tenantsRepo },
         { provide: getRepositoryToken(LegalEntityEntity), useValue: legalRepo },
         { provide: getRepositoryToken(TenantBrandConfigEntity), useValue: brandConfigRepo },
+        { provide: getRepositoryToken(TenantDomainEntity), useValue: domainsRepo },
+        { provide: DataSource, useValue: { transaction: async (_iso: any, fn: any) => fn({ query: async () => {}, getRepository: () => ({ findOne: jest.fn(), create: jest.fn(), save: jest.fn() }) }) } },
         { provide: AppLoggerService, useValue: { setContext: jest.fn(), debug: jest.fn() } },
       ],
     }).compile();

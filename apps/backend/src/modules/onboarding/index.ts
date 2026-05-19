@@ -10,3 +10,4 @@ export * from './onboarding.module';
 export * from './services/onboarding.service';
 export * from './entities/onboarding-profile.entity';
 export * from './dtos/upsert-onboarding-profile.dto';
+export * from './onboarding.resolver';

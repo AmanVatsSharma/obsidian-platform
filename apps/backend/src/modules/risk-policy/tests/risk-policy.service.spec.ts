@@ -8,6 +8,7 @@
 
 import { Test, TestingModule } from '@nestjs/testing';
 import { getRepositoryToken } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 import { AppLoggerService } from '../../../shared/logger';
 import { RiskPolicyEntity } from '../entities/risk-policy.entity';
 import { TenantRiskPolicyEntity } from '../entities/tenant-risk-policy.entity';
@@ -26,6 +27,7 @@ describe('RiskPolicyService', () => {
         { provide: getRepositoryToken(RiskPolicyEntity), useValue: policiesRepo },
         { provide: getRepositoryToken(TenantRiskPolicyEntity), useValue: assignmentsRepo },
         { provide: getRepositoryToken(TenantEntity), useValue: { findOne: jest.fn().mockResolvedValue(null) } },
+        { provide: DataSource, useValue: { transaction: async (_iso: any, fn: any) => fn({ query: async () => {}, getRepository: () => ({ findOne: jest.fn(), create: jest.fn(), save: jest.fn() }) }) } },
         { provide: AppLoggerService, useValue: { setContext: jest.fn(), debug: jest.fn() } },
       ],
     }).compile();

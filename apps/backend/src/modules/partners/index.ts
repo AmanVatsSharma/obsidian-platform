@@ -12,3 +12,4 @@ export * from './entities/partner.entity';
 export * from './entities/partner-integration.entity';
 export * from './dtos/create-partner.dto';
 export * from './dtos/partner-payout-approval.dto';
+export * from './partners.resolver';

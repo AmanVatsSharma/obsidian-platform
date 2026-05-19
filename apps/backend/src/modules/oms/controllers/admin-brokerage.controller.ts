@@ -52,7 +52,7 @@ export class AdminBrokerageRulesController {
   })
   async create(@Body() dto: UpsertBrokerageRuleDto) {
     const ctx = getRequestContext();
-    const entity = this.repo.create({ tenantId: ctx?.tenantId!, ...dto });
+    const entity = this.repo.create({ tenantId: ctx?.tenantId, ...dto });
     return this.repo.save(entity);
   }
 
@@ -68,7 +68,7 @@ export class AdminBrokerageRulesController {
   })
   async update(@Param('id') id: string, @Body() dto: UpsertBrokerageRuleDto) {
     const ctx = getRequestContext();
-    const entity = await this.repo.findOne({ where: { id, tenantId: ctx?.tenantId! } });
+    const entity = await this.repo.findOne({ where: { id, tenantId: ctx?.tenantId } });
     if (!entity) return null;
     Object.assign(entity, dto);
     return this.repo.save(entity);
@@ -80,7 +80,7 @@ export class AdminBrokerageRulesController {
   @ApiOperation({ summary: 'Delete brokerage rule' })
   async remove(@Param('id') id: string) {
     const ctx = getRequestContext();
-    const entity = await this.repo.findOne({ where: { id, tenantId: ctx?.tenantId! } });
+    const entity = await this.repo.findOne({ where: { id, tenantId: ctx?.tenantId } });
     if (!entity) return null;
     await this.repo.remove(entity);
     return { ok: true };

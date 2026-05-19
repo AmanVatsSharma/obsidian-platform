@@ -32,6 +32,7 @@ import { ReconciliationController } from './controllers/reconciliation.controlle
 import { LpStatementLineEntity } from './entities/lp-statement-line.entity';
 import { ReconciliationBreakEntity } from './entities/reconciliation-break.entity';
 import { ReconciliationService } from './services/reconciliation.service';
+import { ReconciliationResolver } from './reconciliation.resolver';
 
 @Module({
   imports: [
@@ -43,7 +44,7 @@ import { ReconciliationService } from './services/reconciliation.service';
     ]),
   ],
   controllers: [ReconciliationController],
-  providers: [ReconciliationService],
+  providers: [ReconciliationService, ReconciliationResolver],
   exports: [ReconciliationService],
 })
 export class ReconciliationModule {}

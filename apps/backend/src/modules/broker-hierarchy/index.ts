@@ -7,6 +7,7 @@
  */
 
 export * from './broker-hierarchy.module';
+export * from './broker-hierarchy.resolver';
 export * from './services/broker-hierarchy.service';
 export * from './entities/broker.entity';
 export * from './entities/branch.entity';

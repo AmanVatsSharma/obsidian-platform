@@ -126,7 +126,7 @@ export class MainMarketDataAdapter implements MarketDataProvider {
   private async fetchBatch(
     symbols: Array<{ exchange: string; symbol: string }>,
   ): Promise<Tick[]> {
-    const url = process.env.MARKET_DATA_URL as string;
+    const url = process.env.MARKET_DATA_URL;
     const response = await fetch(`${url}/quotes:batch`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },

@@ -7,7 +7,9 @@
  */
 
 export * from './limits-and-controls.module';
+export * from './limits-and-controls.resolver';
 export * from './services/limits-and-controls.service';
 export * from './entities/limit-control.entity';
 export * from './entities/limit-exception.entity';
+export * from './entities/exposure-limit.entity';
 export * from './dtos/create-limit-control.dto';

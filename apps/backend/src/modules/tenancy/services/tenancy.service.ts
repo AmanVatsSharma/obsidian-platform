@@ -10,6 +10,12 @@
  *   - TenancyService.listLegalEntities(tenantId?) → LegalEntityEntity[]
  *   - TenancyService.getBrandConfig(slugOrDomain) → TenantBrandConfigEntity | null
  *   - TenancyService.upsertBrandConfig(tenantId, dto) → TenantBrandConfigEntity
+ *   - TenancyService.listDomains(tenantId) → TenantDomainEntity[]
+ *   - TenancyService.addDomain(tenantId, domain) → TenantDomainEntity
+ *   - TenancyService.removeDomain(domainId) → void
+ *   - TenancyService.setPrimaryDomain(domainId, tenantId) → TenantDomainEntity
+ *   - TenancyService.verifyDomainDns(domain) → { verified, recordType, expectedValue }
+ *   - TenancyService.getDomainSslStatus(domain) → { active, expiry, issuer }
  *
  * Depends on:
  *   - TenantBrandConfigEntity — brand config table
@@ -33,6 +39,7 @@ import { UpsertBrandConfigDto } from '../dtos/upsert-brand-config.dto';
 import { LegalEntityEntity } from '../entities/legal-entity.entity';
 import { TenantEntity } from '../entities/tenant.entity';
 import { TenantBrandConfigEntity } from '../entities/tenant-brand-config.entity';
+import { TenantDomainEntity } from '../entities/tenant-domain.entity';
 
 @Injectable()
 export class TenancyService {
@@ -43,6 +50,8 @@ export class TenancyService {
     private readonly legalEntities: Repository<LegalEntityEntity>,
     @InjectRepository(TenantBrandConfigEntity)
     private readonly brandConfigs: Repository<TenantBrandConfigEntity>,
+    @InjectRepository(TenantDomainEntity)
+    private readonly domains: Repository<TenantDomainEntity>,
     private readonly logger: AppLoggerService,
   ) {
     this.logger.setContext(TenancyService.name);
@@ -101,6 +110,14 @@ export class TenancyService {
     return this.tenants.findOne({ where: { code } });
   }
 
+  async findById(id: string): Promise<TenantEntity | null> {
+    return this.tenants.findOne({ where: { id } });
+  }
+
+  async update(id: string, attrs: Partial<Pick<TenantEntity, 'status' | 'displayName'>>): Promise<void> {
+    await this.tenants.update(id, attrs);
+  }
+
   async getBrandConfig(slugOrDomain: string): Promise<TenantBrandConfigEntity | null> {
     this.logger.debug('getBrandConfig:start', { slugOrDomain });
     const tenant = await this.tenants.findOne({ where: { code: slugOrDomain } });
@@ -108,6 +125,15 @@ export class TenancyService {
       return this.brandConfigs.findOne({ where: { tenantId: tenant.id } });
     }
     return this.brandConfigs.findOne({ where: { customDomain: slugOrDomain } });
+  }
+
+  /**
+   * Returns the brand config for a given tenantId.
+   * Used by admin endpoints to fetch brand config by tenantId rather than slug.
+   */
+  async getBrandConfigByTenantId(tenantId: string): Promise<TenantBrandConfigEntity | null> {
+    this.logger.debug('getBrandConfigByTenantId:start', { tenantId });
+    return this.brandConfigs.findOne({ where: { tenantId } });
   }
 
   async upsertBrandConfig(tenantId: string, dto: UpsertBrandConfigDto): Promise<TenantBrandConfigEntity> {
@@ -122,5 +148,83 @@ export class TenancyService {
     const saved = await this.brandConfigs.save(merged);
     this.logger.debug('upsertBrandConfig:end', { tenantId });
     return saved;
+  }
+
+  async listDomains(tenantId: string): Promise<TenantDomainEntity[]> {
+    this.logger.debug('listDomains:start', { tenantId });
+    const items = await this.domains.find({
+      where: { tenantId },
+      order: { isPrimary: 'DESC', createdAt: 'DESC' },
+    });
+    this.logger.debug('listDomains:end', { count: items.length });
+    return items;
+  }
+
+  async addDomain(tenantId: string, domain: string): Promise<TenantDomainEntity> {
+    this.logger.debug('addDomain:start', { tenantId, domain });
+    const existing = await this.domains.findOne({ where: { tenantId, domain } });
+    if (existing) {
+      throw new AppError('DUPLICATE_RESOURCE', `Domain '${domain}' is already registered for this tenant`);
+    }
+    const entity = this.domains.create({ tenantId, domain, isPrimary: false });
+    const saved = await this.domains.save(entity);
+    this.logger.debug('addDomain:end', { domainId: saved.id });
+    return saved;
+  }
+
+  async removeDomain(domainId: string): Promise<void> {
+    this.logger.debug('removeDomain:start', { domainId });
+    const domain = await this.domains.findOne({ where: { id: domainId } });
+    if (!domain) {
+      throw new AppError('RESOURCE_NOT_FOUND', `Domain '${domainId}' not found`);
+    }
+    await this.domains.remove(domain);
+    this.logger.debug('removeDomain:end', { domainId });
+  }
+
+  async setPrimaryDomain(domainId: string, tenantId: string): Promise<TenantDomainEntity> {
+    this.logger.debug('setPrimaryDomain:start', { domainId, tenantId });
+    const target = await this.domains.findOne({ where: { id: domainId } });
+    if (!target) {
+      throw new AppError('RESOURCE_NOT_FOUND', `Domain '${domainId}' not found`);
+    }
+    if (target.tenantId !== tenantId) {
+      throw new AppError('AUTHORIZATION_FAILED', 'Domain does not belong to this tenant');
+    }
+    // Demote all existing primaries for this tenant
+    await this.domains.update({ tenantId, isPrimary: true }, { isPrimary: false });
+    target.isPrimary = true;
+    const saved = await this.domains.save(target);
+    this.logger.debug('setPrimaryDomain:end', { domainId });
+    return saved;
+  }
+
+  /**
+   * Simulated DNS verification check.
+   * In production this would perform a real DNS lookup against the domain's nameservers.
+   */
+  async verifyDomainDns(domain: string): Promise<{ verified: boolean; recordType: string; expectedValue: string }> {
+    this.logger.debug('verifyDomainDns:start', { domain });
+    // Simulated: check if the domain record matches the expected CNAME pattern.
+    const expectedValue = `_obsidian.${domain}`;
+    const found = await this.domains.findOne({ where: { domain } });
+    const verified = found?.dnsVerifiedAt != null;
+    this.logger.debug('verifyDomainDns:end', { domain, verified });
+    return { verified, recordType: 'CNAME', expectedValue };
+  }
+
+  /**
+   * Simulated SSL status check for a given domain.
+   * In production this would query LetsEncrypt / ACME provider or a CDN edge API.
+   */
+  async getDomainSslStatus(domain: string): Promise<{ active: boolean; expiry: string | null; issuer: string | null }> {
+    this.logger.debug('getDomainSslStatus:start', { domain });
+    const found = await this.domains.findOne({ where: { domain } });
+    const active = found?.sslActive ?? false;
+    // Simulated values — in production derive from ACME / CDN provider response
+    const expiry = active ? new Date(Date.now() + 75 * 24 * 60 * 60 * 1000).toISOString() : null;
+    const issuer = active ? "Let's Encrypt" : null;
+    this.logger.debug('getDomainSslStatus:end', { domain, active });
+    return { active, expiry, issuer };
   }
 }

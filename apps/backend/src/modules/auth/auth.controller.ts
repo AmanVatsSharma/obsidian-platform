@@ -14,7 +14,6 @@ import {
   Req,
   Get,
   Query,
-  UnauthorizedException,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
@@ -24,7 +23,7 @@ import { RefreshDto } from './dto/refresh.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TotpEnableDto, TotpVerifyDto } from './dto/totp.dto';
 import { HistorySessionsDto } from './dto/list-sessions.dto';
-import { randomUUID } from 'node:crypto';
+import { AppError } from '../../common/errors/app-error';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -83,9 +82,9 @@ export class AuthController {
     const csrfHeader = (req.headers?.[csrfHeaderName] as string) || '';
     const csrfCookie = req.cookies?.[csrfCookieName];
     if (!refreshToken || !csrfHeader || csrfHeader !== csrfCookie) {
-      throw new UnauthorizedException('CSRF or refresh token missing');
+      throw new AppError('AUTHENTICATION_FAILED', 'CSRF or refresh token missing');
     }
-    const payload = this.decodeJwt(refreshToken);
+    const payload = this.auth.decodeJwtPayload(refreshToken);
     const res = await this.auth.rotateRefresh(payload.sub, dto.tokenId, refreshToken, req);
     const domain = undefined; // [SonuRamTODO] set cookie domain via env if needed
     const secure = (process.env.NODE_ENV || 'development') !== 'development';
@@ -97,7 +96,7 @@ export class AuthController {
       path: '/auth',
       domain,
     });
-    const newCsrf = this.generateCsrf();
+    const newCsrf = this.auth.generateCsrfToken();
     req.res.cookie(csrfCookieName, newCsrf, {
       httpOnly: false,
       secure,
@@ -147,7 +146,7 @@ export class AuthController {
   @ApiBearerAuth('JWT')
   @ApiOperation({ summary: 'Current user', description: 'Return current user and tenant ids' })
   me(@Req() req: any) {
-    return { userId: req.user.userId, tenantId: req.user.tenantId };
+    return this.auth.getCurrentUser(req.user.userId, req.user.tenantId);
   }
 
   // TOTP flows (protected)
@@ -173,30 +172,5 @@ export class AuthController {
   @ApiOperation({ summary: 'Disable TOTP', description: 'Disable TOTP for user' })
   disableTotp(@Req() req: any) {
     return this.auth.disableTotp(req.user.userId);
-  }
-
-  private decodeJwt(token: string): { sub: string } {
-    const parts = token.split('.');
-    if (parts.length < 2 || !parts[1]) {
-      throw new UnauthorizedException('Invalid refresh token format');
-    }
-    const base64Url = parts[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
-    try {
-      const payload = JSON.parse(Buffer.from(padded, 'base64').toString('utf8')) as {
-        sub?: string;
-      };
-      if (!payload.sub) {
-        throw new UnauthorizedException('Invalid refresh token payload');
-      }
-      return { sub: payload.sub };
-    } catch {
-      throw new UnauthorizedException('Invalid refresh token payload');
-    }
-  }
-
-  private generateCsrf(): string {
-    return randomUUID();
   }
 }

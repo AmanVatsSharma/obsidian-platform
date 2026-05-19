@@ -21,3 +21,4 @@ export * from './services/balances.service';
 export * from './services/statements.service';
 export * from './services/bank-accounts.service';
 export * from './services/deposits.service';
+export * from './accounts.resolver';

@@ -13,6 +13,7 @@ import { SupportController } from './controllers/support.controller';
 import { SupportCommentEntity } from './entities/support-comment.entity';
 import { SupportTicketEntity } from './entities/support-ticket.entity';
 import { SupportService } from './services/support.service';
+import { SupportResolver } from './support.resolver';
 import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
@@ -22,7 +23,7 @@ import { RbacModule } from '../rbac/rbac.module';
     TypeOrmModule.forFeature([SupportTicketEntity, SupportCommentEntity]),
   ],
   controllers: [SupportController],
-  providers: [SupportService],
+  providers: [SupportService, SupportResolver],
   exports: [SupportService],
 })
 export class SupportModule {}

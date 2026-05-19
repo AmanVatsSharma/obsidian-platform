@@ -1,14 +1,29 @@
 /**
- * @file src/modules/saas-control-plane/entities/billing-invoice-placeholder.entity.ts
- * @module saas-control-plane
- * @description Billing placeholder entity for invoice lifecycle scaffolding
- * @author BharatERP
- * @created 2026-02-17
+ * File:        apps/backend/src/modules/saas-control-plane/entities/billing-invoice-placeholder.entity.ts
+ * Module:      saas-control-plane
+ * Purpose:     Billing placeholder entity for invoice lifecycle scaffolding.
+ *              Supports idempotency via unique idempotency_key.
+ *
+ * Exports:
+ *   - BillingInvoicePlaceholderEntity
+ *
+ * Depends on:
+ *   - None (standalone entity)
+ *
+ * Side-effects:  DB writes only
+ *
+ * Key invariants:
+ *   - invoice_number + tenant_id have a unique constraint for idempotent creation.
+ *   - idempotency_key is an optional client-provided key (e.g., clientOrderId) for deduplication.
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-14
  */
 
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('billing_invoice_placeholders')
+@Index(['tenantId', 'invoiceNumber'], { unique: true })
 export class BillingInvoicePlaceholderEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
@@ -27,6 +42,10 @@ export class BillingInvoicePlaceholderEntity {
 
   @Column({ type: 'varchar', length: 32, default: 'DRAFT' })
   status!: string;
+
+  @Column({ type: 'varchar', length: 128, nullable: true })
+  @Index()
+  idempotencyKey?: string | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;

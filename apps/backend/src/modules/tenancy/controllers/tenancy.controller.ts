@@ -17,6 +17,12 @@ import { TenantBrandConfigEntity } from '../entities/tenant-brand-config.entity'
 import { TenancyService } from '../services/tenancy.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { PlatformOwnerGuard } from '../../rbac/guards/platform-owner.guard';
+import { TenantGuard } from '../../rbac/guards/tenant.guard';
+import { RolesGuard } from '../../rbac/guards/roles.guard';
+import { Roles } from '../../rbac/decorators/roles.decorator';
+import { Tenant } from '../../rbac/decorators/tenant.decorator';
+import { AppLoggerService } from '../../../shared/logger';
+import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @Controller('tenancy')
 export class TenancyController {
@@ -59,5 +65,16 @@ export class TenancyController {
     @Body() dto: UpsertBrandConfigDto,
   ): Promise<TenantBrandConfigEntity> {
     return this.tenancyService.upsertBrandConfig(tenantId, dto);
+  }
+
+  @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
+  @Roles('admin')
+  @ApiTags('Admin Tenancy')
+  @ApiBearerAuth('JWT')
+  @Get('admin/brand-config')
+  @ApiOperation({ summary: 'Get full brand config for the authenticated tenant' })
+  @ApiResponse({ status: 200, description: 'Brand config', schema: { example: { tenantId: 'uuid', logo: 'https://...', primaryColor: '#ff5500' } } })
+  async getAdminBrandConfig(@Tenant() tenantId: string): Promise<TenantBrandConfigEntity | null> {
+    return this.tenancyService.getBrandConfigByTenantId(tenantId);
   }
 }

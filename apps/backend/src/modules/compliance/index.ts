@@ -7,6 +7,9 @@
  */
 
 export * from './compliance.module';
+export * from './compliance.resolver';
 export * from './services/compliance.service';
+export * from './services/surveillance.service';
 export * from './entities/compliance-policy.entity';
+export * from './entities/surveillance-alert.entity';
 export * from './dtos/upsert-compliance-policy.dto';

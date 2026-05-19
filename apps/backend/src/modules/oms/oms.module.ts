@@ -17,9 +17,10 @@ import { OrderAuditEntity } from './entities/order-audit.entity';
 import { PositionSnapshotEntity } from './entities/position-snapshot.entity';
 import { OrderService } from './services/order.service';
 import { OrdersController } from './controllers/orders.controller';
-import { AdminRiskController } from './controllers/admin-risk.controller';
+import { AdminRiskController } from './controllers/oms-admin-risk.controller';
 import { AdminLeverageOverridesController } from './controllers/admin-leverage.controller';
 import { AdminBrokerageRulesController } from './controllers/admin-brokerage.controller';
+import { AdminOrdersController } from './controllers/admin-orders.controller';
 import { MarginEngineService } from './services/margin-engine.service';
 import { BrokerageRuleEntity } from './entities/brokerage-rule.entity';
 import { UserLeverageOverrideEntity } from './entities/user-leverage-override.entity';
@@ -41,6 +42,7 @@ import { RiskPolicyModule } from '@obsidian/backend-risk-policy';
 import { LimitsAndControlsModule } from '@obsidian/backend-limits-controls';
 import { BrokerHierarchyModule } from '../broker-hierarchy/broker-hierarchy.module';
 import { NotificationsModule } from '../notifications/notifications.module';
+import { OmsResolver } from './oms.resolver';
 
 @Module({
   imports: [
@@ -65,12 +67,13 @@ import { NotificationsModule } from '../notifications/notifications.module';
     ]),
     PositionsModule,
   ],
-  controllers: [OrdersController, AdminRiskController, MarginController, AdminLeverageOverridesController, AdminBrokerageRulesController],
+  controllers: [OrdersController, AdminRiskController, MarginController, AdminLeverageOverridesController, AdminBrokerageRulesController, AdminOrdersController],
   providers: [
     RiskConfigService,
     OrderService,
     MarginEngineService,
     OrderEventsService,
+    OmsResolver,
     { provide: EXCHANGE_ADAPTER, useClass: OmsExecutionGatewayAdapter },
     { provide: DEMO_EXCHANGE_ADAPTER, useClass: DemoExchangeAdapter },
   ],

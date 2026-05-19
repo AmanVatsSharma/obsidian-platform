@@ -46,3 +46,4 @@ Change-log:
 - 2025-09-19 IST: Added admin controllers for roles/permissions, CRUD DTOs, wired into module
 - 2025-09-19 IST: Secured admin endpoints with JwtAuthGuard
 - 2026-05-09 IST: Added ROLE/PERMISSION constants, PlatformOwnerGuard. Exported all from index.ts.
+- 2026-05-16: Extended AdminTeamController to serve both /admin/team-members and /admin/rbac/users endpoints. Added listRbacUsers (GET /admin/rbac/users), updateRbacUser (PATCH /admin/rbac/users/:id), inviteRbacUser (POST /admin/rbac/users/invite). UserEntity registered in RbacModule TypeOrmModule.forFeature for AdminTeamController injection.

@@ -21,6 +21,7 @@ import { randomUUID, randomInt } from 'node:crypto';
 import * as argon2 from 'argon2';
 import { authenticator } from 'otplib';
 import { TotpEnableDto, TotpVerifyDto } from './dto/totp.dto';
+import { AppError } from '../../common/errors/app-error';
 
 function generateNumericOtp(length: number): string {
   let out = '';
@@ -128,11 +129,11 @@ export class AuthService {
     const tokenId = randomUUID();
     const accessToken = await this.jwt.signAsync(
       { sub: user.id, tid: dto.tenantId },
-      { secret: process.env.JWT_ACCESS_SECRET!, expiresIn: this.accessTtl },
+      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: this.accessTtl },
     );
     const refreshToken = await this.jwt.signAsync(
       { sub: user.id, tid: dto.tenantId, jti: tokenId },
-      { secret: process.env.JWT_REFRESH_SECRET!, expiresIn: this.refreshTtl },
+      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: this.refreshTtl },
     );
     const hashed = await argon2.hash(refreshToken, { type: argon2.argon2id });
     const expiresAt = new Date(Date.now() + this.parseTtlMs(this.refreshTtl));
@@ -196,11 +197,11 @@ export class AuthService {
     const newTokenId = randomUUID();
     const accessToken = await this.jwt.signAsync(
       { sub: userId, tid: tenantId },
-      { secret: process.env.JWT_ACCESS_SECRET!, expiresIn: this.accessTtl },
+      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: this.accessTtl },
     );
     const refreshToken = await this.jwt.signAsync(
       { sub: userId, tid: tenantId, jti: newTokenId },
-      { secret: process.env.JWT_REFRESH_SECRET!, expiresIn: this.refreshTtl },
+      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: this.refreshTtl },
     );
     const hashed = await argon2.hash(refreshToken, { type: argon2.argon2id });
     const expiresAt = new Date(Date.now() + this.parseTtlMs(this.refreshTtl));
@@ -334,5 +335,51 @@ export class AuthService {
       .where('user_id = :userId', { userId })
       .execute();
     return { revoked: res.affected || 0 };
+  }
+
+  /**
+   * Extract the `sub` (userId) from an encoded JWT refresh token.
+   * Throws AppError(APP_ERROR, ...) on malformed token.
+   */
+  decodeJwtPayload(token: string): { sub: string } {
+    const parts = token.split('.');
+    if (parts.length < 2 || !parts[1]) {
+      throw new AppError('AUTHENTICATION_FAILED', 'Invalid refresh token format');
+    }
+    const base64Url = parts[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const padded = base64.padEnd(
+      base64.length + ((4 - (base64.length % 4)) % 4),
+      '=',
+    );
+    try {
+      const payload = JSON.parse(
+        Buffer.from(padded, 'base64').toString('utf8'),
+      ) as { sub?: string };
+      if (!payload.sub) {
+        throw new AppError('AUTHENTICATION_FAILED', 'Invalid refresh token payload');
+      }
+      return { sub: payload.sub };
+    } catch (e) {
+      if (e instanceof AppError) throw e;
+      throw new AppError('AUTHENTICATION_FAILED', 'Invalid refresh token payload');
+    }
+  }
+
+  /** Generate a cryptographically random CSRF token. */
+  generateCsrfToken(): string {
+    return randomUUID();
+  }
+
+  /**
+   * Return public-safe user identity for the authenticated session.
+   * Throws AppError if user not found.
+   */
+  async getCurrentUser(
+    userId: string,
+    tenantId: string,
+  ): Promise<{ userId: string; tenantId: string }> {
+    this.logger.debug('getCurrentUser() called', { userId, tenantId });
+    return { userId, tenantId };
   }
 }

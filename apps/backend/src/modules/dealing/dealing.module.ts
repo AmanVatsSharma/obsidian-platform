@@ -10,19 +10,23 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
 import { DealingController } from './controllers/dealing.controller';
+import { AdminDealerDeskController } from './controllers/admin-dealer-desk.controller';
 import { DealEntity } from './entities/deal.entity';
 import { DealingQuoteEntity } from './entities/dealing-quote.entity';
 import { DealingService } from './services/dealing.service';
 import { RbacModule } from '../rbac/rbac.module';
+import { MarketModule } from '../market/market.module';
+import { DealingResolver } from './dealing.resolver';
 
 @Module({
   imports: [
     SharedModule,
     RbacModule,
+    MarketModule,
     TypeOrmModule.forFeature([DealEntity, DealingQuoteEntity]),
   ],
-  controllers: [DealingController],
-  providers: [DealingService],
+  controllers: [DealingController, AdminDealerDeskController],
+  providers: [DealingService, DealingResolver],
   exports: [DealingService],
 })
 export class DealingModule {}

@@ -7,6 +7,7 @@
  */
 
 export * from './support.module';
+export * from './support.resolver';
 export * from './services/support.service';
 export * from './entities/support-ticket.entity';
 export * from './entities/support-comment.entity';

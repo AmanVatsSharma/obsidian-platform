@@ -15,6 +15,7 @@ import { PositionSnapshotEntity } from '../entities/position-snapshot.entity';
 import { PositionLedgerEntryEntity } from '../../accounts/entities/position-ledger-entry.entity';
 import { PositionsService } from './services/positions.service';
 import { PositionsController } from './controllers/positions.controller';
+import { AdminPositionsController } from './controllers/admin-positions.controller';
 import { RbacModule } from '../../rbac/rbac.module';
 import { OrderEventsService } from '../services/order-events.service';
 
@@ -26,7 +27,7 @@ import { OrderEventsService } from '../services/order-events.service';
     forwardRef(() => AccountsModule),
     TypeOrmModule.forFeature([PositionLedgerEntryEntity, PositionSnapshotEntity]),
   ],
-  controllers: [PositionsController],
+  controllers: [PositionsController, AdminPositionsController],
   providers: [PositionsService, OrderEventsService],
   exports: [PositionsService, OrderEventsService],
 })

@@ -34,6 +34,8 @@ import { WithdrawalsController } from './controllers/withdrawals.controller';
 import { BankAccountsController } from './controllers/bank-accounts.controller';
 import { DepositsController } from './controllers/deposits.controller';
 import { AdminDepositsController } from './controllers/admin-deposits.controller';
+import { AdminWithdrawalsController } from './controllers/admin-withdrawals.controller';
+import { AdminAccountsController } from './controllers/admin-accounts.controller';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { BuyingPowerRuleEntity } from '../oms/entities/buying-power-rule.entity';
@@ -66,6 +68,8 @@ import { BuyingPowerRuleEntity } from '../oms/entities/buying-power-rule.entity'
     BankAccountsController,
     DepositsController,
     AdminDepositsController,
+    AdminWithdrawalsController,
+    AdminAccountsController,
   ],
   providers: [
     AccountsService,

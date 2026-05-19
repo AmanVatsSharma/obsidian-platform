@@ -46,11 +46,17 @@ export class TenantBrandConfigEntity {
   @Column({ name: 'app_name', type: 'varchar', length: 128, nullable: true })
   appName?: string | null;
 
+  @Column({ name: 'tagline', type: 'varchar', length: 255, nullable: true })
+  tagline?: string | null;
+
   @Column({ name: 'custom_domain', type: 'varchar', length: 255, nullable: true })
   customDomain?: string | null;
 
   @Column({ name: 'support_email', type: 'varchar', length: 255, nullable: true })
   supportEmail?: string | null;
+
+  @Column({ name: 'support_phone', type: 'varchar', length: 64, nullable: true })
+  supportPhone?: string | null;
 
   @Column({ type: 'jsonb', default: {} })
   features!: Record<string, boolean>;

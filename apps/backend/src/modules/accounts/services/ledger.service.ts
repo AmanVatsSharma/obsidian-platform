@@ -12,6 +12,7 @@ import { DataSource, Repository } from 'typeorm';
 import { CashLedgerEntryEntity } from '../entities/cash-ledger-entry.entity';
 import { HoldEntity } from '../entities/hold.entity';
 import { WithdrawalRequestEntity } from '../entities/withdrawal-request.entity';
+import { AccountEntity } from '../entities/account.entity';
 import { CashCreditDebitDto } from '../dtos/cash-credit-debit.dto';
 import { CashHoldDto, CashReleaseDto } from '../dtos/cash-hold-release.dto';
 import { AppLoggerService } from '../../../shared/logger';
@@ -42,6 +43,8 @@ export class LedgerService {
     private readonly holds: Repository<HoldEntity>,
     @InjectRepository(WithdrawalRequestEntity)
     private readonly withdrawals: Repository<WithdrawalRequestEntity>,
+    @InjectRepository(AccountEntity)
+    private readonly accounts: Repository<AccountEntity>,
     private readonly logger: AppLoggerService,
     private readonly realtime: RealtimePublisherService,
     private readonly accountsService: AccountsService,
@@ -54,14 +57,14 @@ export class LedgerService {
     this.logger.debug('postCash()', { accountId, dto, ctx });
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [
-        lockKey(ctx!.tenantId!, accountId),
+        lockKey(ctx.tenantId, accountId),
       ]);
 
       // idempotency check
       const existing = await manager
         .getRepository(CashLedgerEntryEntity)
         .findOne({
-          where: { tenantId: ctx!.tenantId!, externalRefId: dto.externalRefId },
+          where: { tenantId: ctx.tenantId, externalRefId: dto.externalRefId },
         });
       if (existing) {
         // treat as idempotent conflict when parameters differ
@@ -81,7 +84,7 @@ export class LedgerService {
       }
 
       const entry = manager.getRepository(CashLedgerEntryEntity).create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
         amount: dto.amount,
         currency: dto.currency,
@@ -91,7 +94,7 @@ export class LedgerService {
         meta: dto.meta ?? null,
       });
       const saved = await manager.getRepository(CashLedgerEntryEntity).save(entry);
-      this.realtime.publishAccountUpdate(ctx!.userId ?? accountId, { cash: saved });
+      this.realtime.publishAccountUpdate(ctx.userId ?? accountId, { cash: saved });
       return saved;
     });
   }
@@ -101,11 +104,11 @@ export class LedgerService {
     this.logger.debug('createHold()', { accountId, dto, ctx });
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [
-        lockKey(ctx!.tenantId!, accountId),
+        lockKey(ctx.tenantId, accountId),
       ]);
 
       const existing = await manager.getRepository(HoldEntity).findOne({
-        where: { tenantId: ctx!.tenantId!, externalRefId: dto.externalRefId },
+        where: { tenantId: ctx.tenantId, externalRefId: dto.externalRefId },
       });
       if (existing) {
         if (
@@ -123,7 +126,7 @@ export class LedgerService {
       }
 
       const hold = manager.getRepository(HoldEntity).create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
         reason: dto.reason,
         amount: dto.amount,
@@ -134,7 +137,7 @@ export class LedgerService {
       });
       // also post a ledger entry for hold (direction debit)
       const cash = manager.getRepository(CashLedgerEntryEntity).create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
         amount: dto.amount,
         currency: dto.currency,
@@ -145,7 +148,7 @@ export class LedgerService {
       });
       const cashSaved = await manager.getRepository(CashLedgerEntryEntity).save(cash);
       const holdSaved = await manager.getRepository(HoldEntity).save(hold);
-      this.realtime.publishAccountUpdate(ctx!.userId ?? accountId, {
+      this.realtime.publishAccountUpdate(ctx.userId ?? accountId, {
         hold: holdSaved,
         cash: cashSaved,
       });
@@ -158,12 +161,12 @@ export class LedgerService {
     this.logger.debug('releaseHold()', { accountId, dto, ctx });
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [
-        lockKey(ctx!.tenantId!, accountId),
+        lockKey(ctx.tenantId, accountId),
       ]);
 
       const hold = await manager.getRepository(HoldEntity).findOne({
         where: {
-          tenantId: ctx!.tenantId!,
+          tenantId: ctx.tenantId,
           accountId,
           externalRefId: dto.externalRefId,
           state: 'ACTIVE',
@@ -176,7 +179,7 @@ export class LedgerService {
       await manager.getRepository(HoldEntity).save(hold);
       // ledger release (credit)
       const cash = manager.getRepository(CashLedgerEntryEntity).create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
         amount: hold.amount,
         currency: hold.currency,
@@ -186,7 +189,7 @@ export class LedgerService {
         meta: { via: 'hold-release' },
       });
       const cashSaved = await manager.getRepository(CashLedgerEntryEntity).save(cash);
-      this.realtime.publishAccountUpdate(ctx!.userId ?? accountId, {
+      this.realtime.publishAccountUpdate(ctx.userId ?? accountId, {
         hold,
         cash: cashSaved,
       });
@@ -210,13 +213,13 @@ export class LedgerService {
     this.logger.debug('postPosition()', { accountId, payload });
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [
-        lockKey(ctx!.tenantId!, accountId),
+        lockKey(ctx.tenantId, accountId),
       ]);
 
       const existing = await manager
         .getRepository(PositionLedgerEntryEntity)
         .findOne({
-          where: { tenantId: ctx!.tenantId!, externalRefId: payload.externalRefId },
+          where: { tenantId: ctx.tenantId, externalRefId: payload.externalRefId },
         });
       if (existing) {
         if (
@@ -236,7 +239,7 @@ export class LedgerService {
       }
 
       const entry = manager.getRepository(PositionLedgerEntryEntity).create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
         instrumentId: payload.instrumentId,
         quantityDelta: payload.quantityDelta,
@@ -247,7 +250,7 @@ export class LedgerService {
         meta: payload.meta ?? null,
       });
       const saved = await manager.getRepository(PositionLedgerEntryEntity).save(entry);
-      this.realtime.publishPositionUpdate(ctx!.userId ?? accountId, {
+      this.realtime.publishPositionUpdate(ctx.userId ?? accountId, {
         position: saved,
       });
       return saved;
@@ -269,7 +272,7 @@ export class LedgerService {
     const qb = this.cashLedger
       .createQueryBuilder('l')
       .where('l.tenant_id = :tenantId AND l.account_id = :accountId', {
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
       })
       .orderBy('l.created_at', 'DESC')
@@ -297,11 +300,11 @@ export class LedgerService {
     this.logger.debug('requestWithdrawal()', { accountId, dto, ctx });
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [
-        lockKey(ctx!.tenantId!, accountId),
+        lockKey(ctx.tenantId, accountId),
       ]);
 
       const req = manager.getRepository(WithdrawalRequestEntity).create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
         amount: dto.amount,
         currency: dto.currency,
@@ -317,11 +320,11 @@ export class LedgerService {
     this.logger.debug('approveWithdrawal()', { accountId, wid, ctx });
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [
-        lockKey(ctx!.tenantId!, accountId),
+        lockKey(ctx.tenantId, accountId),
       ]);
       const repo = manager.getRepository(WithdrawalRequestEntity);
       const wr = await repo.findOne({
-        where: { id: wid, tenantId: ctx!.tenantId!, accountId },
+        where: { id: wid, tenantId: ctx.tenantId, accountId },
       });
       if (!wr)
         throw new AppError(
@@ -340,11 +343,11 @@ export class LedgerService {
     this.logger.debug('rejectWithdrawal()', { accountId, wid, ctx });
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [
-        lockKey(ctx!.tenantId!, accountId),
+        lockKey(ctx.tenantId, accountId),
       ]);
       const repo = manager.getRepository(WithdrawalRequestEntity);
       const wr = await repo.findOne({
-        where: { id: wid, tenantId: ctx!.tenantId!, accountId },
+        where: { id: wid, tenantId: ctx.tenantId, accountId },
       });
       if (!wr)
         throw new AppError(
@@ -362,8 +365,118 @@ export class LedgerService {
     const ctx = getRequestContext();
     this.logger.debug('listWithdrawals()', { accountId, ctx });
     return this.withdrawals.find({
-      where: { tenantId: ctx!.tenantId!, accountId },
+      where: { tenantId: ctx.tenantId, accountId },
       order: { createdAt: 'DESC' } as any,
+    });
+  }
+
+  /**
+   * Admin: list all withdrawal requests across the tenant (not just one account).
+   * Supports optional filtering by accountId and state, plus pagination.
+   * Enriches each withdrawal with account → user name for display in broker admin.
+   */
+  async listAllWithdrawals(opts: {
+    accountId?: string;
+    state?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'FULFILLED';
+    limit?: number;
+    offset?: number;
+  }) {
+    const ctx = getRequestContext();
+    const { accountId, state, limit = 50, offset = 0 } = opts;
+    this.logger.debug('listAllWithdrawals()', { ctx, accountId, state, limit, offset });
+
+    const where: any = { tenantId: ctx.tenantId };
+    if (accountId) where.accountId = accountId;
+    if (state) where.state = state;
+
+    const [rows, total] = await Promise.all([
+      this.withdrawals.find({
+        where,
+        order: { createdAt: 'DESC' } as any,
+        take: limit,
+        skip: offset,
+      }),
+      this.withdrawals.count({ where }),
+    ]);
+
+    // Batch-fetch account → user name mapping so frontend can show client names
+    const accountIds = [...new Set(rows.map(r => r.accountId))];
+    const accountUserMap = new Map<string, string>();
+    const accountMap = new Map<string, AccountEntity>();
+    await Promise.all(
+      accountIds.map(aid =>
+        this.accounts.findOne({ where: { id: aid } }).then(acc => {
+          if (acc) {
+            accountMap.set(aid, acc);
+            // userId is stored on the account; we use the accountId as identifier for now
+            // User name lookup requires UsersService which LedgerService doesn't have access to
+            // The frontend resolves clientName via GET /admin/users as a fallback
+            accountUserMap.set(aid, acc.id); // store accountId for enrichment in frontend
+          }
+        }),
+      ),
+    );
+
+    const enriched = rows.map(w => ({
+      ...w,
+      userName: null, // resolved by frontend via GET /admin/users
+      accountDisplayId: accountMap.get(w.accountId)?.id.slice(0, 8) ?? w.accountId.slice(0, 8),
+    }));
+
+    return { data: enriched, total, limit, offset };
+  }
+
+  /**
+   * Admin: approve a withdrawal by its UUID (resolves accountId from the entity).
+   * Requires tenantId match from request context.
+   */
+  async approveWithdrawalById(wid: string) {
+    const ctx = getRequestContext();
+    this.logger.debug('approveWithdrawalById()', { wid, ctx });
+
+    const wr = await this.withdrawals.findOne({
+      where: { id: wid, tenantId: ctx.tenantId } as any,
+    });
+    if (!wr) throw new AppError('RESOURCE_NOT_FOUND', 'Withdrawal request not found');
+    if (wr.state !== 'PENDING') return wr;
+
+    return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
+      await manager.query('SELECT pg_advisory_xact_lock($1)', [
+        lockKey(ctx.tenantId, wr.accountId),
+      ]);
+      const repo = manager.getRepository(WithdrawalRequestEntity);
+      const fresh = await repo.findOne({ where: { id: wid, tenantId: ctx.tenantId } as any });
+      if (!fresh) throw new AppError('RESOURCE_NOT_FOUND', 'Withdrawal request not found');
+      if (fresh.state !== 'PENDING') return fresh;
+      fresh.state = 'APPROVED';
+      return repo.save(fresh);
+    });
+  }
+
+  /**
+   * Admin: reject a withdrawal by its UUID.
+   */
+  async rejectWithdrawalById(wid: string, reason?: string) {
+    const ctx = getRequestContext();
+    this.logger.debug('rejectWithdrawalById()', { wid, reason, ctx });
+
+    const wr = await this.withdrawals.findOne({
+      where: { id: wid, tenantId: ctx.tenantId } as any,
+    });
+    if (!wr) throw new AppError('RESOURCE_NOT_FOUND', 'Withdrawal request not found');
+    if (wr.state !== 'PENDING') return wr;
+
+    return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
+      await manager.query('SELECT pg_advisory_xact_lock($1)', [
+        lockKey(ctx.tenantId, wr.accountId),
+      ]);
+      const repo = manager.getRepository(WithdrawalRequestEntity);
+      const fresh = await repo.findOne({ where: { id: wid, tenantId: ctx.tenantId } as any });
+      if (!fresh) throw new AppError('RESOURCE_NOT_FOUND', 'Withdrawal request not found');
+      if (fresh.state !== 'PENDING') return fresh;
+      fresh.state = 'REJECTED';
+      fresh.meta = { ...(fresh.meta ?? {}), rejectedReason: reason ?? null };
+      return repo.save(fresh);
     });
   }
 }

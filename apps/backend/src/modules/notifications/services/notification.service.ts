@@ -151,7 +151,7 @@ export class NotificationService {
     } catch (err) {
       this.logger.error(
         `Notification dispatch failed channel=${record.channel} id=${record.id}`,
-        (err as Error)?.message ?? String(err),
+        err instanceof Error ? err.message : String(err), // eslint-disable-line @typescript-eslint/no-base-to-string
       );
       record.status = 'failed';
     }

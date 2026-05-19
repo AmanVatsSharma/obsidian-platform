@@ -1,12 +1,29 @@
 /**
- * @file src/modules/saas-control-plane/controllers/saas-control-plane.controller.ts
- * @module saas-control-plane
- * @description Platform-owner control-plane APIs for governance and monetization scaffolds
- * @author BharatERP
- * @created 2026-02-17
+ * File:        apps/backend/src/modules/saas-control-plane/controllers/saas-control-plane.controller.ts
+ * Module:      saas-control-plane
+ * Purpose:     Platform-owner control-plane APIs for governance and monetization scaffolds.
+ *              ALL endpoints require JwtAuthGuard + PlatformOwnerGuard.
+ *
+ * Exports:
+ *   - SaasControlPlaneController — @Controller('saas-control-plane')
+ *
+ * Depends on:
+ *   - SaasControlPlaneService   — all business logic
+ *   - JwtAuthGuard              — validates access token
+ *   - PlatformOwnerGuard        — enforces tid='platform' + platform_owner role
+ *
+ * Side-effects:  DB writes via service layer
+ *
+ * Key invariants:
+ *   - Every endpoint is platform-owner gated — no public routes here.
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-14
  */
 
-import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { PlatformOwnerGuard } from '../../rbac/guards/platform-owner.guard';
 import {
   CreateBillingInvoicePlaceholderDto,
   CreateSupportImpersonationAuditDto,
@@ -19,6 +36,7 @@ import { SupportImpersonationAuditEntity } from '../entities/support-impersonati
 import { TenantProvisioningEntity } from '../entities/tenant-provisioning.entity';
 import { SaasControlPlaneService } from '../services/saas-control-plane.service';
 
+@UseGuards(JwtAuthGuard, PlatformOwnerGuard)
 @Controller('saas-control-plane')
 export class SaasControlPlaneController {
   constructor(private readonly saasControlPlaneService: SaasControlPlaneService) {}

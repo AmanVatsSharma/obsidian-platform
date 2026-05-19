@@ -14,3 +14,4 @@ export * from './entities/exchange.entity';
 export * from './entities/instrument.entity';
 export * from './entities/watchlist.entity';
 export * from './entities/watchlist-item.entity';
+export * from './market.resolver';

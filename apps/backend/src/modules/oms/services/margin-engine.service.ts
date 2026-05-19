@@ -64,7 +64,7 @@ export class MarginEngineService {
 
     // Buying power rule
     const bpRule = await this.buyingPowerRules.findOne({
-      where: { tenantId: ctx!.tenantId!, segment: segment as any, positionType: input.positionType, isActive: true },
+      where: { tenantId: ctx.tenantId, segment: segment, positionType: input.positionType, isActive: true },
     });
     const baseMultiplier = bpRule ? Number(bpRule.multiplier) : 1;
 
@@ -73,7 +73,7 @@ export class MarginEngineService {
     let overrideMultiplier = 1;
     if (input.userId) {
       const ov = await this.userOverrides.findOne({
-        where: { tenantId: ctx!.tenantId!, userId: input.userId, segment: segment as any, positionType: input.positionType, isActive: true },
+        where: { tenantId: ctx.tenantId, userId: input.userId, segment: segment, positionType: input.positionType, isActive: true },
       });
       if (ov && (!ov.validFrom || ov.validFrom <= now) && (!ov.validTo || ov.validTo >= now)) {
         overrideMultiplier = Number(ov.leverageMultiplier || '1');
@@ -85,7 +85,7 @@ export class MarginEngineService {
     // Simplified initial/maintenance margin heuristics per product
     const qty = Number(input.quantity);
     const px = Number(input.price ?? '0');
-    let notion = px > 0 ? qty * px : qty * 1; // fallback 1 for MARKET, refined later via snapshot pricing
+    const notion = px > 0 ? qty * px : qty * 1; // fallback 1 for MARKET, refined later via snapshot pricing
 
     // Futures/Options require product-specific logic; simplified approximation
     let initial = 0;
@@ -127,10 +127,10 @@ export class MarginEngineService {
     // Brokerage rules (tenant -> user override precedence)
     let brokerage = 0;
     const userRule = await this.brokerageRules.findOne({
-      where: { tenantId: ctx!.tenantId!, appliesTo: 'USER', userId: input.userId ?? ('' as any), segment: segment as any, isActive: true },
+      where: { tenantId: ctx.tenantId, appliesTo: 'USER', userId: input.userId ?? ('' as any), segment: segment, isActive: true },
     });
     const tenantRule = await this.brokerageRules.findOne({
-      where: { tenantId: ctx!.tenantId!, appliesTo: 'TENANT', segment: segment as any, isActive: true },
+      where: { tenantId: ctx.tenantId, appliesTo: 'TENANT', segment: segment, isActive: true },
     });
     const rule = userRule || tenantRule;
     if (rule) {

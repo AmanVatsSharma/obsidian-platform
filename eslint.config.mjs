@@ -55,11 +55,12 @@ export default tseslint.config(
       'no-useless-escape': 'warn',
       'prefer-const': 'warn',
       'prettier/prettier': 'off',
+      '@typescript-eslint/unbound-method': 'off',
       '@nx/enforce-module-boundaries': [
         'error',
         {
           enforceBuildableLibDependency: true,
-          allow: ['^\\./', '^\\.\\./'],
+          allow: ['^\\./', '^\\.\\./', '^@obsidian/'],
           depConstraints: [
             {
               sourceTag: 'scope:web',

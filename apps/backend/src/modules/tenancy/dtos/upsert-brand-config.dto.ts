@@ -11,10 +11,10 @@
  * Key invariants: all fields optional; partial updates are safe (merge semantics in service)
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-05-11
  */
 
-import { IsHexColor, IsObject, IsOptional, IsString, IsUrl } from 'class-validator';
+import { IsHexColor, IsObject, IsOptional, IsString, IsUrl, IsPhoneNumber } from 'class-validator';
 
 export class UpsertBrandConfigDto {
   @IsOptional()
@@ -35,11 +35,19 @@ export class UpsertBrandConfigDto {
 
   @IsOptional()
   @IsString()
+  tagline?: string;
+
+  @IsOptional()
+  @IsString()
   customDomain?: string;
 
   @IsOptional()
   @IsString()
   supportEmail?: string;
+
+  @IsOptional()
+  @IsString()
+  supportPhone?: string;
 
   @IsOptional()
   @IsObject()

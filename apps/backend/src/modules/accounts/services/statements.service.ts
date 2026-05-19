@@ -118,7 +118,7 @@ export class StatementsService {
     const qb = this.daily
       .createQueryBuilder('d')
       .where('d.tenant_id = :tenantId AND d.account_id = :accountId', {
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId,
       });
     if (query.from) qb.andWhere('d.date >= :from', { from: query.from });

@@ -1,8 +1,9 @@
 /**
- * @file src/modules/oms/controllers/admin-risk.controller.ts
- * @module oms
+ * @file        src/modules/oms/controllers/oms-admin-risk.controller.ts
+ * @module     oms
  * @description Admin CRUD for buying power rules
- * @author BharatERP
+ * @author     BharatERP
+ * @created    2026-02-17
  * @created 2025-09-19
  */
 
@@ -53,7 +54,7 @@ export class AdminRiskController {
   @ApiBody({ type: UpsertRuleDto })
   async create(@Body() dto: UpsertRuleDto) {
     const ctx = getRequestContext();
-    const rule = this.rules.create({ tenantId: ctx?.tenantId!, ...dto });
+    const rule = this.rules.create({ tenantId: ctx?.tenantId, ...dto });
     this.logger.debug('create rule', rule);
     return this.rules.save(rule);
   }
@@ -65,7 +66,7 @@ export class AdminRiskController {
   @ApiBody({ type: UpsertRuleDto })
   async update(@Param('id') id: string, @Body() dto: UpsertRuleDto) {
     const ctx = getRequestContext();
-    const rule = await this.rules.findOne({ where: { id, tenantId: ctx?.tenantId! } });
+    const rule = await this.rules.findOne({ where: { id, tenantId: ctx?.tenantId } });
     if (!rule) return null;
     Object.assign(rule, dto);
     this.logger.debug('update rule', rule);
@@ -78,7 +79,7 @@ export class AdminRiskController {
   @ApiOperation({ summary: 'Delete buying power rule' })
   async remove(@Param('id') id: string) {
     const ctx = getRequestContext();
-    const rule = await this.rules.findOne({ where: { id, tenantId: ctx?.tenantId! } });
+    const rule = await this.rules.findOne({ where: { id, tenantId: ctx?.tenantId } });
     if (!rule) return null;
     this.logger.debug('remove rule', { id });
     await this.rules.remove(rule);

@@ -12,11 +12,12 @@ import { AccountsModule } from '../accounts/accounts.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { DemoAccountService } from './services/demo-account.service';
 import { DemoAccountsController } from './controllers/demo-accounts.controller';
+import { DemoAccountsResolver } from './demo-accounts.resolver';
 
 @Module({
   imports: [SharedModule, AccountsModule, RbacModule],
   controllers: [DemoAccountsController],
-  providers: [DemoAccountService],
+  providers: [DemoAccountService, DemoAccountsResolver],
   exports: [DemoAccountService],
 })
 export class DemoAccountsModule {}

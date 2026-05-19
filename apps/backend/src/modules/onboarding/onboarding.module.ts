@@ -10,15 +10,18 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
 import { OnboardingController } from './controllers/onboarding.controller';
+import { AdminKycController } from './controllers/admin-kyc.controller';
 import { OnboardingProfileEntity } from './entities/onboarding-profile.entity';
 import { KycDocumentEntity } from './entities/kyc-document.entity';
 import { OnboardingService } from './services/onboarding.service';
 import { KycDocumentService } from './services/kyc-document.service';
+import { UsersModule } from '../users/users.module';
+import { OnboardingResolver } from './onboarding.resolver';
 
 @Module({
-  imports: [SharedModule, TypeOrmModule.forFeature([OnboardingProfileEntity, KycDocumentEntity])],
-  controllers: [OnboardingController],
-  providers: [OnboardingService, KycDocumentService],
+  imports: [SharedModule, TypeOrmModule.forFeature([OnboardingProfileEntity, KycDocumentEntity]), UsersModule],
+  controllers: [OnboardingController, AdminKycController],
+  providers: [OnboardingService, KycDocumentService, OnboardingResolver],
   exports: [OnboardingService, KycDocumentService],
 })
 export class OnboardingModule {}

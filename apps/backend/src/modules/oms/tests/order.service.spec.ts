@@ -25,6 +25,7 @@ import { NotificationService } from '../../notifications/services/notification.s
 import { RiskPolicyService } from '../../risk-policy/services/risk-policy.service';
 import { LimitsAndControlsService } from '../../limits-and-controls/services/limits-and-controls.service';
 import { BrokerExchangeConfigService } from '../../broker-hierarchy/services/broker-exchange-config.service';
+import { OrderEventsService } from '../services/order-events.service';
 
 jest.mock('../../../shared/request-context', () => ({
   getRequestContext: () => ({ tenantId: 't1', requestId: 'r1', userId: 'u1' }),
@@ -70,6 +71,7 @@ describe('OrderService', () => {
         { provide: RiskPolicyService, useValue: { enforcePreTrade: jest.fn().mockResolvedValue(undefined) } },
         { provide: LimitsAndControlsService, useValue: { enforcePreTrade: jest.fn().mockResolvedValue(undefined) } },
         { provide: BrokerExchangeConfigService, useValue: { isExchangeEnabledForTenant: jest.fn().mockResolvedValue(true) } },
+        { provide: OrderEventsService, useValue: { publish: jest.fn() } },
         AppLoggerService,
       ],
     }).compile();

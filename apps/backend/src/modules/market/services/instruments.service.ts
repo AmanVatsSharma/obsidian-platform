@@ -12,6 +12,7 @@ import { Repository } from 'typeorm';
 import { InstrumentEntity } from '../entities/instrument.entity';
 import { ExchangeEntity } from '../entities/exchange.entity';
 import { AppLoggerService } from '../../../shared/logger';
+import { AppError } from '../../../common/errors/app-error';
 
 @Injectable()
 export class InstrumentsService {
@@ -55,5 +56,23 @@ export class InstrumentsService {
     this.logger.debug('listByIds() called', { count: ids.length });
     if (ids.length === 0) return Promise.resolve([]);
     return this.instruments.find({ where: ids.map((id) => ({ id })) as any });
+  }
+
+  /**
+   * Partial update for admin instrument management.
+   * Throws RESOURCE_NOT_FOUND when no instrument matches the id.
+   */
+  async updateInstrument(
+    id: string,
+    attrs: { status?: string },
+  ): Promise<InstrumentEntity> {
+    this.logger.debug('updateInstrument() called', { id, attrs });
+    const existing = await this.instruments.findOne({ where: { id } });
+    if (!existing) {
+      const { AppError } = await import('../../../common/errors/app-error');
+      throw new AppError('RESOURCE_NOT_FOUND', `Instrument ${id} not found`);
+    }
+    const updated = this.instruments.create({ ...existing, ...attrs });
+    return this.instruments.save(updated);
   }
 }

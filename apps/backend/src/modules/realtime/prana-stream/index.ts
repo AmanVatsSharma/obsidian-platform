@@ -7,6 +7,7 @@
  */
 
 export * from './prana-stream.module';
+export * from './realtime.resolver';
 export * from './gateway/prana-stream.gateway';
 export * from './services/realtime-aggregator.service';
 export * from './services/subscription-registry.service';

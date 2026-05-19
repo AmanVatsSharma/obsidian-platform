@@ -26,8 +26,8 @@ export class DemoAccountService {
 
   async createDemoAccount(dto: CreateDemoAccountDto): Promise<AccountEntity> {
     const ctx = getRequestContext();
-    const tenantId = ctx?.tenantId!;
-    const userId = ctx?.userId!;
+    const tenantId = ctx?.tenantId;
+    const userId = ctx?.userId;
     this.logger.debug('createDemoAccount()', { tenantId, userId, dto });
 
     const account = await this.accountsService.createAccount({
@@ -53,8 +53,8 @@ export class DemoAccountService {
 
   async listDemoAccounts(): Promise<AccountEntity[]> {
     const ctx = getRequestContext();
-    const tenantId = ctx?.tenantId!;
-    const userId = ctx?.userId!;
+    const tenantId = ctx?.tenantId;
+    const userId = ctx?.userId;
     this.logger.debug('listDemoAccounts()', { tenantId, userId });
     return this.accountsService.listByUserAndType(tenantId, userId, 'DEMO');
   }

@@ -7,6 +7,7 @@
  */
 
 export * from './dealing.module';
+export * from './dealing.resolver';
 export * from './services/dealing.service';
 export * from './entities/deal.entity';
 export * from './entities/dealing-quote.entity';

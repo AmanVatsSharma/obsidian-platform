@@ -6,7 +6,7 @@
  * @created 2026-02-19
  */
 
-import { MessageEnvelope, PublishOptions } from './contracts';
+import { MessageEnvelope, PublishOptions } from './messaging-contracts';
 
 /**
  * Publisher interface for async message publishing.

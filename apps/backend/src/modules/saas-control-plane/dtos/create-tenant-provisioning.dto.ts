@@ -1,9 +1,23 @@
 /**
- * @file src/modules/saas-control-plane/dtos/create-tenant-provisioning.dto.ts
- * @module saas-control-plane
- * @description DTOs for control-plane provisioning, entitlement, billing, and audit APIs
- * @author BharatERP
- * @created 2026-02-17
+ * File:        apps/backend/src/modules/saas-control-plane/dtos/create-tenant-provisioning.dto.ts
+ * Module:      saas-control-plane
+ * Purpose:     DTOs for control-plane provisioning, entitlement, billing, and audit APIs.
+ *
+ * Exports:
+ *   - CreateTenantProvisioningDto       — tenant provisioning
+ *   - UpsertEntitlementPlanDto         — entitlements upsert (partial updates supported)
+ *   - CreateBillingInvoicePlaceholderDto — billing invoice with idempotency
+ *   - CreateSupportImpersonationAuditDto — audit record
+ *
+ * Depends on:
+ *   - class-validator decorators for all field validation
+ *
+ * Key invariants:
+ *   - UpsertEntitlementPlanDto allows partial updates — entitlements/featureFlags can be omitted
+ *   - CreateBillingInvoicePlaceholderDto requires invoiceNumber for idempotent lookup
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-14
  */
 
 import { IsEmail, IsNotEmpty, IsObject, IsOptional, IsString, IsUUID, Matches } from 'class-validator';
@@ -33,11 +47,13 @@ export class UpsertEntitlementPlanDto {
   @IsNotEmpty()
   planCode!: string;
 
+  @IsOptional()
   @IsObject()
-  entitlements!: Record<string, unknown>;
+  entitlements?: Record<string, unknown>;
 
+  @IsOptional()
   @IsObject()
-  featureFlags!: Record<string, boolean>;
+  featureFlags?: Record<string, boolean>;
 }
 
 export class CreateBillingInvoicePlaceholderDto {
@@ -54,6 +70,11 @@ export class CreateBillingInvoicePlaceholderDto {
   @IsString()
   @IsNotEmpty()
   currency!: string;
+
+  @IsOptional()
+  @IsString()
+  @Matches(/^[a-zA-Z0-9_-]{1,128}$/)
+  idempotencyKey?: string;
 }
 
 export class CreateSupportImpersonationAuditDto {

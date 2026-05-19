@@ -24,7 +24,7 @@ import { Injectable } from '@nestjs/common';
 import { RedisService } from '../redis/redis.service';
 import { AppLoggerService } from '../logger';
 import { IMessagePublisher } from './publisher.interface';
-import { MessageEnvelope, PublishOptions } from './contracts';
+import { MessageEnvelope, PublishOptions } from './messaging-contracts';
 
 @Injectable()
 export class RedisPublisher implements IMessagePublisher {

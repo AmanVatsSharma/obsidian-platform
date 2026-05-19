@@ -52,7 +52,7 @@ export class AdminLeverageOverridesController {
   })
   async create(@Body() dto: UpsertUserLeverageOverrideDto) {
     const ctx = getRequestContext();
-    const entity = this.repo.create({ tenantId: ctx?.tenantId!, ...dto, validFrom: dto.validFrom ? new Date(dto.validFrom) : null, validTo: dto.validTo ? new Date(dto.validTo) : null });
+    const entity = this.repo.create({ tenantId: ctx?.tenantId, ...dto, validFrom: dto.validFrom ? new Date(dto.validFrom) : null, validTo: dto.validTo ? new Date(dto.validTo) : null });
     return this.repo.save(entity);
   }
 
@@ -68,7 +68,7 @@ export class AdminLeverageOverridesController {
   })
   async update(@Param('id') id: string, @Body() dto: UpsertUserLeverageOverrideDto) {
     const ctx = getRequestContext();
-    const entity = await this.repo.findOne({ where: { id, tenantId: ctx?.tenantId! } });
+    const entity = await this.repo.findOne({ where: { id, tenantId: ctx?.tenantId } });
     if (!entity) return null;
     Object.assign(entity, { ...dto, validFrom: dto.validFrom ? new Date(dto.validFrom) : null, validTo: dto.validTo ? new Date(dto.validTo) : null });
     return this.repo.save(entity);
@@ -80,7 +80,7 @@ export class AdminLeverageOverridesController {
   @ApiOperation({ summary: 'Delete user leverage override' })
   async remove(@Param('id') id: string) {
     const ctx = getRequestContext();
-    const entity = await this.repo.findOne({ where: { id, tenantId: ctx?.tenantId! } });
+    const entity = await this.repo.findOne({ where: { id, tenantId: ctx?.tenantId } });
     if (!entity) return null;
     await this.repo.remove(entity);
     return { ok: true };

@@ -17,6 +17,7 @@ import { UsEquitiesOptionsConnector } from './connectors/us-equities-options/us-
 import { ExecutionGatewayController } from './controllers/execution-gateway.controller';
 import { ExecutionConnectorEntity } from './entities/execution-connector.entity';
 import { ExecutionGatewayService } from './services/execution-gateway.service';
+import { ExecutionGatewayResolver } from './execution-gateway.resolver';
 
 @Module({
   imports: [SharedModule, TypeOrmModule.forFeature([ExecutionConnectorEntity])],
@@ -28,6 +29,7 @@ import { ExecutionGatewayService } from './services/execution-gateway.service';
     UsEquitiesOptionsConnector,
     CryptoCexConnector,
     CommoditiesConnector,
+    ExecutionGatewayResolver,
   ],
   exports: [ExecutionGatewayService],
 })

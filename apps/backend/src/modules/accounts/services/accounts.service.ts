@@ -29,7 +29,7 @@ export class AccountsService {
   async createAccount(dto: CreateAccountDto): Promise<AccountEntity> {
     const ctx = getRequestContext();
     const entity = this.accounts.create({
-      tenantId: ctx?.tenantId!,
+      tenantId: ctx?.tenantId,
       userId: dto.userId,
       accountType: dto.accountType ?? 'LIVE',
       baseCurrency: dto.baseCurrency,
@@ -45,7 +45,7 @@ export class AccountsService {
     const ctx = getRequestContext();
     this.logger.debug('listMyAccounts()', ctx);
     return this.accounts.find({
-      where: { tenantId: ctx?.tenantId!, userId: ctx?.userId! },
+      where: { tenantId: ctx?.tenantId, userId: ctx?.userId },
     });
   }
 
@@ -60,23 +60,32 @@ export class AccountsService {
     });
   }
 
+  /** Admin-scoped: list all accounts for a tenant, optionally filtered by userId */
+  async listByTenant(tenantId: string, userId?: string): Promise<AccountEntity[]> {
+    this.logger.debug('listByTenant()', { tenantId, userId });
+    return this.accounts.find({
+      where: userId ? { tenantId, userId } : { tenantId },
+      order: { createdAt: 'DESC' },
+    });
+  }
+
   async getById(id: string): Promise<AccountEntity | null> {
     const ctx = getRequestContext();
     this.logger.debug('getById()', { id, ctx });
-    return this.accounts.findOne({ where: { id, tenantId: ctx?.tenantId! } });
+    return this.accounts.findOne({ where: { id, tenantId: ctx?.tenantId } });
   }
 
   async disableAccount(id: string): Promise<AccountEntity | null> {
     const ctx = getRequestContext();
     this.logger.debug('disableAccount()', { id, ctx });
-    await this.accounts.update({ id, tenantId: ctx?.tenantId! }, { status: 'DISABLED' });
+    await this.accounts.update({ id, tenantId: ctx?.tenantId }, { status: 'DISABLED' });
     return this.getById(id);
   }
 
   async enableAccount(id: string): Promise<AccountEntity | null> {
     const ctx = getRequestContext();
     this.logger.debug('enableAccount()', { id, ctx });
-    await this.accounts.update({ id, tenantId: ctx?.tenantId! }, { status: 'ACTIVE' });
+    await this.accounts.update({ id, tenantId: ctx?.tenantId }, { status: 'ACTIVE' });
     return this.getById(id);
   }
 }

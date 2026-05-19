@@ -10,3 +10,4 @@ export * from './corporate-actions.module';
 export * from './services/corporate-actions.service';
 export * from './entities/corporate-action.entity';
 export * from './dtos/create-corporate-action.dto';
+export * from './corporate-actions.resolver';

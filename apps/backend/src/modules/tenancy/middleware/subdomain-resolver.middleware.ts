@@ -48,7 +48,7 @@ export class SubdomainResolverMiddleware implements NestMiddleware {
       return;
     }
 
-    const host = (req.headers['host'] as string | undefined) ?? '';
+    const host = (req.headers['host']) ?? '';
     let tenant: TenantEntity | null = null;
 
     if (host.endsWith(`.${OBSIDIAN_APEX}`)) {

@@ -43,6 +43,9 @@ export type GatewayOrderResponse = {
   providerOrderId: string;
   status: 'ACCEPTED' | 'REJECTED' | 'PENDING' | 'CANCELLED';
   reason?: string;
+  message?: string | null;
+  filledQty?: string | null;
+  price?: string | null;
 };
 
 export type PositionSnapshot = {

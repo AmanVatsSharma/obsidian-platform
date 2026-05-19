@@ -7,6 +7,7 @@
  */
 
 export * from './notifications.module';
+export * from './notifications.resolver';
 export * from './services/notification.service';
 export * from './services/notification-template.service';
 export * from './entities/notification.entity';

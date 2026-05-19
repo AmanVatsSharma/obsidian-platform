@@ -20,8 +20,9 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DataSource, Repository } from 'typeorm';
 import { AppLoggerService } from '../../../shared/logger';
+import { getRequestContext } from '../../../shared/request-context';
 import { AppError } from '../../../common/errors/app-error';
 import { AssignRiskPolicyDto, CreateRiskPolicyDto } from '../dtos/create-risk-policy.dto';
 import { RiskPolicyEntity } from '../entities/risk-policy.entity';
@@ -45,6 +46,7 @@ export class RiskPolicyService {
     private readonly assignments: Repository<TenantRiskPolicyEntity>,
     @InjectRepository(TenantEntity)
     private readonly tenants: Repository<TenantEntity>,
+    private readonly dataSource: DataSource,
     private readonly logger: AppLoggerService,
   ) {
     this.logger.setContext(RiskPolicyService.name);
@@ -102,5 +104,42 @@ export class RiskPolicyService {
 
   async listPolicies(tenantId: string): Promise<RiskPolicyEntity[]> {
     return this.policies.find({ where: { tenantId }, order: { createdAt: 'DESC' } });
+  }
+
+  async listAllPolicies(opts?: { limit?: number; offset?: number }) {
+    const { limit = 50, offset = 0 } = opts ?? {};
+    this.logger.debug('listAllPolicies:start', { opts });
+    const [data, total] = await this.policies.findAndCount({
+      order: { createdAt: 'DESC' },
+      skip: offset,
+      take: limit,
+    });
+    return { data, total, limit, offset };
+  }
+
+  async listExposure() {
+    this.logger.debug('listExposure:start');
+    const ctx = getRequestContext();
+    const raw = await this.dataSource
+      .createQueryRunner()
+      .query(
+        `SELECT p.instrument_id,
+                COALESCE(SUM(p.quantity_delta::numeric), 0) AS net_qty,
+                COALESCE(SUM(p.quantity_delta::numeric * p.price::numeric), 0) AS gross_notional
+         FROM position_ledger_entries p
+         WHERE p.tenant_id = $1
+         GROUP BY p.instrument_id`,
+        [ctx.tenantId],
+      ) as Array<{ instrument_id: string; net_qty: string; gross_notional: string }>;
+
+    const data = (raw as Array<{ instrument_id: string; net_qty: string; gross_notional: string }>).map((r) => ({
+      instrumentId: r.instrument_id,
+      netQty: Number(r.net_qty),
+      grossNotional: Math.abs(Number(r.gross_notional)),
+      netNotional: Number(r.net_qty) * Number(r.gross_notional),
+    }));
+
+    this.logger.debug('listExposure:end', { instruments: data.length });
+    return data;
   }
 }

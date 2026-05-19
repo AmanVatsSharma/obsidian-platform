@@ -18,6 +18,7 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AdminAuthController } from './controllers/admin-auth.controller';
 import { RbacModule } from '../rbac/rbac.module';
+import { AuthResolver } from './auth.resolver';
 
 @Module({
   imports: [
@@ -26,9 +27,9 @@ import { RbacModule } from '../rbac/rbac.module';
     PassportModule.register({ session: false }),
     JwtModule.register({}),
     TypeOrmModule.forFeature([RefreshTokenEntity]),
-    RbacModule
+    RbacModule,
   ],
-  providers: [AuthService, JwtAccessStrategy],
+  providers: [AuthService, JwtAccessStrategy, AuthResolver],
   controllers: [AuthController, AdminAuthController],
   exports: [AuthService],
 })

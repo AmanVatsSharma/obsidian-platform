@@ -138,12 +138,26 @@ export class IbCommissionService {
 
   async listPayouts(
     tenantId: string,
-    ibUserId: string,
+    ibUserId?: string,
     status?: 'PENDING' | 'PAYABLE' | 'PAID',
   ): Promise<IbCommissionLedgerEntity[]> {
-    const where: any = { tenantId, ibUserId };
+    const where: any = { tenantId };
+    if (ibUserId) where.ibUserId = ibUserId;
     if (status) where.status = status;
     return this.ledger.find({ where, order: { createdAt: 'DESC' } });
+  }
+
+  /**
+   * Mark all PAYABLE ledger rows for a specific IB as PAID.
+   * Called by the payout endpoint after a broker admin confirms the disbursement.
+   */
+  async markAsPaid(tenantId: string, ibUserId: string, periodKey: string): Promise<number> {
+    this.logger.debug('markAsPaid', { tenantId, ibUserId, periodKey });
+    const result = await this.ledger.update(
+      { tenantId, ibUserId, status: 'PAYABLE' },
+      { status: 'PAID', paidAt: new Date(), periodKey },
+    );
+    return result.affected ?? 0;
   }
 
   private async walkTree(

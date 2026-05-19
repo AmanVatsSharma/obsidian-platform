@@ -53,7 +53,7 @@ export class BalancesService {
     query: { currency?: string },
   ): Promise<BalancesResult> {
     const ctx = getRequestContext();
-    const tenantId = ctx!.tenantId!;
+    const tenantId = ctx.tenantId;
     this.logger.debug('getBalances()', { accountId, tenantId, query });
 
     // Sum cash credits/debits by direction

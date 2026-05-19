@@ -4,6 +4,7 @@
  * Purpose:     Two-step OTP login for broker admins. Resolves the tenant code from
  *              TenantContext, fetches brand config for custom branding, then guides
  *              the user through mobile → OTP → authenticated shell.
+ *              Uses the Obsidian shared auth UI (AuthShell + FormCard + MarketHero).
  *
  * Exports:
  *   - LoginPage() — client component
@@ -11,6 +12,7 @@
  * Depends on:
  *   - ../../lib/tenant/tenant-context  — useTenant() for broker code
  *   - ../../lib/auth/auth-context      — useAuth() login()
+ *   - @obsidian/web-auth               — AuthShell, FormCard, TextInput, PrimaryButton
  *
  * Side-effects:
  *   - Calls POST /auth/otp/request and POST /auth/otp/verify on the backend
@@ -27,11 +29,11 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Loader2, ShieldCheck, ArrowRight } from 'lucide-react';
 import { useTenant } from '../../lib/tenant/tenant-context';
 import { useAuth } from '../../lib/auth/auth-context';
+import { AuthShell, FormCard, TextInput, PrimaryButton, FieldLabel, AuthIcons } from '@obsidian/web-auth';
 
 interface BrandConfig {
   appName?: string | null;
@@ -103,8 +105,7 @@ export default function LoginPage() {
     }
   }, [tenantCode]);
 
-  async function handleRequestOtp(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleRequestOtp() {
     if (!tenantCode) { setError('Tenant not resolved — check the URL'); return; }
     setError('');
     setLoading(true);
@@ -118,8 +119,7 @@ export default function LoginPage() {
     }
   }
 
-  async function handleVerifyOtp(e: React.FormEvent) {
-    e.preventDefault();
+  async function handleVerifyOtp() {
     if (!tenantCode) { setError('Tenant not resolved'); return; }
     setError('');
     setLoading(true);
@@ -138,118 +138,172 @@ export default function LoginPage() {
     ? tenantCode.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
     : 'Obsidian');
 
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-[var(--bg-base)] p-4">
-      <div className="w-full max-w-sm">
-        {/* Brand header */}
-        <div className="mb-8 text-center">
-          {brand.logoUrl ? (
-            /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={brand.logoUrl} alt={brokerName} className="mx-auto mb-4 h-10 object-contain" />
-          ) : (
-            <div className="mx-auto mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-accent">
-              <ShieldCheck size={20} className="text-white" />
+  // OTP digit refs for step 2
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
+
+  function handleDigit(i: number, v: string) {
+    const c = v.replace(/\D/g, '').slice(-1);
+    const next = [...digits];
+    next[i] = c;
+    setDigits(next);
+    setOtp(next.join(''));
+    if (c && i < 5) otpRefs.current[i + 1]?.focus();
+  }
+
+  function handleDigitKeyDown(i: number, e: React.KeyboardEvent) {
+    if (e.key === 'Backspace' && !digits[i] && i > 0) otpRefs.current[i - 1]?.focus();
+  }
+
+  function handleDigitPaste(e: React.ClipboardEvent) {
+    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (text.length === 6) {
+      const arr = text.split('');
+      setDigits(arr);
+      setOtp(text);
+      otpRefs.current[5]?.focus();
+    }
+    e.preventDefault();
+  }
+
+  const heroTitle = `${brokerName} Admin Portal`;
+  const heroSubtitle = 'Manage clients, orders, and dealer operations for your brokerage.';
+
+  if (step === 'mobile') {
+    return (
+      <AuthShell heroVariant="broker" heroTitle={heroTitle} heroSubtitle={heroSubtitle}>
+        <FormCard
+          title={`Sign in to ${brokerName}`}
+          subtitle="Enter your registered mobile number. We'll send a one-time passcode."
+          footer={
+            <div style={{
+              fontFamily: 'var(--font-data)', fontSize: 9, fontWeight: 600,
+              letterSpacing: '0.08em', color: 'var(--fg3)', textTransform: 'uppercase', textAlign: 'center',
+            }}>
+              {tenantCode ? `BROKER · ${tenantCode.toUpperCase()}` : 'RESOLVING TENANT…'}
             </div>
-          )}
-          <h1 className="font-display text-[20px] font-bold uppercase tracking-[0.08em] text-fg1">
-            {brokerName}
-          </h1>
-          <p className="mt-1 font-ui text-[12px] text-fg3">Admin Portal</p>
-        </div>
+          }
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+            <div>
+              <FieldLabel>Mobile number (E.164)</FieldLabel>
+              <TextInput
+                value={mobile}
+                onChange={setMobile}
+                type="tel"
+                placeholder="+919999999999"
+                icon={AuthIcons.phone}
+                autoFocus
+              />
+            </div>
 
-        {/* Login panel */}
-        <div className="rounded-lg border border-[var(--border-md)] bg-[var(--bg-panel)] p-6">
-          <p className="mb-4 font-display text-[10px] uppercase tracking-[0.12em] text-fg3">
-            {step === 'mobile' ? 'Sign In' : 'Enter OTP'}
-          </p>
+            {error && (
+              <div style={{
+                padding: '10px 14px', background: 'var(--bear-dim)',
+                border: '1px solid rgba(255,59,92,0.25)', borderRadius: 'var(--r-md)',
+                fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--bear)',
+              }}>{error}</div>
+            )}
 
-          {step === 'mobile' ? (
-            <form onSubmit={handleRequestOtp} className="space-y-4">
-              <div>
-                <label htmlFor="mobile" className="block font-display text-[10px] uppercase tracking-[0.1em] text-fg3 mb-1.5">
-                  Mobile Number
-                </label>
+            <PrimaryButton
+              onClick={handleRequestOtp}
+              disabled={loading || !mobile.trim()}
+            >
+              {loading ? 'Sending…' : <>Send OTP {AuthIcons.arrowRight}</>}
+            </PrimaryButton>
+          </div>
+        </FormCard>
+      </AuthShell>
+    );
+  }
+
+  return (
+    <AuthShell heroVariant="broker" heroTitle={heroTitle} heroSubtitle={heroSubtitle}>
+      <FormCard
+        back={
+          <span
+            onClick={() => { setStep('mobile'); setDigits(['','','','','','']); setOtp(''); setError(''); }}
+            style={{
+              display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+              fontFamily: 'var(--font-data)', fontSize: 10, fontWeight: 600,
+              letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg2)',
+            }}
+          >
+            {AuthIcons.arrowLeft} Change number
+          </span>
+        }
+        title="Enter your OTP"
+        subtitle={
+          <>
+            We sent a 6-digit code to{' '}
+            <span style={{ color: 'var(--fg1)', fontFamily: 'var(--font-data)' }}>{mobile}</span>.
+            Code expires in 10 minutes.
+          </>
+        }
+      >
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          <div>
+            <FieldLabel>One-time passcode</FieldLabel>
+            <div style={{ display: 'flex', gap: 10 }} onPaste={handleDigitPaste}>
+              {digits.map((d, i) => (
                 <input
-                  id="mobile"
-                  type="tel"
-                  value={mobile}
-                  onChange={e => setMobile(e.target.value)}
-                  placeholder="+919999999999"
-                  pattern="^\+[1-9]\d{1,14}$"
-                  title="E.164 format — e.g. +919999999999"
-                  required
-                  autoFocus
-                  className="w-full rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2.5 font-mono text-[13px] text-fg1 placeholder-fg3 focus:border-[var(--border-hi)] focus:outline-none transition-colors"
-                />
-              </div>
-
-              {error && (
-                <p className="rounded bg-[var(--bear-dim,#FF3B5C1A)] px-3 py-2 font-mono text-[11px] text-[var(--bear)]">
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="flex w-full items-center justify-center gap-2 rounded bg-accent px-4 py-2.5 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-white hover:bg-accent/90 transition-colors disabled:opacity-60"
-              >
-                {loading ? <Loader2 size={13} className="animate-spin" /> : <ArrowRight size={13} />}
-                SEND OTP
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleVerifyOtp} className="space-y-4">
-              <div>
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="font-ui text-[11px] text-fg3">OTP sent to {mobile}</span>
-                  <button
-                    type="button"
-                    onClick={() => { setStep('mobile'); setOtp(''); setError(''); }}
-                    className="font-mono text-[10px] text-accent hover:underline"
-                  >
-                    Change
-                  </button>
-                </div>
-                <label htmlFor="otp" className="block font-display text-[10px] uppercase tracking-[0.1em] text-fg3 mb-1.5">
-                  One-Time Password
-                </label>
-                <input
-                  id="otp"
+                  key={i}
+                  ref={el => { otpRefs.current[i] = el; }}
                   type="text"
                   inputMode="numeric"
-                  value={otp}
-                  onChange={e => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
-                  placeholder="000000"
-                  maxLength={6}
-                  required
-                  autoFocus
-                  className="w-full rounded border border-[var(--border)] bg-[var(--bg-elevated)] px-3 py-2.5 font-mono text-[18px] tracking-[0.5em] text-fg1 placeholder-fg3 focus:border-[var(--border-hi)] focus:outline-none transition-colors text-center"
+                  maxLength={1}
+                  value={d}
+                  autoFocus={i === 0}
+                  onChange={e => handleDigit(i, e.target.value)}
+                  onKeyDown={e => handleDigitKeyDown(i, e)}
+                  style={{
+                    flex: 1, height: 64, borderRadius: 'var(--r-md)',
+                    background: d ? 'var(--bg-panel)' : 'var(--bg-elevated)',
+                    border: `1px solid ${!d && i === digits.findIndex(x => !x) ? 'var(--accent)' : d ? 'var(--border-md)' : 'var(--border)'}`,
+                    boxShadow: (!d && i === digits.findIndex(x => !x)) ? '0 0 0 3px rgba(59,130,246,0.15)' : 'none',
+                    textAlign: 'center',
+                    fontFamily: 'var(--font-data)', fontSize: 28, fontWeight: 600,
+                    color: 'var(--fg1)', outline: 'none',
+                  }}
                 />
-              </div>
+              ))}
+            </div>
+          </div>
 
-              {error && (
-                <p className="rounded bg-[var(--bear-dim,#FF3B5C1A)] px-3 py-2 font-mono text-[11px] text-[var(--bear)]">
-                  {error}
-                </p>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading || otp.length < 4}
-                className="flex w-full items-center justify-center gap-2 rounded bg-accent px-4 py-2.5 font-display text-[11px] font-bold uppercase tracking-[0.08em] text-white hover:bg-accent/90 transition-colors disabled:opacity-60"
-              >
-                {loading ? <Loader2 size={13} className="animate-spin" /> : null}
-                VERIFY & SIGN IN
-              </button>
-            </form>
+          {error && (
+            <div style={{
+              padding: '10px 14px', background: 'var(--bear-dim)',
+              border: '1px solid rgba(255,59,92,0.25)', borderRadius: 'var(--r-md)',
+              fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--bear)',
+            }}>{error}</div>
           )}
-        </div>
 
-        <p className="mt-6 text-center font-mono text-[10px] text-fg3">
-          {tenantCode ? `Tenant: ${tenantCode}` : 'Resolving tenant…'}
-        </p>
-      </div>
-    </div>
+          <PrimaryButton
+            onClick={handleVerifyOtp}
+            disabled={loading || otp.length < 6}
+          >
+            {loading ? 'Verifying…' : <>Verify & sign in {AuthIcons.arrowRight}</>}
+          </PrimaryButton>
+
+          <div style={{
+            padding: '10px 14px', background: 'var(--bg-panel)',
+            border: '1px solid var(--border)', borderRadius: 'var(--r-md)',
+            display: 'flex', alignItems: 'center', gap: 12,
+            fontFamily: 'var(--font-data)', fontSize: 11, color: 'var(--fg2)',
+          }}>
+            <span style={{ color: 'var(--warn)', display: 'flex' }}>{AuthIcons.info}</span>
+            <span>OTP valid for 10 minutes</span>
+            <span style={{ marginLeft: 'auto' }}>
+              <span
+                onClick={() => requestOtp(tenantCode!, mobile.trim())}
+                style={{ color: 'var(--accent)', cursor: 'pointer', letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 9, fontWeight: 600 }}
+              >
+                RESEND
+              </span>
+            </span>
+          </div>
+        </div>
+      </FormCard>
+    </AuthShell>
   );
 }

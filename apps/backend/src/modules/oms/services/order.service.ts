@@ -65,6 +65,53 @@ export class OrderService {
     return this.orderEvents.onEvents$();
   }
 
+  /**
+   * Admin: list all orders across the tenant with optional filters.
+   * Joins account to resolve client/user name for the broker admin UI.
+   */
+  async listAll(opts: {
+    status?: string;
+    side?: 'BUY' | 'SELL';
+    accountId?: string;
+    symbol?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
+    offset?: number;
+  }) {
+    const ctx = getRequestContext();
+    const { status, side, accountId, from, to, limit = 50, offset = 0 } = opts;
+    this.logger.debug('listAll()', { ctx, opts });
+
+    const qb = this.orders
+      .createQueryBuilder('o')
+      .leftJoin('o.account', 'a')
+      .select([
+        'o.id', 'o.accountId', 'o.instrumentId', 'o.side', 'o.type',
+        'o.quantity', 'o.price', 'o.status', 'o.clientOrderId', 'o.createdAt',
+        'a.id', 'a.accountType',
+      ])
+      .where('o.tenant_id = :tenantId', { tenantId: ctx.tenantId });
+
+    if (status) qb.andWhere('o.status = :status', { status });
+    if (side) qb.andWhere('o.side = :side', { side });
+    if (accountId) qb.andWhere('o.account_id = :accountId', { accountId });
+    if (from) qb.andWhere('o.created_at >= :from', { from });
+    if (to) qb.andWhere('o.created_at <= :to', { to });
+
+    const [rows, total] = await Promise.all([
+      qb.orderBy('o.created_at', 'DESC').skip(offset).take(limit).getManyAndCount(),
+      qb.clone().select('COUNT(*)', 'cnt').getRawOne(),
+    ]);
+
+    return {
+      data: rows as unknown as OrderEntity[],
+      total: typeof total === 'object' && total !== null ? Number((total).cnt) : total,
+      limit,
+      offset,
+    };
+  }
+
   async place(dto: PlaceOrderDto): Promise<OrderEntity> {
     const ctx = getRequestContext();
     this.logger.debug('place()', dto);
@@ -72,12 +119,12 @@ export class OrderService {
     // Per-account advisory lock to avoid race conditions across concurrent placements
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       await manager.query('SELECT pg_advisory_xact_lock($1)', [
-        this.lockKey(ctx!.tenantId!, dto.accountId),
+        this.lockKey(ctx.tenantId, dto.accountId),
       ]);
 
       // Idempotency check by externalRefId
       const existing = await manager.getRepository(OrderEntity).findOne({
-        where: { tenantId: ctx!.tenantId!, externalRefId: dto.externalRefId },
+        where: { tenantId: ctx.tenantId, externalRefId: dto.externalRefId },
       });
       if (existing) {
         // If payload mismatches, throw duplicate error
@@ -98,7 +145,7 @@ export class OrderService {
       const exchangeCode = dto.instrumentId.split(':')[0]?.toUpperCase();
       if (exchangeCode) {
         const allowed = await this.brokerExchangeConfig.isExchangeEnabledForTenant(
-          ctx!.tenantId!,
+          ctx.tenantId,
           exchangeCode,
         );
         if (!allowed) {
@@ -120,7 +167,7 @@ export class OrderService {
       const required = estimate.totalRequired;
 
       // Pre-trade risk policy and limits enforcement
-      const tenantId = ctx!.tenantId!;
+      const tenantId = ctx.tenantId;
       const qty = Number(dto.quantity);
       const px = dto.price != null ? Number(dto.price) : null;
       const notional = qty * (px ?? 0);
@@ -155,7 +202,7 @@ export class OrderService {
       }
 
       const toSave = manager.getRepository(OrderEntity).create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId: dto.accountId,
         instrumentId: dto.instrumentId,
         side: dto.side,
@@ -170,7 +217,7 @@ export class OrderService {
       const saved = await manager.getRepository(OrderEntity).save(toSave);
 
       const placePayload: PlaceOrderRequest = {
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         accountId: dto.accountId,
         instrumentId: dto.instrumentId,
         side: dto.side,
@@ -195,10 +242,10 @@ export class OrderService {
       saved.meta = { ...(saved.meta ?? {}), providerOrderId: resp.providerOrderId };
       await manager.getRepository(OrderEntity).save(saved);
       await manager.getRepository(OrderAuditEntity).save(
-        manager.getRepository(OrderAuditEntity).create({ tenantId: ctx!.tenantId!, orderId: saved.id, action: 'PLACE', data: dto as any }),
+        manager.getRepository(OrderAuditEntity).create({ tenantId: ctx.tenantId, orderId: saved.id, action: 'PLACE', data: dto as any }),
       );
       this.orderEvents.publish({ type: 'order.placed', payload: saved });
-      this.realtime.publishOrderUpdate(ctx!.userId ?? saved.accountId, {
+      this.realtime.publishOrderUpdate(ctx.userId ?? saved.accountId, {
         order: saved,
       });
       return saved;
@@ -216,7 +263,7 @@ export class OrderService {
 
   async cancel(dto: CancelOrderDto): Promise<OrderEntity | null> {
     const ctx = getRequestContext();
-    const order = await this.orders.findOne({ where: { id: dto.orderId, tenantId: ctx!.tenantId! } });
+    const order = await this.orders.findOne({ where: { id: dto.orderId, tenantId: ctx.tenantId } });
     if (!order) return null;
     const account = await this.accountsService.getById(order.accountId);
     const adapter = account?.accountType === 'DEMO' ? this.demoExchange : this.exchange;
@@ -228,16 +275,16 @@ export class OrderService {
     if (order.holdRef) {
       await this.ledger.releaseHold(order.accountId, { externalRefId: order.holdRef });
     }
-    await this.audits.save(this.audits.create({ tenantId: ctx!.tenantId!, orderId: order.id, action: 'CANCEL', data: dto as any }));
+    await this.audits.save(this.audits.create({ tenantId: ctx.tenantId, orderId: order.id, action: 'CANCEL', data: dto as any }));
     this.orderEvents.publish({ type: 'order.cancelled', payload: order });
-    this.realtime.publishOrderUpdate(ctx!.userId ?? order.accountId, { order });
+    this.realtime.publishOrderUpdate(ctx.userId ?? order.accountId, { order });
     return order;
   }
 
   async modify(dto: ModifyOrderDto): Promise<OrderEntity | null> {
     const ctx = getRequestContext();
     const order = await this.orders.findOne({
-      where: { id: dto.orderId, tenantId: ctx!.tenantId! },
+      where: { id: dto.orderId, tenantId: ctx.tenantId },
     });
     if (!order) return null;
     const account = await this.accountsService.getById(order.accountId);
@@ -259,14 +306,14 @@ export class OrderService {
     await this.orders.save(order);
     await this.audits.save(
       this.audits.create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         orderId: order.id,
         action: 'MODIFY',
         data: dto as any,
       }),
     );
     this.orderEvents.publish({ type: 'order.modified', payload: order });
-    this.realtime.publishOrderUpdate(ctx!.userId ?? order.accountId, { order });
+    this.realtime.publishOrderUpdate(ctx.userId ?? order.accountId, { order });
     return order;
   }
 
@@ -275,11 +322,11 @@ export class OrderService {
     this.logger.debug('addExecution()', dto);
     return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
       const execRepo = manager.getRepository(ExecutionEntity);
-      const existing = await execRepo.findOne({ where: { tenantId: ctx!.tenantId!, externalRefId: dto.externalRefId } });
+      const existing = await execRepo.findOne({ where: { tenantId: ctx.tenantId, externalRefId: dto.externalRefId } });
       if (existing) return existing;
 
       const exec = execRepo.create({
-        tenantId: ctx!.tenantId!,
+        tenantId: ctx.tenantId,
         orderId: dto.orderId,
         accountId: dto.accountId,
         instrumentId: dto.instrumentId,
@@ -310,22 +357,22 @@ export class OrderService {
       }
 
       // Update order status basic heuristic
-      const order = await manager.getRepository(OrderEntity).findOne({ where: { id: dto.orderId, tenantId: ctx!.tenantId! } });
+      const order = await manager.getRepository(OrderEntity).findOne({ where: { id: dto.orderId, tenantId: ctx.tenantId } });
       if (order) {
         order.status = 'PARTIALLY_FILLED';
         await manager.getRepository(OrderEntity).save(order);
-        await manager.getRepository(OrderAuditEntity).save(manager.getRepository(OrderAuditEntity).create({ tenantId: ctx!.tenantId!, orderId: order.id, action: 'EXECUTION', data: dto as any }));
+        await manager.getRepository(OrderAuditEntity).save(manager.getRepository(OrderAuditEntity).create({ tenantId: ctx.tenantId, orderId: order.id, action: 'EXECUTION', data: dto as any }));
       }
       this.orderEvents.publish({ type: 'execution.added', payload: { execution: saved, orderId: dto.orderId } });
       if (order) {
-        this.realtime.publishOrderUpdate(ctx!.userId ?? order.accountId, {
+        this.realtime.publishOrderUpdate(ctx.userId ?? order.accountId, {
           order,
           execution: saved,
         });
       }
       if (order && order.status !== 'REJECTED') {
         await this.notifications.send({
-          userId: ctx!.userId ?? order.accountId, // fallback
+          userId: ctx.userId ?? order.accountId, // fallback
           type: 'order.execution',
           title: 'Order filled',
           bodyTemplate: 'Your order {{orderId}} received a fill of {{qty}} @ {{price}}',

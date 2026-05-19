@@ -15,6 +15,7 @@ import { NotificationService } from './services/notification.service';
 import { NotificationTemplateService } from './services/notification-template.service';
 import { NotificationsController } from './controllers/notifications.controller';
 import { NotificationPreferencesController } from './controllers/notification-preferences.controller';
+import { NotificationsResolver } from './notifications.resolver';
 import { RbacModule } from '../rbac/rbac.module';
 import { ObservabilityModule } from '../../shared/observability/observability.module';
 
@@ -26,7 +27,7 @@ import { ObservabilityModule } from '../../shared/observability/observability.mo
     ObservabilityModule,
   ],
   controllers: [NotificationsController, NotificationPreferencesController],
-  providers: [NotificationService, NotificationTemplateService],
+  providers: [NotificationService, NotificationTemplateService, NotificationsResolver],
   exports: [NotificationService],
 })
 export class NotificationsModule {}

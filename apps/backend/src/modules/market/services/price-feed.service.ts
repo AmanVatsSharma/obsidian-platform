@@ -83,7 +83,7 @@ export class PriceFeedService implements OnModuleInit, OnModuleDestroy {
     for (const { exchange, symbol } of instruments) {
       const key = `${exchange}:${symbol}`;
       if (!this.subscribers.has(key)) this.subscribers.set(key, new Set());
-      this.subscribers.get(key)!.add(subscriberId);
+      this.subscribers.get(key).add(subscriberId);
     }
   }
 
@@ -129,7 +129,7 @@ export class PriceFeedService implements OnModuleInit, OnModuleDestroy {
     for (const inst of instruments) {
       const providerCode = providerMap.get(inst.exchange) ?? 'GENERIC_REST';
       if (!byProvider.has(providerCode)) byProvider.set(providerCode, []);
-      byProvider.get(providerCode)!.push(inst);
+      byProvider.get(providerCode).push(inst);
     }
 
     const allQuotes: Quote[] = [];

@@ -17,9 +17,11 @@ import { DataSource, Repository } from 'typeorm';
 import { CashLedgerEntryEntity } from '../entities/cash-ledger-entry.entity';
 import { HoldEntity } from '../entities/hold.entity';
 import { WithdrawalRequestEntity } from '../entities/withdrawal-request.entity';
+import { AccountEntity } from '../entities/account.entity';
 import { AppLoggerService } from '../../../shared/logger';
 import { AppError } from '../../../common/errors/app-error';
 import { AccountsService } from '../services/accounts.service';
+import { OrderEventsService } from '../../oms/services/order-events.service';
 
 describe('LedgerService idempotency', () => {
   let service: LedgerService;
@@ -42,9 +44,11 @@ describe('LedgerService idempotency', () => {
         { provide: getRepositoryToken(CashLedgerEntryEntity), useValue: {} as Partial<Repository<CashLedgerEntryEntity>> },
         { provide: getRepositoryToken(HoldEntity), useValue: {} as Partial<Repository<HoldEntity>> },
         { provide: getRepositoryToken(WithdrawalRequestEntity), useValue: {} as Partial<Repository<WithdrawalRequestEntity>> },
+        { provide: getRepositoryToken(AccountEntity), useValue: {} as Partial<Repository<AccountEntity>> },
         { provide: AppLoggerService, useValue: { setContext: jest.fn(), debug: jest.fn() } },
         { provide: require('../../realtime/prana-stream/services/realtime-publisher.service').RealtimePublisherService, useValue: { publishAccountUpdate: jest.fn() } },
         { provide: AccountsService, useValue: { getById: jest.fn().mockResolvedValue({ accountType: 'LIVE' }) } },
+        { provide: OrderEventsService, useValue: { publish: jest.fn() } },
       ],
     }).compile();
 
