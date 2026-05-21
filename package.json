@@ -35,6 +35,10 @@
     "quality:verify": "npm run check:cycles && npm run check:duplicates && npm run check:headers && npm run test:contracts && npm run test:developer-platform-contracts && npm run affected:lint && npm run affected:test && npm run affected:build",
     "quality:wave2": "npm run lint:wave2-surfaces && npm run lint:mobile && npm run smoke:desktop",
     "docs:api": "cd apps/backend && npx typedoc --options typedoc.json",
+    "graphql:schema": "npx ts-node --esm apps/backend/src/scripts/generate-schema.ts",
+    "codegen:web": "cd apps/web && npx graphql-codegen",
+    "codegen": "npm run codegen:web",
+    "prebuild": "npm run codegen",
     "demo:broker-admin": "bash demos/export-broker-admin.sh",
     "postinstall": "nx connect"
   },
@@ -42,6 +46,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@apollo/client": "^3.14.1",
     "@apollo/server": "^4.13.0",
     "@aws-sdk/client-s3": "^3.1036.0",
     "@aws-sdk/client-ses": "^3.1036.0",
@@ -121,6 +126,11 @@
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
+    "@graphql-codegen/cli": "^6.0.0",
+    "@graphql-codegen/near-operation-file-preset": "^3.0.0",
+    "@graphql-codegen/typescript": "^4.0.0",
+    "@graphql-codegen/typescript-operations": "^4.0.0",
+    "@graphql-codegen/typescript-react-apollo": "^4.0.0",
     "@nestjs/cli": "^11.0.0",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
@@ -155,7 +165,6 @@
     "electron": "^33.4.0",
     "electron-builder": "^25.1.8",
     "electron-vite": "^5.0.0",
-    "eslint": "^9.18.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-plugin-prettier": "^5.2.2",
     "globals": "^16.0.0",

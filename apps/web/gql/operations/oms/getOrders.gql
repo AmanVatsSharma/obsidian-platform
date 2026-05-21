@@ -1,0 +1,27 @@
+query GetOrders($accountId: ID!, $status: OrderStatus, $limit: Int) {
+  orders(accountId: $accountId, status: $status, limit: $limit) {
+    edges {
+      node {
+        id
+        clientOrderId
+        side
+        type
+        status
+        quantity
+        filledQty
+        price
+        avgFillPrice
+        instrument {
+          symbol
+          name
+        }
+        createdAt
+        updatedAt
+      }
+    }
+    pageInfo {
+      hasNextPage
+      endCursor
+    }
+  }
+}

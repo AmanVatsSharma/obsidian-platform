@@ -1,0 +1,9 @@
+mutation PlaceOrder($input: PlaceOrderInput!) {
+  placeOrder(input: $input) {
+    id
+    clientOrderId
+    status
+    message
+    createdAt
+  }
+}
