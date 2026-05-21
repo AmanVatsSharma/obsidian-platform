@@ -1,0 +1,10 @@
+{
+  "name": "@obsidian/graphql-schema",
+  "version": "1.0.0",
+  "description": "Committed GraphQL schema -- source of truth for all frontend consumers",
+  "main": "schema.gql",
+  "files": ["schema.gql"],
+  "keywords": ["graphql", "obsidian"],
+  "license": "UNLICENSED",
+  "private": true
+}
