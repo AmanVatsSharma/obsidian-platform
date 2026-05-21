@@ -4,7 +4,7 @@
  * Purpose:     Full trading workstation shell — platform-agnostic orchestrator for all trading panels.
  *
  * Exports:
- *   - TradingWorkstation({ fetchJson, mobileHref?, forceMobileLayout?, omsConfig? }) → ReactNode
+ *   - TradingWorkstation({ fetchJson, mobileHref?, forceMobileLayout?, omsConfig?, onTradeSubmit?, balance? }) → ReactNode
  *
  * Depends on:
  *   - ../lib/workstation-api — FetchJsonFn, OmsConfig, PlaceUiOrder, mergeApiWatchlistInstruments, submitOrderToOms
@@ -63,6 +63,8 @@ export function TradingWorkstation({
   omsConfig,
   initialInstrument,
   onInstrumentChange,
+  onTradeSubmit,
+  balance,
 }: {
   fetchJson: FetchJsonFn;
   mobileHref?: string;
@@ -72,6 +74,21 @@ export function TradingWorkstation({
   initialInstrument?: Instrument | null;
   /** Called whenever the active instrument changes — lets the tab manager track the label. */
   onInstrumentChange?: (instrument: Instrument | null) => void;
+  /** Inject a custom trade-submission handler (web wrapper uses Apollo; Electron can inject IPC). */
+  onTradeSubmit?: (payload: PlaceUiOrder) => Promise<{ ok: true; detail?: string } | { ok: false; message: string }>;
+  /** Live account balance snapshot — passed to AccountSummaryPanel; absent = ACCOUNT mock. */
+  balance?: {
+    equity: number;
+    freeMargin: number;
+    margin: number;
+    unrealizedPnl: number;
+    realizedPnlToday: number;
+    balance: number;
+    currency: string;
+    accountId: string;
+    accountType: string;
+    leverage: string;
+  };
 }) {
   const [instruments, setInstruments] = useState<Instrument[]>(INSTRUMENTS);
   const [activeInstrument, setActiveInstrument] = useState<Instrument | null>(
@@ -156,7 +173,9 @@ export function TradingWorkstation({
 
   const handleTrade = useCallback(
     async (payload: PlaceUiOrder) => {
-      const result = await submitOrderToOms(fetchJson, payload, omsConfig);
+      const result = onTradeSubmit
+        ? await onTradeSubmit(payload)
+        : await submitOrderToOms(fetchJson, payload, omsConfig);
       if (result.ok) {
         addToast(
           `${payload.side.toUpperCase()} ${payload.lots} lots ${payload.instrument?.symbol ?? ''}`,
@@ -176,7 +195,7 @@ export function TradingWorkstation({
         payload.side === 'buy' ? 'bull' : 'bear',
       );
     },
-    [addToast, fetchJson, omsConfig, prices],
+    [addToast, fetchJson, omsConfig, prices, onTradeSubmit],
   );
 
   const handleClosePosition = useCallback(
@@ -234,7 +253,24 @@ export function TradingWorkstation({
 
           <div className="right-sidebar">
             <OrderEntry instrument={activeInstrument} prices={prices} onTrade={(p) => void handleTrade(p)} />
-            <AccountSummaryPanel />
+            <AccountSummaryPanel snapshot={balance ? {
+              name: 'Trading Account',
+              accountId: balance.accountId,
+              accountType: balance.accountType,
+              broker: 'Obsidian Markets',
+              currency: balance.currency,
+              leverage: balance.leverage,
+              balance: balance.balance,
+              equity: balance.equity,
+              margin: balance.margin,
+              freeMargin: balance.freeMargin,
+              marginLevel: balance.margin > 0 ? (balance.equity / balance.margin) * 100 : 0,
+              unrealizedPnl: balance.unrealizedPnl,
+              realizedPnlToday: balance.realizedPnlToday,
+              drawdownPct: 0,
+              server: 'OB-LIVE-01',
+              ping: 12,
+            } : undefined} />
           </div>
         </div>
 
