@@ -20,6 +20,7 @@ const nextConfig = {
       { source: '/rbac/:path*', destination: 'http://localhost:3000/rbac/:path*' },
       { source: '/users/:path*', destination: 'http://localhost:3000/users/:path*' },
       { source: '/auth/:path*', destination: 'http://localhost:3000/auth/:path*' },
+      { source: '/graphql', destination: 'http://localhost:3000/graphql' },
       { source: '/api/:path*', destination: 'http://localhost:3000/:path*' }
     ];
   },

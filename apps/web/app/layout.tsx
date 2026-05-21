@@ -2,7 +2,10 @@
  * File:        apps/web/app/layout.tsx
  * Module:      web · Root Layout
  * Purpose:     Root Next.js layout — injects Obsidian Design System fonts,
- *              applies dark-terminal theme, and wraps the app in ObsidianProvider.
+ *              applies dark-terminal theme, and wraps the app in ObsidianProvider
+ *              + ToastProvider so any descendant can call useToast().
+ *              BrandProvider fetches per-tenant branding (logo, colors, name)
+ *              from GET /tenancy/brand-config and applies it to CSS vars + title.
  *
  * Exports:
  *   - metadata                       — Next.js page metadata
@@ -10,29 +13,39 @@
  *
  * Depends on:
  *   - next/font/google               — Self-hosted Google Fonts (Syne, IBM Plex Mono, DM Sans)
- *   - @obsidian/obsidian-ui         — ObsidianProvider (theme context + Radix Tooltip provider)
+ *   - @obsidian/obsidian-ui          — ObsidianProvider, ToastProvider
  *   - @/shared/providers/auth-provider — AuthProvider
+ *   - ../lib/brand-provider          — BrandProvider (tenant branding via subdomain)
  *
  * Side-effects:
  *   - Injects CSS font variables (--font-display, --font-ui, --font-data) on <html>
- *   - Sets data-theme="dark" and adds .obsidian-root class via ObsidianProvider
+ *   - Sets data-theme / data-density / --accent vars via ObsidianProvider
+ *   - Mounts a fixed bottom-right toast viewport via ToastProvider
+ *   - BrandProvider writes --primary-color, --bull, --bear CSS vars to document root
+ *   - BrandProvider updates document.title from brand config
  *
  * Key invariants:
- *   - defaultTheme="dark" — Obsidian is always dark; system preference not consulted
- *   - Font variables must be on <html> (not <body>) so tokens.css :root fallbacks are overridden
+ *   - defaultTheme="dark" is the brand default; ObsidianProvider hydrates from localStorage
+ *     on mount, so a saved 'light' preference will replace it before first paint.
+ *   - defaultDensity="regular" is the product default (matches the Account Console design).
+ *   - defaultAccent="blue" matches the brand accent.
+ *   - Font variables must be on <html> (not <body>) so tokens.css :root fallbacks are overridden.
+ *   - BrandProvider resolves tenant code from subdomain hostname on mount.
  *
  * Read order:
  *   1. Font declarations — CSS variable names match tokens.css --font-* vars
- *   2. RootLayout — how fonts and providers are composed
+ *   2. RootLayout       — how fonts and providers are composed
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-05-19
  */
 
 import './global.css';
 import { DM_Sans, IBM_Plex_Mono, Syne } from 'next/font/google';
-import { ObsidianProvider } from '@obsidian/obsidian-ui';
+import { ObsidianProvider, ToastProvider } from '@obsidian/obsidian-ui';
 import { AuthProvider } from '@/shared/providers/auth-provider';
+import { BrandProvider } from '../lib/brand-provider';
+import { ApolloProviderWrapper } from '@/gql/client/apollo-provider';
 
 const syne = Syne({
   subsets: ['latin'],
@@ -68,8 +81,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${syne.variable} ${ibmPlexMono.variable} ${dmSans.variable}`}
     >
       <body className="min-h-screen antialiased">
-        <ObsidianProvider defaultTheme="dark" defaultDensity="comfortable">
-          <AuthProvider>{children}</AuthProvider>
+        <ObsidianProvider defaultTheme="dark" defaultDensity="regular" defaultAccent="blue">
+          <ToastProvider>
+            <AuthProvider>
+              <ApolloProviderWrapper>
+                <BrandProvider>{children}</BrandProvider>
+              </ApolloProviderWrapper>
+            </AuthProvider>
+          </ToastProvider>
         </ObsidianProvider>
       </body>
     </html>

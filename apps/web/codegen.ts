@@ -54,7 +54,6 @@ const config: CodegenConfig = {
   hooks: {
     afterAllFileWrite: ['npx prettier --write'],
   },
-  failOnConflict: true,
 };
 
 export default config;
