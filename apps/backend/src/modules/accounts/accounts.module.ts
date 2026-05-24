@@ -6,11 +6,12 @@
  * @created 2025-09-19
  */
 
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
 import { MarketModule } from '../market/market.module';
 import { PranaStreamModule } from '../realtime/prana-stream/prana-stream.module';
+import { StrategyPositionEntity } from './entities/strategy-position.entity';
 import { AccountEntity } from './entities/account.entity';
 import { CashLedgerEntryEntity } from './entities/cash-ledger-entry.entity';
 import { PositionLedgerEntryEntity } from './entities/position-ledger-entry.entity';
@@ -26,6 +27,7 @@ import { StatementsService } from './services/statements.service';
 import { BankAccountsService } from './services/bank-accounts.service';
 import { DepositsService } from './services/deposits.service';
 import { AccountsRiskService } from './services/accounts-risk.service';
+import { StrategyPositionService } from './services/strategy-position.service';
 import { AccountsController } from './controllers/accounts.controller';
 import { LedgerController } from './controllers/ledger.controller';
 import { StatementsController } from './controllers/statements.controller';
@@ -45,7 +47,7 @@ import { BuyingPowerRuleEntity } from '../oms/entities/buying-power-rule.entity'
     SharedModule,
     MarketModule,
     PranaStreamModule,
-    RbacModule,
+    forwardRef(() => RbacModule),
     NotificationsModule,
     TypeOrmModule.forFeature([
       AccountEntity,
@@ -57,6 +59,7 @@ import { BuyingPowerRuleEntity } from '../oms/entities/buying-power-rule.entity'
       BankAccountEntity,
       DepositRequestEntity,
       BuyingPowerRuleEntity,
+      StrategyPositionEntity,
     ]),
   ],
   controllers: [
@@ -79,6 +82,7 @@ import { BuyingPowerRuleEntity } from '../oms/entities/buying-power-rule.entity'
     BankAccountsService,
     DepositsService,
     AccountsRiskService,
+    StrategyPositionService,
   ],
   exports: [
     AccountsService,
@@ -88,6 +92,9 @@ import { BuyingPowerRuleEntity } from '../oms/entities/buying-power-rule.entity'
     BankAccountsService,
     DepositsService,
     AccountsRiskService,
+    StrategyPositionService,
+    RbacModule,
+    TypeOrmModule,
   ],
 })
 export class AccountsModule {}

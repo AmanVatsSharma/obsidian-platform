@@ -21,7 +21,9 @@ export class OrderAuditEntity {
   orderId!: string;
 
   @Column({ name: 'action', type: 'varchar', length: 24 })
-  action!: 'PLACE' | 'MODIFY' | 'CANCEL' | 'STATUS' | 'EXECUTION';
+  action!: 'PLACE' | 'MODIFY' | 'CANCEL' | 'STATUS' | 'EXECUTION'
+    | 'PLACE_BRACKET' | 'BRACKET_CHILD_ACTIVATE' | 'BRACKET_CHILD_CANCEL'
+    | 'CHILD_FILL_RECORDED' | 'ALGO_CHILD_FILL_RECORDED' | 'ALGO_SLICE_DISPATCHED';
 
   @Column({ name: 'data', type: 'jsonb', nullable: true })
   data?: Record<string, unknown> | null;

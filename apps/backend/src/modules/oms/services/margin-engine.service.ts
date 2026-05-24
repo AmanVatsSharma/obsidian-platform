@@ -21,7 +21,7 @@ export type MarginEstimateInput = {
   userId?: string;
   instrumentId: string;
   side: 'BUY' | 'SELL';
-  type: 'MARKET' | 'LIMIT';
+  type: 'MARKET' | 'LIMIT' | 'STOP' | 'STOP_LIMIT' | 'GTT' | 'TRAILING_STOP' | 'BRACKET' | 'ICEBERG' | 'TWAP' | 'VWAP';
   quantity: string;
   price?: string | null;
   positionType: 'INTRADAY' | 'DELIVERY' | 'SHORT' | 'LONG';

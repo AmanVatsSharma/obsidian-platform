@@ -1,7 +1,7 @@
 # Web App → Backend: Full GraphQL Migration for Trading Data
 
 **Date:** 2026-05-23
-**Status:** Draft — awaiting user approval
+**Status:** APPROVED — implementation plan in progress
 **Scope:** `apps/web` (Next.js 15) ↔ `apps/backend` (NestJS) — trading data only; auth remains REST
 
 ---
@@ -443,10 +443,50 @@ After each phase:
 
 ## 10. Open questions (flagged for user)
 
-1. **Does PranaStream emit order events today?** If yes, Phase 4 is a small addition. If no, we skip Phase 4 and use refetchQueries indefinitely.
-2. **Should we keep `lib/api/orders.ts` and `lib/api/positions.ts` as thin Apollo wrappers** (export hooks, keep file) or delete them entirely? My rec: delete once migration is verified — leaner is better.
-3. **Should we add `sl` (stop-loss) and `tp` (take-profit) to the OMS contract?** The subagent found these are not modeled anywhere. If you want them, this is the right time to add them to `PlaceOrderDto` and the schema — before the web app is fully GraphQL-wired.
+~~1. **Does PranaStream emit order events today?**~~ — **CONFIRMED YES.** PranaStream emits `order.updated` over Socket.IO on every order status transition (place, cancel, modify, fill). Event flows: `OrderService.place/cancel/modify/addExecution` → `RealtimePublisherService.publishOrderUpdate` → `RealtimeAggregatorService` → `Socket.IO 'order.updated'` on `user:${userId}` room. No Redis/PubSub needed.
+
+2. **Should we keep `lib/api/orders.ts` and `lib/api/positions.ts` as thin Apollo wrappers** (export hooks, keep file) or delete them entirely? — **Decision: delete once migrated.**
+
+---
+
+## 11. Confirmed PranaStream order events (Phase 4)
+
+PranaStream already emits `order.updated` Socket.IO events. The web app should subscribe to `/ws/prana` and handle `order.updated` frames:
+
+```typescript
+// In Apollo cache update on Socket.IO event
+socket.on('order.updated', (frame) => {
+  const { order } = frame.data;
+  cache.modify({
+    id: cache.identify({ __typename: 'OrderEntity', id: order.id }),
+    fields: {
+      status: () => order.status,
+      filledQuantity: () => order.filledQuantity,
+    },
+  });
+  // Also update order list in cache
+});
+```
+
+Phase 4 is now **concrete and confirmed** — PranaStream `order.updated` is already wired. The GraphQL subscription over WebSocket is optional (separate from this Socket.IO path). Decision: use the existing Socket.IO path for Phase 4 (no new GraphQL subscription infrastructure needed).
+
+---
+
+## 12. SL/TP fields in PlaceOrderDto
+
+Stop-loss (`sl`) and take-profit (`tp`) will be added to the order submission contract. Backend `PlaceOrderDto` and GraphQL schema will both include these fields:
+
+```graphql
+input PlaceOrderDto {
+  # ... existing fields ...
+  sl: Float   # Stop-loss price (optional)
+  tp: Float   # Take-profit price (optional)
+}
+```
+
+Backend validates that `sl` < `price` for BUY orders and `sl` > `price` for SELL orders. Frontend adds SL/TP inputs in the order form.
 
 ---
 
 *Author: AmanVatsSharma / Claude*
+*Last updated: 2026-05-24*

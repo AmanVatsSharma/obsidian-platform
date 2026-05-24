@@ -6,12 +6,13 @@
  * @created 2025-09-19
  */
 
-import { Body, Controller, MessageEvent, Post, Sse, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, MessageEvent, Param, Post, Sse, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Permissions } from '../../rbac/decorators/permissions.decorator';
 import { PermissionsGuard } from '../../rbac/guards/permissions.guard';
 import { TenantGuard } from '../../rbac/guards/tenant.guard';
 import { PlaceOrderDto, CancelOrderDto, ModifyOrderDto } from '../dtos/order.dto';
+import { PlaceBracketOrderDto } from '../dtos/bracket-order.dto';
 import { AddExecutionDto } from '../dtos/execution.dto';
 import { OrderService } from '../services/order.service';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -82,6 +83,64 @@ export class OrdersController {
   modify(@Body() dto: ModifyOrderDto) {
     this.logger.debug('modify called', dto);
     return this.service.modify(dto);
+  }
+
+  @Post('bracket')
+  @Permissions('orders:write')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Place bracket order (one-triggers-all)' })
+  @ApiBody({
+    type: PlaceBracketOrderDto,
+    examples: {
+      bracketBuy: {
+        value: {
+          accountId: 'acc-uuid',
+          instrumentId: 'inst-uuid',
+          side: 'BUY',
+          type: 'BRACKET',
+          quantity: '10',
+          price: '123.45',
+          timeInForce: 'DAY',
+          externalRefId: 'ext-bracket-001',
+          clientOrderId: 'cli-bracket-001',
+          bracket: {
+            tpPrice: '125.00',
+            slPrice: '121.00',
+          },
+        },
+      },
+      trailingStop: {
+        value: {
+          accountId: 'acc-uuid',
+          instrumentId: 'inst-uuid',
+          side: 'BUY',
+          type: 'BRACKET',
+          quantity: '10',
+          price: '123.45',
+          timeInForce: 'GTC',
+          externalRefId: 'ext-trailing-001',
+          clientOrderId: 'cli-trailing-001',
+          bracket: {
+            trailingDistance: '2.00',
+            slPrice: '121.00',
+          },
+        },
+      },
+    },
+  })
+  placeBracket(@Body() dto: PlaceBracketOrderDto) {
+    this.logger.debug('placeBracket called', dto);
+    return this.service.placeBracket(dto);
+  }
+
+  @Get(':orderId/children')
+  @Permissions('oms:read')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Get bracket child orders for a parent order' })
+  @ApiResponse({ status: 200, description: 'Array of child orders (TP/SL legs)' })
+  getBracketChildren(@Param('orderId') orderId: string) {
+    this.logger.debug('getBracketChildren called', { orderId });
+    return this.service.getBracketChildren(orderId);
   }
 
   @Post('executions')

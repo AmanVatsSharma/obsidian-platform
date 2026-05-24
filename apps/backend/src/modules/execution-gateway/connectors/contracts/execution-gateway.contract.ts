@@ -41,11 +41,12 @@ export type GatewayCancelOrderRequest = {
 
 export type GatewayOrderResponse = {
   providerOrderId: string;
-  status: 'ACCEPTED' | 'REJECTED' | 'PENDING' | 'CANCELLED';
+  status: 'ACCEPTED' | 'REJECTED' | 'PENDING' | 'CANCELLED' | 'FILLED';
   reason?: string;
   message?: string | null;
   filledQty?: string | null;
   price?: string | null;
+  averageFilledPrice?: string | null;
 };
 
 export type PositionSnapshot = {

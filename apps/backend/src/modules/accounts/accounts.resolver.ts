@@ -134,7 +134,7 @@ export class AccountsResolver {
 
   @Mutation(() => AccountEntity)
   @Permissions('accounts:write')
-  async createAccount(@Args() dto: CreateAccountDto): Promise<AccountEntity> {
+  async createAccount(@Args('input', { type: () => CreateAccountDto }) dto: CreateAccountDto): Promise<AccountEntity> {
     const ctx = getRequestContext();
     this.logger.debug('AccountsResolver.createAccount()', { requestId: ctx?.requestId, dto });
     return this.accountsService.createAccount(dto);

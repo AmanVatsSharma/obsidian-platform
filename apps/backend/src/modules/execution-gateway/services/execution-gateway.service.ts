@@ -24,12 +24,17 @@ import {
 import { CryptoCexConnector } from '../connectors/crypto-cex/crypto-cex.connector';
 import { EquitiesFnoConnector } from '../connectors/equities-fno/equities-fno.connector';
 import { FxCfdConnector } from '../connectors/fx-cfd/fx-cfd.connector';
+import { IbkrConnector } from '../connectors/ibkr/ibkr.connector';
+import { BinanceConnector } from '../connectors/binance/binance.connector';
 import { UsEquitiesOptionsConnector } from '../connectors/us-equities-options/us-equities-options.connector';
 import { ExecutionConnectorEntity } from '../entities/execution-connector.entity';
+import { Venue } from '../../execution-intelligence/types/venue.type';
 
 @Injectable()
 export class ExecutionGatewayService {
   private readonly connectors: Map<ConnectorFamily, ExecutionConnector>;
+  /** venueId → { family, venueId } registry for SmartOrderRouterService */
+  private readonly venueRegistry: Map<string, { family: ConnectorFamily; venueId: string }> = new Map();
 
   constructor(
     @InjectRepository(ExecutionConnectorEntity)
@@ -37,7 +42,9 @@ export class ExecutionGatewayService {
     fxCfdConnector: FxCfdConnector,
     equitiesFnoConnector: EquitiesFnoConnector,
     usEquitiesOptionsConnector: UsEquitiesOptionsConnector,
+    ibkrConnector: IbkrConnector,
     cryptoCexConnector: CryptoCexConnector,
+    binanceConnector: BinanceConnector,
     commoditiesConnector: CommoditiesConnector,
     private readonly logger: AppLoggerService,
   ) {
@@ -45,8 +52,8 @@ export class ExecutionGatewayService {
     this.connectors = new Map<ConnectorFamily, ExecutionConnector>([
       ['FX_CFD', fxCfdConnector],
       ['EQUITIES_FNO', equitiesFnoConnector],
-      ['US_EQUITIES_OPTIONS', usEquitiesOptionsConnector],
-      ['CRYPTO_CEX', cryptoCexConnector],
+      ['US_EQUITIES_OPTIONS', ibkrConnector],
+      ['CRYPTO_CEX', binanceConnector],
       ['COMMODITIES', commoditiesConnector],
     ]);
   }
@@ -126,5 +133,26 @@ export class ExecutionGatewayService {
       throw new AppError('RESOURCE_NOT_FOUND', `Connector family ${family} is not registered`);
     }
     return connector;
+  }
+
+  /**
+   * Registers venues for Smart Order Routing.
+   * Each venue maps to a connector family already registered in the gateway.
+   */
+  registerVenues(venues: Venue[]): void {
+    for (const venue of venues) {
+      this.venueRegistry.set(venue.id, {
+        family: venue.connectorFamily,
+        venueId: venue.id,
+      });
+    }
+    this.logger.debug('registerVenues', { count: venues.length });
+  }
+
+  /**
+   * Returns all registered venues.
+   */
+  getRegisteredVenues(): Array<{ venueId: string; family: ConnectorFamily }> {
+    return Array.from(this.venueRegistry.values());
   }
 }

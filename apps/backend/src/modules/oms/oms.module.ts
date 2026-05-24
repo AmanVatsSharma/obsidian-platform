@@ -43,6 +43,11 @@ import { LimitsAndControlsModule } from '@obsidian/backend-limits-controls';
 import { BrokerHierarchyModule } from '../broker-hierarchy/broker-hierarchy.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { OmsResolver } from './oms.resolver';
+import { ConditionalOrderWorker } from './services/conditional-order.worker';
+import { AlgoOrderWorker } from './services/algo-order.worker';
+import { RiskEngineModule } from '../risk-engine/risk-engine.module';
+import { BBookFillService } from './services/bbook-fill.service';
+import { AdminBbookController } from './controllers/admin-bbook.controller';
 
 @Module({
   imports: [
@@ -56,6 +61,7 @@ import { OmsResolver } from './oms.resolver';
     BrokerHierarchyModule,
     NotificationsModule,
     forwardRef(() => AccountsModule),
+    forwardRef(() => RiskEngineModule),
     TypeOrmModule.forFeature([
       BuyingPowerRuleEntity,
       OrderEntity,
@@ -67,7 +73,7 @@ import { OmsResolver } from './oms.resolver';
     ]),
     PositionsModule,
   ],
-  controllers: [OrdersController, AdminRiskController, MarginController, AdminLeverageOverridesController, AdminBrokerageRulesController, AdminOrdersController],
+  controllers: [OrdersController, AdminRiskController, MarginController, AdminLeverageOverridesController, AdminBrokerageRulesController, AdminOrdersController, AdminBbookController],
   providers: [
     RiskConfigService,
     OrderService,
@@ -76,9 +82,12 @@ import { OmsResolver } from './oms.resolver';
     OmsResolver,
     { provide: EXCHANGE_ADAPTER, useClass: OmsExecutionGatewayAdapter },
     { provide: DEMO_EXCHANGE_ADAPTER, useClass: DemoExchangeAdapter },
+    ConditionalOrderWorker,
+    AlgoOrderWorker,
+    BBookFillService,
   ],
   // BrokerExchangeConfigService is exported from BrokerHierarchyModule and injected into OrderService
-  exports: [RiskConfigService, OrderService, MarginEngineService, OrderEventsService, TypeOrmModule],
+  exports: [RiskConfigService, OrderService, MarginEngineService, OrderEventsService, BBookFillService, TypeOrmModule],
 })
 export class OmsModule {}
 

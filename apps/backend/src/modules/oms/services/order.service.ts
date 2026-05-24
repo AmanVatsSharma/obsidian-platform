@@ -1,19 +1,59 @@
 /**
- * @file src/modules/oms/services/order.service.ts
- * @module oms
- * @description Order placement/cancellation with pre-trade risk and Accounts holds integration
- * @author BharatERP
- * @created 2025-09-19
+ * File:        apps/backend/src/modules/oms/services/order.service.ts
+ * Module:      oms
+ * Purpose:     Order placement/cancellation with pre-trade risk and Accounts holds integration
+ *
+ * Exports:
+ *   - OrderService                       — place/cancel/modify/addExecution + bracket methods
+ *   - BracketOrderResult (type alias)    — result of placeBracket
+ *
+ * Depends on:
+ *   - @/modules/oms/entities/order.entity  — OrderEntity, OrderRejectionError
+ *   - @/modules/oms/entities/execution.entity
+ *   - @/modules/oms/dtos/order.dto          — PlaceOrderDto, CancelOrderDto, ModifyOrderDto
+ *   - @/modules/oms/dtos/execution.dto      — AddExecutionDto
+ *   - @/modules/oms/adapters/exchange-adapter — ExchangeAdapter interface
+ *   - @/modules/accounts/services/ledger.service
+ *   - @/modules/risk-policy/services/risk-policy.service
+ *   - @/modules/limits-and-controls/services/limits-and-controls.service
+ *   - @/modules/accounts/services/accounts.service
+ *   - @/modules/realtime/prana-stream/.../realtime-publisher.service
+ *
+ * Side-effects:
+ *   - DB writes (orders, executions, audit rows)
+ *   - External exchange calls via adapter
+ *   - Ledger holds/releases
+ *   - Kafka outbox events via OrderEventsService
+ *   - WebSocket publishes via RealtimePublisherService
+ *   - Settlement outbox event via OutboxService.append('settlement.job.create')
+ *
+ * Key invariants:
+ *   - Advisory lock per tenant+account on all write paths
+ *   - Idempotency by externalRefId per tenant
+ *   - Bracket children activated only when PRIMARY fills with remainingQty=0
+ *   - All errors thrown as AppError(code, message)
+ *   - Settlement job enqueued in same DB transaction as execution insert
+ *
+ * Read order:
+ *   1. OrderService (constructor + helpers)
+ *   2. place() — standard order placement
+ *   3. placeBracket() — bracket order atomically
+ *   4. addExecution() — fill processing + bracket activation
+ *   5. cancel() / modify()
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-24
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, forwardRef } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, DataSource } from 'typeorm';
+import { Repository, DataSource, In } from 'typeorm';
 import { OrderEntity } from '../entities/order.entity';
 import { ExecutionEntity } from '../entities/execution.entity';
 import { OrderAuditEntity } from '../entities/order-audit.entity';
 import { PlaceOrderDto, CancelOrderDto } from '../dtos/order.dto';
 import { ModifyOrderDto } from '../dtos/order.dto';
+import { PlaceBracketOrderDto } from '../dtos/bracket-order.dto';
 import { AddExecutionDto } from '../dtos/execution.dto';
 import { NotificationService } from '../../notifications/services/notification.service';
 import { AppLoggerService } from '../../../shared/logger';
@@ -35,7 +75,14 @@ import { AccountsService } from '../../accounts/services/accounts.service';
 import { RiskPolicyService } from '../../risk-policy/services/risk-policy.service';
 import { LimitsAndControlsService } from '../../limits-and-controls/services/limits-and-controls.service';
 import { BrokerExchangeConfigService } from '../../broker-hierarchy/services/broker-exchange-config.service';
+import { BrokerBookStrategyService } from '../../broker-hierarchy/services/broker-book-strategy.service';
 import { OrderEventsService } from './order-events.service';
+import { AlgoOrderWorker } from './algo-order.worker';
+import { RiskEngineService } from '../../risk-engine/services/risk-engine.service';
+import { BBookFillService } from './bbook-fill.service';
+import { PriceFeedService } from '../../market/services/price-feed.service';
+import { OutboxService } from '../../../shared/outbox/outbox.service';
+import { detectSegment } from '../../settlement/services/segment-detector';
 
 @Injectable()
 export class OrderService {
@@ -56,9 +103,37 @@ export class OrderService {
     private readonly riskPolicy: RiskPolicyService,
     private readonly limitsControls: LimitsAndControlsService,
     private readonly brokerExchangeConfig: BrokerExchangeConfigService,
+    private readonly brokerBookStrategy: BrokerBookStrategyService,
     private readonly orderEvents: OrderEventsService,
+    private readonly algoOrderWorker: AlgoOrderWorker,
+    @Inject(forwardRef(() => RiskEngineService)) private readonly riskEngine: RiskEngineService,
+    private readonly bbookFill: BBookFillService,
+    private readonly priceFeed: PriceFeedService,
+    private readonly outboxService: OutboxService,
   ) {
     this.logger.setContext(OrderService.name);
+
+    // Subscribe to liquidation.dispatch events from RiskEngineModule (auto-liquidation worker).
+    // RiskEngineModule cannot import OmsModule, so this is the pull side of the event.
+    this.orderEvents.onEvents$().subscribe(async (event) => {
+      if (event.type === 'liquidation.dispatch') {
+        const { accountId, instrumentId, side, quantity, externalRefId } = event.payload as any;
+        try {
+          await this.place({
+            accountId,
+            instrumentId,
+            side,
+            type: 'MARKET',
+            quantity,
+            externalRefId,
+            timeInForce: 'IOC',
+          } as any);
+          this.logger.info('liquidation:order:placed', { accountId, instrumentId, side, quantity });
+        } catch (err) {
+          this.logger.error('liquidation:order:failed', { accountId, instrumentId, err: (err as Error).message });
+        }
+      }
+    });
   }
 
   onEvents$() {
@@ -166,7 +241,7 @@ export class OrderService {
         accountId: dto.accountId,
         instrumentId: dto.instrumentId,
         side: dto.side,
-        type: dto.type,
+        type: dto.type as 'MARKET' | 'LIMIT',
         quantity: dto.quantity,
         price: dto.price ?? null,
         positionType: 'INTRADAY',
@@ -196,6 +271,17 @@ export class OrderService {
         openOrderCount,
       });
 
+      // Risk engine pre-trade validation (thresholds, circuit breaker, exposure)
+      await this.riskEngine.validateOrder({
+        tenantId: ctx.tenantId,
+        accountId: dto.accountId,
+        instrumentId: dto.instrumentId,
+        side: dto.side,
+        quantity: dto.quantity,
+        price: dto.price ?? null,
+        type: dto.type,
+      });
+
       // Create hold if needed (idempotent via ref)
       let holdRef: string | undefined;
       if (Number(required) > 0) {
@@ -223,6 +309,8 @@ export class OrderService {
         externalRefId: dto.externalRefId,
         status: 'PLACED',
         holdRef: holdRef ?? null,
+        filledQty: '0',
+        remainingQty: dto.quantity,
       });
       const saved = await manager.getRepository(OrderEntity).save(toSave);
 
@@ -239,6 +327,23 @@ export class OrderService {
       };
       const account = await this.accountsService.getById(dto.accountId);
       const adapter = account?.accountType === 'DEMO' ? this.demoExchange : this.exchange;
+
+      // ── B-book routing: check strategy before exchange call ─────────────────
+      if (account?.accountType !== 'DEMO') {
+        const bookStrategy = await this.brokerBookStrategy.getBookStrategy(
+          ctx.tenantId,
+          dto.instrumentId,
+        );
+
+        if (bookStrategy === 'B') {
+          // B-book: internalize at market price without exchange call
+          const lastPrice = await this.priceFeed.getLastPrice(dto.instrumentId);
+          const fillPrice = lastPrice ?? dto.price ?? '0';
+          await this.bbookFill.fillBBook(saved, fillPrice);
+          return { ok: true, order: saved };
+        }
+      }
+
       const resp = await adapter.placeOrder(placePayload);
       this.logger.debug('exchange placeOrder resp', resp);
       if (resp.status === 'REJECTED') {
@@ -277,6 +382,163 @@ export class OrderService {
     return hash;
   }
 
+  /**
+   * Places a bracket order (one-triggers-all): primary + TP/SL legs.
+   *
+   * All legs are inserted in a single transaction.  The bracket legs are
+   * created with status NEW and activated by the OMS service when the primary
+   * fills.  Idempotency covers the primary via externalRefId.
+   */
+  async placeBracket(
+    dto: PlaceBracketOrderDto,
+  ): Promise<
+    | { ok: true; primary: OrderEntity; takeProfit?: OrderEntity; stopLoss?: OrderEntity }
+    | { ok: false; code: string; message: string; externalRefId: string }
+  > {
+    const ctx = getRequestContext();
+    this.logger.debug('placeBracket()', dto);
+
+    return this.dataSource.transaction('REPEATABLE READ', async (manager) => {
+      await manager.query('SELECT pg_advisory_xact_lock($1)', [
+        this.lockKey(ctx.tenantId, dto.accountId),
+      ]);
+
+      // Idempotency on primary
+      const existingPrimary = await manager.getRepository(OrderEntity).findOne({
+        where: { tenantId: ctx.tenantId, externalRefId: dto.externalRefId },
+      });
+      if (existingPrimary) {
+        return { ok: true, primary: existingPrimary };
+      }
+
+      const { bracket } = dto;
+
+      // Validate bracket leg prices against entry
+      const entryPrice = Number(dto.price ?? 0);
+      const tpPrice = bracket.tpPrice ? Number(bracket.tpPrice) : null;
+      const slPrice = bracket.slPrice ? Number(bracket.slPrice) : null;
+
+      if (dto.side === 'BUY') {
+        if (tpPrice !== null && tpPrice <= entryPrice) {
+          throw new AppError('INVALID_BRACKET_PRICES', 'For BUY bracket, tpPrice must be > entry price');
+        }
+        if (slPrice !== null && slPrice >= entryPrice) {
+          throw new AppError('INVALID_BRACKET_PRICES', 'For BUY bracket, slPrice must be < entry price');
+        }
+      } else {
+        // SELL: tpPrice < entryPrice, slPrice > entryPrice
+        if (tpPrice !== null && tpPrice >= entryPrice) {
+          throw new AppError('INVALID_BRACKET_PRICES', 'For SELL bracket, tpPrice must be < entry price');
+        }
+        if (slPrice !== null && slPrice <= entryPrice) {
+          throw new AppError('INVALID_BRACKET_PRICES', 'For SELL bracket, slPrice must be > entry price');
+        }
+      }
+
+      // Trailing validation: at least one of TP/SL/trailing must be specified
+      const hasTrailing = bracket.trailingDistance != null || bracket.trailingPct != null;
+      if (!hasTrailing && tpPrice === null && slPrice === null) {
+        throw new AppError(
+          'INVALID_BRACKET_CONFIG',
+          'Bracket must specify at least one of: tpPrice, slPrice, trailingDistance, trailingPct',
+        );
+      }
+
+      // Primary order
+      const primaryToSave = manager.getRepository(OrderEntity).create({
+        tenantId: ctx.tenantId,
+        accountId: dto.accountId,
+        instrumentId: dto.instrumentId,
+        side: dto.side,
+        type: 'BRACKET',
+        quantity: dto.quantity,
+        price: dto.price ?? null,
+        slPrice: null,
+        tpPrice: null,
+        clientOrderId: dto.clientOrderId ?? `cli-${Date.now()}`,
+        externalRefId: dto.externalRefId,
+        status: 'PLACED',
+        filledQty: '0',
+        remainingQty: dto.quantity,
+        orderRole: 'PRIMARY',
+      });
+
+      const savedPrimary = await manager.getRepository(OrderEntity).save(primaryToSave);
+
+      const results: { primary: OrderEntity; takeProfit?: OrderEntity; stopLoss?: OrderEntity } = {
+        primary: savedPrimary,
+      };
+
+      // Take-profit leg
+      if (tpPrice !== null) {
+        const tpOrder = manager.getRepository(OrderEntity).create({
+          tenantId: ctx.tenantId,
+          accountId: dto.accountId,
+          instrumentId: dto.instrumentId,
+          side: dto.side === 'BUY' ? 'SELL' : 'BUY',
+          type: 'LIMIT',
+          quantity: dto.quantity,
+          price: String(tpPrice),
+          slPrice: null,
+          tpPrice: null,
+          clientOrderId: `tp-${savedPrimary.clientOrderId}`,
+          externalRefId: `${dto.externalRefId}-tp`,
+          status: 'NEW',
+          parentOrderId: savedPrimary.id,
+          orderRole: 'TAKE_PROFIT',
+          filledQty: '0',
+          remainingQty: dto.quantity,
+          triggerCondition: bracket.triggerCondition ?? null,
+          triggerPrice: bracket.triggerPrice ?? null,
+        });
+        results.takeProfit = await manager.getRepository(OrderEntity).save(tpOrder);
+      }
+
+      // Stop-loss leg
+      if (slPrice !== null) {
+        const slOrder = manager.getRepository(OrderEntity).create({
+          tenantId: ctx.tenantId,
+          accountId: dto.accountId,
+          instrumentId: dto.instrumentId,
+          side: dto.side === 'BUY' ? 'SELL' : 'BUY',
+          type: 'STOP',
+          quantity: dto.quantity,
+          price: String(slPrice),
+          slPrice: null,
+          tpPrice: null,
+          clientOrderId: `sl-${savedPrimary.clientOrderId}`,
+          externalRefId: `${dto.externalRefId}-sl`,
+          status: 'NEW',
+          parentOrderId: savedPrimary.id,
+          orderRole: 'STOP_LOSS',
+          filledQty: '0',
+          remainingQty: dto.quantity,
+          triggerCondition: bracket.triggerCondition ?? null,
+          triggerPrice: bracket.triggerPrice ?? null,
+        });
+        results.stopLoss = await manager.getRepository(OrderEntity).save(slOrder);
+      }
+
+      // Audit
+      await manager.getRepository(OrderAuditEntity).save(
+        manager.getRepository(OrderAuditEntity).create({
+          tenantId: ctx.tenantId,
+          orderId: savedPrimary.id,
+          action: 'PLACE_BRACKET',
+          data: { primary: dto, tp: results.takeProfit, sl: results.stopLoss } as any,
+        }),
+      );
+
+      this.orderEvents.publish({ type: 'order.bracket.placed', payload: results });
+      this.realtime.publishOrderUpdate(ctx.userId ?? savedPrimary.accountId, {
+        order: savedPrimary,
+        bracket: { takeProfit: results.takeProfit, stopLoss: results.stopLoss },
+      });
+
+      return { ok: true, ...results };
+    });
+  }
+
   async cancel(dto: CancelOrderDto): Promise<OrderEntity | null> {
     const ctx = getRequestContext();
     const order = await this.orders.findOne({ where: { id: dto.orderId, tenantId: ctx.tenantId } });
@@ -291,6 +553,12 @@ export class OrderService {
     if (order.holdRef) {
       await this.ledger.releaseHold(order.accountId, { externalRefId: order.holdRef });
     }
+
+    // Cancel any NEW-status bracket children for PRIMARY orders
+    if (order.orderRole === 'PRIMARY') {
+      setTimeout(() => this.cancelBracketChildren(order.id), 0);
+    }
+
     await this.audits.save(this.audits.create({ tenantId: ctx.tenantId, orderId: order.id, action: 'CANCEL', data: dto as any }));
     this.orderEvents.publish({ type: 'order.cancelled', payload: order });
     this.realtime.publishOrderUpdate(ctx.userId ?? order.accountId, { order });
@@ -355,6 +623,18 @@ export class OrderService {
       });
       const saved = await execRepo.save(exec);
 
+      // Enqueue settlement job in the same transaction (outbox pattern)
+      await this.outboxService.append('settlement.job.create', {
+        executionId: saved.id,
+        accountId: dto.accountId,
+        instrumentId: dto.instrumentId,
+        quantity: dto.quantity,
+        price: dto.price,
+        fees: dto.fees,
+        tradeDate: new Date().toISOString().slice(0, 10),
+        segment: detectSegment(dto.instrumentId),
+      }, ctx.tenantId);
+
       // Post position ledger and fees to Accounts
       await this.ledger.postPosition(dto.accountId, {
         instrumentId: dto.instrumentId,
@@ -374,12 +654,42 @@ export class OrderService {
         } as any);
       }
 
-      // Update order status basic heuristic
+      // Update order: track filled/remaining qty, transition status, handle bracket activation
       const order = await manager.getRepository(OrderEntity).findOne({ where: { id: dto.orderId, tenantId: ctx.tenantId } });
       if (order) {
-        order.status = 'PARTIALLY_FILLED';
+        const execQty = Number(dto.quantity);
+        const prevFilled = Number(order.filledQty ?? '0');
+        const prevRemaining = Number(order.remainingQty ?? dto.quantity);
+
+        order.filledQty = String(prevFilled + execQty);
+        order.remainingQty = String(Math.max(0, prevRemaining - execQty));
+        order.status = Number(order.remainingQty) === 0 ? 'FILLED' : 'PARTIALLY_FILLED';
         await manager.getRepository(OrderEntity).save(order);
-        await manager.getRepository(OrderAuditEntity).save(manager.getRepository(OrderAuditEntity).create({ tenantId: ctx.tenantId, orderId: order.id, action: 'EXECUTION', data: dto as any }));
+
+        await manager.getRepository(OrderAuditEntity).save(
+          manager.getRepository(OrderAuditEntity).create({
+            tenantId: ctx.tenantId,
+            orderId: order.id,
+            action: 'EXECUTION',
+            data: { ...dto, filledQty: order.filledQty, remainingQty: order.remainingQty, prevFilled, prevRemaining } as any,
+          }),
+        );
+
+        // If PRIMARY bracket order is now fully filled, activate children
+        if (
+          order.orderRole === 'PRIMARY' &&
+          Number(order.remainingQty) === 0
+        ) {
+          // Defer child activation outside the transaction to avoid holding locks
+          // on child orders while making exchange calls. The activation reads
+          // current state and is idempotent (children only activate if status=NEW).
+          setTimeout(() => this.activateBracketChildren(order.id), 0);
+        }
+
+        // If this is a child order (algo sub-order), update parent fill tracking
+        if (order.parentOrderId) {
+          setTimeout(() => this.algoOrderWorker.recordChildFill(order.parentOrderId!, String(execQty)), 0);
+        }
       }
       this.orderEvents.publish({ type: 'execution.added', payload: { execution: saved, orderId: dto.orderId } });
       if (order) {
@@ -400,6 +710,118 @@ export class OrderService {
         });
       }
       return saved;
+    });
+  }
+
+  /**
+   * Activates bracket child orders (TAKE_PROFIT + STOP_LOSS) from NEW → PLACED.
+   * Called when a PRIMARY order fills with remainingQty=0.
+   * Idempotent — only activates children in NEW status.
+   * Submits each child to the exchange adapter; STOP orders include triggerPrice in meta.
+   */
+  async activateBracketChildren(primaryId: string): Promise<void> {
+    const ctx = getRequestContext();
+    this.logger.debug('activateBracketChildren()', { primaryId });
+
+    const children = await this.orders.find({
+      where: {
+        tenantId: ctx.tenantId,
+        parentOrderId: primaryId,
+        orderRole: In(['TAKE_PROFIT', 'STOP_LOSS']),
+      },
+    });
+
+    if (children.length === 0) {
+      this.logger.warn('activateBracketChildren: no children found', { primaryId });
+      return;
+    }
+
+    const account = await this.accountsService.getById(children[0].accountId);
+    const adapter = account?.accountType === 'DEMO' ? this.demoExchange : this.exchange;
+
+    for (const child of children) {
+      if (child.status !== 'NEW') continue;
+
+      const placePayload: PlaceOrderRequest = {
+        tenantId: ctx.tenantId,
+        accountId: child.accountId,
+        instrumentId: child.instrumentId,
+        side: child.side as 'BUY' | 'SELL',
+        type: child.type as any,
+        quantity: child.remainingQty,
+        price: child.price ?? null,
+        clientOrderId: child.clientOrderId,
+        timeInForce: child.timeInForce as any,
+      };
+
+      // For STOP orders, pass triggerPrice via meta so the adapter formats it correctly
+      const meta = child.type === 'STOP'
+        ? { ...(child.meta ?? {}), triggerPrice: child.price }
+        : child.meta ?? {};
+
+      const resp = await adapter.placeOrder(placePayload);
+      this.logger.debug('activateBracketChildren: exchange resp', { orderId: child.id, status: resp.status });
+
+      child.status = resp.status === 'REJECTED' ? 'REJECTED' : 'PLACED';
+      child.meta = { ...meta, providerOrderId: resp.providerOrderId };
+      await this.orders.save(child);
+
+      await this.audits.save(this.audits.create({
+        tenantId: ctx.tenantId,
+        orderId: child.id,
+        action: 'BRACKET_CHILD_ACTIVATE',
+        data: { primaryId, childId: child.id, exchangeResp: resp } as any,
+      }));
+
+      this.orderEvents.publish({ type: 'order.placed', payload: child });
+      this.realtime.publishOrderUpdate(ctx.userId ?? child.accountId, { order: child });
+    }
+  }
+
+  /**
+   * Cancels all NEW-status bracket child orders when the PRIMARY is cancelled.
+   * Idempotent — only cancels children in NEW status.
+   */
+  async cancelBracketChildren(primaryId: string): Promise<void> {
+    const ctx = getRequestContext();
+    this.logger.debug('cancelBracketChildren()', { primaryId });
+
+    const children = await this.orders.find({
+      where: {
+        tenantId: ctx.tenantId,
+        parentOrderId: primaryId,
+        orderRole: In(['TAKE_PROFIT', 'STOP_LOSS']),
+      },
+    });
+
+    for (const child of children) {
+      if (child.status !== 'NEW') continue;
+
+      child.status = 'CANCELLED';
+      await this.orders.save(child);
+
+      await this.audits.save(this.audits.create({
+        tenantId: ctx.tenantId,
+        orderId: child.id,
+        action: 'BRACKET_CHILD_CANCEL',
+        data: { primaryId, childId: child.id } as any,
+      }));
+
+      this.orderEvents.publish({ type: 'order.cancelled', payload: child });
+      this.realtime.publishOrderUpdate(ctx.userId ?? child.accountId, { order: child });
+    }
+  }
+
+  /**
+   * Returns all bracket child orders (TAKE_PROFIT + STOP_LOSS) for a given parent order,
+   * ordered by createdAt ASC. Tenant-scoped.
+   */
+  async getBracketChildren(parentOrderId: string): Promise<OrderEntity[]> {
+    const ctx = getRequestContext();
+    this.logger.debug('getBracketChildren()', { parentOrderId, tenantId: ctx.tenantId });
+    return this.orders.find({
+      where: { parentOrderId, tenantId: ctx.tenantId },
+      order: { createdAt: 'ASC' },
     });
   }
 }

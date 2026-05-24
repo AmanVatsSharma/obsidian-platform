@@ -48,9 +48,9 @@ export class PlaceOrderDto {
   side!: 'BUY' | 'SELL';
 
   @Field(() => String)
-  @ApiProperty({ enum: ['MARKET', 'LIMIT'] })
-  @IsIn(['MARKET', 'LIMIT'])
-  type!: 'MARKET' | 'LIMIT';
+  @ApiProperty({ enum: ['MARKET', 'LIMIT', 'STOP', 'STOP_LIMIT', 'GTT', 'TRAILING_STOP'] })
+  @IsIn(['MARKET', 'LIMIT', 'STOP', 'STOP_LIMIT', 'GTT', 'TRAILING_STOP'])
+  type!: 'MARKET' | 'LIMIT' | 'STOP' | 'STOP_LIMIT' | 'GTT' | 'TRAILING_STOP';
 
   @Field(() => String)
   @ApiProperty({ pattern: '^\\d{1,20}(\\.\\d{1,8})?$' })

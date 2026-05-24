@@ -177,6 +177,13 @@ export class OmsResolver {
     return result.rows;
   }
 
+  @Query(() => [OrderEntity], { name: 'bracketChildren' })
+  @Permissions('oms:read')
+  async bracketChildren(@Args('parentOrderId', { type: () => ID }) parentOrderId: string): Promise<OrderEntity[]> {
+    this.logger.debug('OmsResolver.bracketChildren()', { parentOrderId });
+    return this.orderService.getBracketChildren(parentOrderId);
+  }
+
   /* ── Mutations ──────────────────────────────────────────────────────────── */
 
   /**

@@ -101,7 +101,7 @@ export class OrderEntity {
 
   @Column({ name: 'type', type: 'varchar', length: 16 })
   @Field(() => String)
-  type!: 'MARKET' | 'LIMIT';
+  type!: 'MARKET' | 'LIMIT' | 'STOP' | 'STOP_LIMIT' | 'GTT' | 'TRAILING_STOP' | 'ICEBERG' | 'TWAP' | 'VWAP' | 'BRACKET';
 
   @Column({ name: 'quantity', type: 'numeric', precision: 28, scale: 8 })
   @Field(() => Float)
@@ -125,9 +125,53 @@ export class OrderEntity {
   @Field(() => String)
   timeInForce!: 'DAY' | 'IOC' | 'GTC' | 'FOK';
 
+  // ── Bracket / conditional / algo order fields ──────────────────────────────
+  @Column({ name: 'parent_order_id', type: 'uuid', nullable: true })
+  @Index('idx_orders_parent')
+  @Field({ nullable: true })
+  parentOrderId?: string | null;
+
+  @Column({ name: 'order_role', type: 'varchar', length: 16, nullable: true })
+  @Index('idx_orders_role')
+  @Field({ nullable: true })
+  orderRole?: 'PRIMARY' | 'TAKE_PROFIT' | 'STOP_LOSS' | null;
+
+  @Column({ name: 'trigger_price', type: 'numeric', precision: 28, scale: 8, nullable: true })
+  @Field(() => Float, { nullable: true })
+  triggerPrice?: string | null;
+
+  @Column({ name: 'trigger_condition', type: 'varchar', length: 16, nullable: true })
+  @Field({ nullable: true })
+  triggerCondition?: 'ABOVE' | 'BELOW' | null;
+
+  @Column({ name: 'trailing_dist', type: 'numeric', precision: 28, scale: 8, nullable: true })
+  @Field(() => Float, { nullable: true })
+  trailingDistance?: string | null;
+
+  @Column({ name: 'trailing_pct', type: 'numeric', precision: 8, scale: 4, nullable: true })
+  @Field(() => Float, { nullable: true })
+  trailingPct?: string | null;
+
+  @Column({ name: 'filled_qty', type: 'numeric', precision: 28, scale: 8 })
+  @Field(() => Float)
+  filledQty!: string;
+
+  @Column({ name: 'remaining_qty', type: 'numeric', precision: 28, scale: 8 })
+  @Field(() => Float)
+  remainingQty!: string;
+
+  @Column({ name: 'algo_type', type: 'varchar', length: 24, nullable: true })
+  @Index('idx_orders_algo_type')
+  @Field({ nullable: true })
+  algoType?: 'TWAP' | 'VWAP' | 'ICEBERG' | null;
+
+  @Column({ name: 'algo_meta', type: 'jsonb', nullable: true })
+  @Field({ nullable: true })
+  algoMeta?: Record<string, unknown> | null;
+
   @Column({ name: 'status', type: 'varchar', length: 24, default: 'NEW' })
   @Field(() => String)
-  status!: 'NEW' | 'PLACED' | 'PARTIALLY_FILLED' | 'FILLED' | 'CANCELLED' | 'REJECTED';
+  status!: 'NEW' | 'PLACED' | 'PARTIALLY_FILLED' | 'FILLED' | 'CANCELLED' | 'REJECTED' | 'EXPIRED';
 
   @Column({ name: 'client_order_id', type: 'varchar', length: 64 })
   @Field()

@@ -16,11 +16,11 @@ export type PlaceOrderRequest = {
   accountId: string;
   instrumentId: string;
   side: 'BUY' | 'SELL';
-  type: 'MARKET' | 'LIMIT';
+  type: 'MARKET' | 'LIMIT' | 'STOP' | 'STOP_LIMIT' | 'GTT' | 'TRAILING_STOP' | 'BRACKET';
   quantity: string;
   price?: string | null;
   clientOrderId: string;
-  timeInForce: TimeInForce;
+  timeInForce?: TimeInForce | null;
 };
 
 export type PlaceOrderResponse = {
@@ -66,10 +66,21 @@ export class OmsExecutionGatewayAdapter implements ExchangeAdapter {
 
   async placeOrder(req: PlaceOrderRequest): Promise<PlaceOrderResponse> {
     const connectorFamily = this.executionGatewayService.resolveFamilyByInstrument(req.instrumentId);
-    const response = await this.executionGatewayService.routePlaceOrder({
-      ...req,
+    // Narrow to GatewayOrderRequest — only MARKET/LIMIT accepted upstream.
+    // STOP/BRACKET children are submitted as LIMIT (exchange books the stop on its side).
+    const gatewayReq = {
+      tenantId: req.tenantId,
+      accountId: req.accountId,
+      instrumentId: req.instrumentId,
+      side: req.side,
+      type: req.type === 'STOP' || req.type === 'BRACKET' ? 'LIMIT' : req.type,
+      quantity: req.quantity,
+      price: req.price,
+      clientOrderId: req.clientOrderId,
+      timeInForce: req.timeInForce ?? 'DAY',
       connectorFamily,
-    });
+    };
+    const response = await this.executionGatewayService.routePlaceOrder(gatewayReq as any);
     return {
       providerOrderId: response.providerOrderId,
       status:
