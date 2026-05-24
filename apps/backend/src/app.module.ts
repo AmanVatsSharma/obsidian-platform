@@ -64,7 +64,7 @@ import { ReportsModule } from './modules/reports/reports.module';
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), 'src/generated/schema.gql'),
+      autoSchemaFile: join(process.cwd(), '../../src/generated/schema.gql'),
       sortSchema: true,
       playground: process.env['NODE_ENV'] !== 'production',
       introspection: process.env['NODE_ENV'] !== 'production',
@@ -75,7 +75,9 @@ import { ReportsModule } from './modules/reports/reports.module';
       serveRoot: '/docs/ws',
     }),
     ConfigModule.forRoot(buildConfigModuleOptions()),
-    TypeOrmModule.forRoot(buildTypeOrmConfig()),
+    ...(process.env.SCHEMA_GEN !== 'true'
+      ? [TypeOrmModule.forRoot(buildTypeOrmConfig())]
+      : []),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     UsersModule,
     AuthModule,

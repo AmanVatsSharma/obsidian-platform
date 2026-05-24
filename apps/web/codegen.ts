@@ -17,7 +17,7 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
 const config: CodegenConfig = {
-  schema: '/home/amansharma/Desktop/DevOPS/Obsidian/libs/shared/graphql-schema/schema.gql',
+  schema: '/home/amansharma/Desktop/DevOPS/Obsidian/src/generated/schema.gql',
   documents: [
     'apps/web/gql/operations/**/*.gql',
     'apps/web/features/**/*.gql',

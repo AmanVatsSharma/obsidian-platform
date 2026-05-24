@@ -112,7 +112,15 @@ export class OrderService {
     };
   }
 
-  async place(dto: PlaceOrderDto): Promise<OrderEntity> {
+  /**
+   * Places an order. Returns { ok: true, order } on success, { ok: false, code, message, externalRefId } on rejection.
+   * The resolver converts this to a GraphQL union (OrderEntity | OrderRejectionError).
+   * Exchange rejections (status=REJECTED) are returned, not thrown — the resolver handles them.
+   */
+  async place(dto: PlaceOrderDto): Promise<
+    | { ok: true; order: OrderEntity }
+    | { ok: false; code: string; message: string; externalRefId: string }
+  > {
     const ctx = getRequestContext();
     this.logger.debug('place()', dto);
 
@@ -138,7 +146,7 @@ export class OrderService {
         ) {
           throw new AppError('DUPLICATE_ORDER', 'externalRefId already used with different payload');
         }
-        return existing;
+        return { ok: true, order: existing };
       }
 
       // Exchange access guard: instrumentId format is EXCHANGE:SYMBOL (e.g. NSE:INFY)
@@ -209,6 +217,8 @@ export class OrderService {
         type: dto.type,
         quantity: dto.quantity,
         price: dto.price ?? null,
+        slPrice: dto.slPrice ?? null,
+        tpPrice: dto.tpPrice ?? null,
         clientOrderId: dto.clientOrderId ?? `cli-${Date.now()}`,
         externalRefId: dto.externalRefId,
         status: 'PLACED',
@@ -232,13 +242,19 @@ export class OrderService {
       const resp = await adapter.placeOrder(placePayload);
       this.logger.debug('exchange placeOrder resp', resp);
       if (resp.status === 'REJECTED') {
+        // Return rejection via result union, not thrown — resolver handles GraphQL union
         saved.status = 'REJECTED';
         if (saved.holdRef) {
           await this.ledger.releaseHold(saved.accountId, { externalRefId: saved.holdRef });
         }
-      } else {
-        saved.status = 'PLACED';
+        return {
+          ok: false,
+          code: 'EXCHANGE_REJECTED',
+          message: resp.reason ?? 'Order rejected by exchange',
+          externalRefId: dto.externalRefId,
+        };
       }
+      saved.status = 'PLACED';
       saved.meta = { ...(saved.meta ?? {}), providerOrderId: resp.providerOrderId };
       await manager.getRepository(OrderEntity).save(saved);
       await manager.getRepository(OrderAuditEntity).save(
@@ -248,7 +264,7 @@ export class OrderService {
       this.realtime.publishOrderUpdate(ctx.userId ?? saved.accountId, {
         order: saved,
       });
-      return saved;
+      return { ok: true, order: saved };
     });
   }
 
@@ -302,6 +318,8 @@ export class OrderService {
     if (dto.price !== undefined) order.price = dto.price;
     if (dto.quantity !== undefined) order.quantity = dto.quantity;
     if (dto.timeInForce !== undefined) order.timeInForce = dto.timeInForce;
+    if (dto.slPrice !== undefined) order.slPrice = dto.slPrice;
+    if (dto.tpPrice !== undefined) order.tpPrice = dto.tpPrice;
     order.status = resp.status === 'REJECTED' ? 'REJECTED' : 'PLACED';
     await this.orders.save(order);
     await this.audits.save(

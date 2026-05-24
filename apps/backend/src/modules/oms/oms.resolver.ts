@@ -31,7 +31,7 @@
  * Last-updated: 2026-05-19
  */
 
-import { ObjectType, Field, ID, Int, Float, Resolver, Query, Mutation, Args } from '@nestjs/graphql';
+import { ObjectType, Field, ID, Int, Float, Resolver, Query, Mutation, Args, Union, createUnionType } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@obsidian/backend-auth';
 import { TenantGuard } from '@obsidian/backend-rbac';
@@ -41,10 +41,20 @@ import { OrderService } from './services/order.service';
 import { PositionsService } from './positions/services/positions.service';
 import { AppLoggerService } from '../../shared/logger';
 import { getRequestContext } from '../../shared/request-context';
-import { PlaceOrderDto } from './dtos/order.dto';
-import { CancelOrderDto } from './dtos/order.dto';
-import { ModifyOrderDto } from './dtos/order.dto';
-import { OrderEntity } from './entities/order.entity';
+import { PlaceOrderDto, CancelOrderDto, ModifyOrderDto } from './dtos/order.dto';
+import { OrderEntity, OrderRejectionError } from './entities/order.entity';
+import { AppError } from '../../common/errors/app-error';
+
+/* ── GraphQL Unions ────────────────────────────────────────────────────────── */
+
+const PlaceOrderResultUnion = createUnionType({
+  name: 'PlaceOrderResult',
+  types: () => [OrderEntity, OrderRejectionError] as const,
+  resolveType(value: OrderEntity | OrderRejectionError) {
+    if ('status' in value) return 'OrderEntity';
+    return 'OrderRejectionError';
+  },
+});
 
 /* ── GraphQL ObjectTypes ─────────────────────────────────────────────────────── */
 
@@ -169,11 +179,54 @@ export class OmsResolver {
 
   /* ── Mutations ──────────────────────────────────────────────────────────── */
 
-  @Mutation(() => OrderEntity)
+  /**
+   * Places an order. Returns OrderEntity on success, OrderRejectionError on rejection.
+   * Thrown AppErrors (pre-trade validation) and exchange rejections are both
+   * converted to OrderRejectionError so Apollo's onCompleted can distinguish
+   * success from rejection by reading __typename.
+   */
+  @Mutation(() => PlaceOrderResultUnion)
   @Permissions('oms:write')
-  async placeOrder(@Args('input') dto: PlaceOrderDto): Promise<OrderEntity> {
+  async placeOrder(@Args('input') dto: PlaceOrderDto) {
     this.logger.debug('OmsResolver.placeOrder()', dto);
-    return this.orderService.place(dto);
+    try {
+      const result = await this.orderService.place(dto);
+      // Service returns { ok, order } on success or { ok: false, code, message } on rejection
+      if ('ok' in result) {
+        if (!result.ok) {
+          const rejection = Object.assign(new OrderRejectionError(), {
+            code: this.mapCode((result as { ok: false; code: string }).code),
+            message: (result as { ok: false; message: string }).message,
+            externalRefId: (result as { ok: false; externalRefId: string }).externalRefId ?? dto.externalRefId,
+          });
+          return rejection;
+        }
+        return (result as { ok: true; order: OrderEntity }).order;
+      }
+      return result as OrderEntity;
+    } catch (error) {
+      const code = error instanceof AppError ? error.code : 'UNKNOWN';
+      const message = error instanceof AppError ? error.message : 'Order placement failed';
+      const rejection = Object.assign(new OrderRejectionError(), {
+        code: this.mapCode(code),
+        message,
+        externalRefId: dto.externalRefId,
+      });
+      return rejection;
+    }
+  }
+
+  private mapCode(code: string): import('./entities/order.entity').OrderRejectionCode {
+    const map: Record<string, string> = {
+      DUPLICATE_ORDER: 'INSUFFICIENT_BUYING_POWER',
+      EXCHANGE_NOT_ENABLED: 'EXCHANGE_NOT_ENABLED',
+      RISK_CHECK_FAILED: 'RISK_CHECK_FAILED',
+      POSITION_LIMIT_EXCEEDED: 'POSITION_LIMIT_EXCEEDED',
+      EXCHANGE_REJECTED: 'EXCHANGE_REJECTED',
+      INSUFFICIENT_BUYING_POWER: 'INSUFFICIENT_BUYING_POWER',
+      INVALID_INSTRUMENT: 'INVALID_INSTRUMENT',
+    };
+    return (map[code] ?? 'UNKNOWN') as import('./entities/order.entity').OrderRejectionCode;
   }
 
   @Mutation(() => OrderEntity, { nullable: true })
