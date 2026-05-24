@@ -33,13 +33,14 @@
  * Last-updated: 2026-05-24
  */
 
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { MarketModule } from '../market/market.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { RiskPolicyModule } from '../risk-policy/risk-policy.module';
+import { OmsModule } from '../oms/oms.module';
 import { RiskThresholdEntity } from './entities/risk-threshold.entity';
 import { RiskEngineService } from './services/risk-engine.service';
 import { RealTimeExposureService } from './services/real-time-exposure.service';
@@ -55,6 +56,7 @@ import { AutoLiquidationWorker } from './services/auto-liquidation.worker';
     MarketModule,
     NotificationsModule,
     RiskPolicyModule,
+    forwardRef(() => OmsModule),
   ],
   providers: [
     RiskEngineService,

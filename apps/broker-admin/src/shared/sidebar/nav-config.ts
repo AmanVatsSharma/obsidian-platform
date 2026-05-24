@@ -14,6 +14,7 @@
  */
 
 import type { NavGroup } from '../../lib/types';
+import { Shield } from 'lucide-react';
 
 export const NAV_GROUPS: NavGroup[] = [
   {
@@ -44,7 +45,7 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     section: 'RISK & COMPLIANCE',
     items: [
-      { id: 'risk-dashboard',  label: 'Risk Dashboard',      href: '/risk-dashboard' },
+      { id: 'risk-dashboard',  label: 'Risk Dashboard',      href: '/risk-dashboard', icon: Shield },
       { id: 'exposure-limits', label: 'Exposure Limits',     href: '/exposure-limits' },
       { id: 'surveillance',    label: 'Surveillance Alerts', href: '/surveillance', badge: '3', badgeWarn: true },
       { id: 'aml-monitor',     label: 'AML Monitor',         href: '/aml-monitor' },
@@ -85,6 +86,8 @@ export const NAV_GROUPS: NavGroup[] = [
     section: 'PLATFORM',
     items: [
       { id: 'brand-settings',    label: 'Brand Settings',   href: '/brand-settings' },
+      { id: 'domains',          label: 'Domains',          href: '/domains' },
+      { id: 'deployment',        label: 'Deployment',       href: '/deployment' },
       { id: 'email-templates',   label: 'Email Templates',  href: '/email-templates' },
       { id: 'compliance-config', label: 'Compliance Config',href: '/compliance-config' },
       { id: 'api-webhooks',      label: 'API & Webhooks',   href: '/api-webhooks' },

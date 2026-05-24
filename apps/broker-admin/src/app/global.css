@@ -13,6 +13,7 @@
 
 @import '../../../../libs/obsidian-ui/src/styles/tokens.css';
 @import '../../../../libs/obsidian-ui/src/styles/obsidian-ui.css';
+@import '../../../../libs/web-auth/src/auth.css';
 
 @tailwind base;
 @tailwind components;
@@ -164,6 +165,14 @@
   }
   .chart-tab.active {
     @apply bg-[var(--bg-panel)] text-fg1 border border-[var(--border-md)];
+  }
+
+  /* ─── FILTER CHIPS ────────────────────────────────────────── */
+  .chip-filter {
+    @apply rounded-full border border-[var(--border)] bg-transparent px-2.5 py-1 font-sans text-[11px] text-fg3 transition-colors hover:border-[var(--border-md)] hover:text-fg2 cursor-pointer;
+  }
+  .chip-filter.chip-active {
+    @apply border-accent/50 bg-accent/10 text-accent;
   }
 
   /* ─── SKELETON ───────────────────────────────────────────── */

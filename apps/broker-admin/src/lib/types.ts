@@ -30,6 +30,7 @@ export interface NavItem {
   href: string;
   badge?: string;
   badgeWarn?: boolean;
+  icon?: React.ComponentType<{ size?: number; className?: string }>;
 }
 
 export interface NavGroup {
@@ -96,6 +97,10 @@ export type KYCStatus = 'Pending' | 'In Review' | 'Verified' | 'Rejected' | 'Exp
 export interface KYCDocument {
   id: string;
   clientId: string;
+  clientName?: string;
+  flag?: string;
+  country?: string;
+  clientType?: string;
   type: 'Passport' | 'ID Card' | 'Utility Bill' | 'Bank Statement' | 'Selfie';
   status: KYCStatus;
   level: KYCLevel;
@@ -243,9 +248,17 @@ export interface TradingSession {
 
 // ─── ORDER ────────────────────────────────────────────────────────────────────
 
-export type OrderType = 'Market' | 'Limit' | 'Stop' | 'Stop Limit';
+export type OrderType = 'Market' | 'Limit' | 'Stop' | 'Stop Limit' | 'BRACKET' | 'GTT' | 'TRAILING_STOP' | 'TWAP' | 'VWAP' | 'ICEBERG';
 export type OrderSide = 'Buy' | 'Sell';
-export type OrderStatus = 'Open' | 'Pending' | 'Filled' | 'Cancelled' | 'Rejected' | 'Expired';
+export type OrderStatus = 'Open' | 'Pending' | 'Filled' | 'Cancelled' | 'Rejected' | 'Expired' | 'PARTIALLY_FILLED';
+export type OrderRole = 'PRIMARY' | 'TAKE_PROFIT' | 'STOP_LOSS';
+
+/** Slice metadata for algo orders (TWAP, VWAP, ICEBERG) */
+export interface AlgoMeta {
+  totalSlices: number;
+  completedSlices: number;
+  sliceIntervalSec?: number;
+}
 
 export interface Order {
   id: string;
@@ -253,6 +266,10 @@ export interface Order {
   clientName: string;
   symbol: string;
   type: OrderType;
+  /** Role within a bracket group: PRIMARY | TAKE_PROFIT | STOP_LOSS | undefined */
+  orderRole?: OrderRole;
+  /** Parent order ID for bracket children */
+  parentOrderId?: string;
   side: OrderSide;
   status: OrderStatus;
   lots: number;
@@ -268,6 +285,10 @@ export interface Order {
   openTime: string;
   closeTime?: string;
   comment?: string;
+  /** External reference for special order types (e.g. liq:...) */
+  externalRefId?: string;
+  /** Algo metadata for TWAP/VWAP/ICEBERG orders */
+  algoMeta?: AlgoMeta;
 }
 
 // ─── RISK ─────────────────────────────────────────────────────────────────────
@@ -489,4 +510,40 @@ export interface HeatmapCell {
   hour: number;
   day: string;
   value: number;
+}
+
+// ─── RISK THRESHOLDS ──────────────────────────────────────────────────────────
+
+export type RiskThresholdMetric = 'MARGIN_LEVEL' | 'EXPOSURE' | 'OPEN_ORDERS' | 'DELTA' | 'GAMMA' | 'POSITION_LIMIT';
+export type RiskOperator = 'GT' | 'GTE' | 'LT' | 'LTE' | 'EQ';
+export type RiskAction = 'ALERT' | 'FREEZE_ACCOUNT' | 'LIQUIDATE_ALL' | 'LIQUIDATE_BIGGEST' | 'CIRCUIT_BREAKER';
+
+export interface RiskThreshold {
+  id: string;
+  tenantId: string;
+  accountId?: string;
+  metric: RiskThresholdMetric;
+  operator: RiskOperator;
+  thresholdValue: number;
+  action: RiskAction;
+  enabled: boolean;
+  meta?: Record<string, unknown>;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ExposureSnapshot {
+  brokerId: string;
+  marginLevel: number;
+  usedMargin: number;
+  equity: number;
+  exposurePerInstrument: {
+    instrumentId: string;
+    symbol: string;
+    netExposure: number;
+    maxExposure: number;
+    utilizationPct: number;
+  }[];
+  openPositions: number;
+  lastLiquidationEvent?: string;
 }

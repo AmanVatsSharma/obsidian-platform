@@ -6,22 +6,35 @@
  *              Obsidian NestJS GraphQL schema.
  *
  * Exports:
- *   - GET_INSTRUMENTS      — gql document for instrument listing
- *   - GET_ACCOUNT          — gql document for single account + balance
- *   - GET_WATCHLISTS       — gql document for watchlist names
- *   - GET_WATCHLIST_ITEMS  — gql document for items in a watchlist
- *   - GET_ACCOUNT_BALANCE  — gql document for account balance snapshot
+ *   - GET_INSTRUMENTS       — gql document for instrument listing
+ *   - GET_ACCOUNT           — gql document for single account + metadata
+ *   - GET_WATCHLISTS        — gql document for watchlist names
+ *   - GET_WATCHLIST_ITEMS   — gql document for items in a watchlist
+ *   - GET_ACCOUNT_BALANCE   — gql document for account balance snapshot
+ *   - GET_ORDER_CHILDREN    — gql document for bracket child orders
+ *   - GET_STRATEGY_POSITIONS — gql document for multi-leg strategy positions
+ *   - GET_ACCOUNT_RISK      — gql document for margin/risk metrics
+ *   - PLACE_BRACKET_ORDER_MUTATION   — gql mutation for bracket order submit
+ *   - CANCEL_ORDER_MUTATION         — gql mutation for single order cancel
+ *   - CANCEL_BRACKET_GROUP_MUTATION  — gql mutation for bracket group cancel
  *   - useInstruments(opts?)        — hook: instrument catalogue with FX/crypto/indices/commodities
  *   - useAccountBalance(id)        — hook: account balance snapshot (equity, margin, freeMargin)
  *   - useWatchlists()              — hook: user's named watchlists
  *   - useWatchlistItems(id)        — hook: items in a given watchlist
  *   - useGqlPlaceOrder()          — mutation hook for order submission
+ *   - useOrderChildren(parentId)   — hook: bracket TP/SL child orders
+ *   - useStrategyPositions(id)     — hook: multi-leg strategy positions
+ *   - useAccountRisk(id)          — hook: margin level and per-instrument exposure
+ *   - usePlaceBracketOrder()       — mutation hook for bracket order submit
+ *   - useCancelOrder()             — mutation hook for single order cancel
+ *   - useCancelBracketGroup()      — mutation hook for bracket group cancel
  *
  * Depends on:
  *   - @apollo/client — useQuery, useMutation, gql
+ *   - ./types — OrderRole, StrategyPosition, AccountRisk, AlgoMeta
  *
  * Side-effects:
- *   - Network I/O via Apollo Client (queries / mutations)
+ *   - Network I/O via Apollo Client (queries / mutations — all operations)
  *
  * Key invariants:
  *   - Queries use the actual backend schema shapes from accounts.resolver.ts and
@@ -30,8 +43,10 @@
  *   - useGqlPlaceOrder delegates to the REST /api/orders endpoint via fetchJson
  *     (no placeOrder mutation exists yet in the NestJS schema — this hook provides
  *     the GraphQL-shaped interface that can be wired to a future mutation).
- *   - All queries are cache-and-network to support live price refresh without losing
- *     the benefits of Apollo's normalized cache.
+ *   - useOrderChildren / useStrategyPositions / useAccountRisk use cache-and-network
+ *     to support live price refresh while showing cached data immediately.
+ *   - usePlaceBracketOrder / useCancelOrder / useCancelBracketGroup refetch balance
+ *     and positions after mutation completion.
  *
  * Read order:
  *   1. useInstruments — canonical instrument feed (FX/crypto/indices/commodities)
@@ -39,7 +54,7 @@
  * 3. useGqlPlaceOrder — mutation bridge (REST today, GraphQL tomorrow)
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-22
+ * Last-updated: 2026-05-24
  */
 
 import { useQuery, useMutation, gql } from '@apollo/client';
@@ -201,7 +216,7 @@ export interface GqlPlaceOrderInput {
   accountId: string;
   instrumentId: string;
   side: 'BUY' | 'SELL';
-  type: 'MARKET' | 'LIMIT' | 'STOP';
+  type: 'MARKET' | 'LIMIT' | 'STOP' | 'GTT' | 'TRAILING_STOP' | 'ICEBERG' | 'TWAP' | 'VWAP';
   quantity: string;
   price?: string;
   timeInForce?: 'DAY' | 'GTC' | 'IOC' | 'FOK';
@@ -274,4 +289,184 @@ export function useMarketAndAccount(accountId: string, currency = 'USD') {
     balanceLoading: balance.loading,
     balanceError: balance.error,
   };
+}
+
+/* ── Order children ──────────────────────────────────────────────────────────── */
+
+export const GET_ORDER_CHILDREN = gql`
+  query GetOrderChildren($parentId: ID!) {
+    orderChildren(parentId: $parentId) {
+      id
+      type
+      orderRole
+      status
+      price
+      quantity
+      filledQty
+      remainingQty
+    }
+  }
+`;
+
+/**
+ * Fetches child orders (TP/SL legs) for a given parent order.
+ * Used by the pending orders table when rendering bracket group rows.
+ */
+export function useOrderChildren(parentId: string) {
+  return useQuery(GET_ORDER_CHILDREN, {
+    variables: { parentId },
+    skip: !parentId,
+  });
+}
+
+/* ── Strategy positions ──────────────────────────────────────────────────────── */
+
+export const GET_STRATEGY_POSITIONS = gql`
+  query GetStrategyPositions($accountId: ID!) {
+    strategyPositions(accountId: $accountId) {
+      id
+      instrumentId
+      symbol
+      strategyType
+      netQuantity
+      unrealizedPnl
+      realizedPnl
+      legs {
+        id
+        side
+        quantity
+        openPrice
+        currentPrice
+        unrealizedPnl
+      }
+    }
+  }
+`;
+
+/**
+ * Fetches multi-leg strategy positions for an account.
+ * Returns netQuantity, unrealizedPnl, realizedPnl, and per-leg details.
+ */
+export function useStrategyPositions(accountId: string) {
+  return useQuery(GET_STRATEGY_POSITIONS, {
+    variables: { accountId },
+    skip: !accountId,
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
+  });
+}
+
+/* ── Account risk ────────────────────────────────────────────────────────────── */
+
+export const GET_ACCOUNT_RISK = gql`
+  query GetAccountRisk($accountId: ID!) {
+    accountRisk(accountId: $accountId) {
+      marginLevel
+      usedMargin
+      buyingPower
+      exposurePerInstrument {
+        instrumentId
+        symbol
+        netExposure
+        marginUtilization
+      }
+    }
+  }
+`;
+
+/**
+ * Fetches account-level risk metrics: margin level, used margin, buying power,
+ * and per-instrument exposure/utilization.
+ */
+export function useAccountRisk(accountId: string) {
+  return useQuery(GET_ACCOUNT_RISK, {
+    variables: { accountId },
+    skip: !accountId,
+    fetchPolicy: 'cache-and-network',
+    nextFetchPolicy: 'cache-first',
+  });
+}
+
+/* ── Bracket order ───────────────────────────────────────────────────────────── */
+
+export const PLACE_BRACKET_ORDER_MUTATION = gql`
+  mutation PlaceBracketOrder($input: PlaceBracketOrderInput!) {
+    placeBracketOrder(input: $input) {
+      id
+      status
+      children {
+        id
+        type
+        orderRole
+        status
+        price
+        quantity
+      }
+    }
+  }
+`;
+
+/**
+ * Places a bracket order (parent + TP/SL children) atomically.
+ * The input shape mirrors PlaceBracketOrderRequest in types.ts.
+ */
+export function usePlaceBracketOrder() {
+  return useMutation(PLACE_BRACKET_ORDER_MUTATION, {
+    refetchQueries: [
+      { query: GET_ACCOUNT_BALANCE, variables: {} },
+      { query: GET_STRATEGY_POSITIONS, variables: {} },
+    ],
+    awaitRefetchQueries: true,
+  });
+}
+
+/* ── Cancel order ────────────────────────────────────────────────────────────── */
+
+export const CANCEL_ORDER_MUTATION = gql`
+  mutation CancelOrder($orderId: ID!) {
+    cancelOrder(orderId: $orderId) {
+      id
+      status
+    }
+  }
+`;
+
+/**
+ * Cancels a single pending order by orderId.
+ * Returns the updated status for optimistic UI updates.
+ */
+export function useCancelOrder() {
+  return useMutation(CANCEL_ORDER_MUTATION, {
+    refetchQueries: [
+      { query: GET_ACCOUNT_BALANCE, variables: {} },
+      { query: GET_STRATEGY_POSITIONS, variables: {} },
+    ],
+    awaitRefetchQueries: true,
+  });
+}
+
+/* ── Cancel bracket group ────────────────────────────────────────────────────── */
+
+export const CANCEL_BRACKET_GROUP_MUTATION = gql`
+  mutation CancelBracketGroup($parentOrderId: ID!) {
+    cancelBracketGroup(parentOrderId: $parentOrderId) {
+      id
+      status
+      childrenCancelled
+    }
+  }
+`;
+
+/**
+ * Cancels a parent order and all of its TP/SL child orders atomically.
+ * Used by the pending orders table "Cancel All" action on PRIMARY rows.
+ */
+export function useCancelBracketGroup() {
+  return useMutation(CANCEL_BRACKET_GROUP_MUTATION, {
+    refetchQueries: [
+      { query: GET_ACCOUNT_BALANCE, variables: {} },
+      { query: GET_STRATEGY_POSITIONS, variables: {} },
+    ],
+    awaitRefetchQueries: true,
+  });
 }

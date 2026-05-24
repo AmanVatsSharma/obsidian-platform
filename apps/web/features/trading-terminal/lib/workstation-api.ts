@@ -1,13 +1,20 @@
 /**
  * @file workstation-api.ts
  * @module web-trading
- * @description Merge `/market/watchlists` data with mock catalogue; optional OMS submit via `/api/orders`.
+ * @description Merge `/market/watchlists` data with mock catalogue; optional OMS submit via `/api/orders` and `/api/orders/bracket`.
  * @author BharatERP
  * @created 2026-04-03
  */
 
 import { nanoid } from 'nanoid';
-import type { Instrument } from './types';
+import type {
+  Instrument,
+  OrderTypeExtended,
+  TriggerCondition,
+  PlaceBracketOrderRequest,
+  OrderBookDepth,
+  OrderBookLevel,
+} from './types';
 
 type WatchlistRow = { id: string; name: string };
 type WatchlistItemRow = { id: string; instrumentId: string };
@@ -65,8 +72,32 @@ export type PlaceUiOrder = {
   instrument: Instrument | null;
 };
 
-/** POST PlaceOrderDto to backend. Requires env account id and instrument.instrumentId (or NEXT_PUBLIC_DEMO_INSTRUMENT_ID). */
-export async function submitOrderToOms(fetchJson: FetchJsonFn, ui: PlaceUiOrder): Promise<{ ok: true; detail?: string } | { ok: false; message: string }> {
+/**
+ * Map UI type label to API OrderTypeExtended value.
+ * Unrecognised labels default to LIMIT (covers legacy "Limit" / "Stop" / "Market" strings).
+ */
+function resolveApiType(uiType: string): OrderTypeExtended {
+  const map: Record<string, OrderTypeExtended> = {
+    Market: 'MARKET',
+    Limit: 'LIMIT',
+    Stop: 'STOP',
+    GTT: 'GTT',
+    Trailing: 'TRAILING_STOP',
+    Iceberg: 'ICEBERG',
+    TWAP: 'TWAP',
+    VWAP: 'VWAP',
+  };
+  return map[uiType] ?? 'LIMIT';
+}
+
+/**
+ * POST PlaceOrderDto (non-bracket) to backend.
+ * Handles MARKET/LIMIT/STOP/GTT/TRAILING_STOP/ICEBERG/TWAP/VWAP payloads.
+ */
+export async function submitOrderToOms(
+  fetchJson: FetchJsonFn,
+  ui: PlaceUiOrder,
+): Promise<{ ok: true; detail?: string } | { ok: false; message: string }> {
   const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID;
   const demoInstrumentId = process.env.NEXT_PUBLIC_DEMO_INSTRUMENT_ID;
   const instrumentId = ui.instrument?.instrumentId ?? demoInstrumentId;
@@ -81,19 +112,22 @@ export async function submitOrderToOms(fetchJson: FetchJsonFn, ui: PlaceUiOrder)
     };
   }
 
-  const qty = (parseFloat(ui.lots || '0') || 0).toFixed(2);
-  if (!/^\d{1,20}(\.\d{1,8})?$/.test(qty)) {
+  const qty = parseFloat(ui.lots || '0');
+  if (isNaN(qty) || qty <= 0) {
+    return { ok: false, message: 'Quantity must be greater than 0' };
+  }
+  const qtyStr = qty.toFixed(2);
+  if (!/^\d{1,20}(\.\d{1,8})?$/.test(qtyStr)) {
     return { ok: false, message: 'Invalid lot size for OMS quantity string.' };
   }
 
-  const apiType: 'MARKET' | 'LIMIT' = ui.type === 'Market' ? 'MARKET' : 'LIMIT'; // Stop → LIMIT bridge until native STOP exists
+  const apiType = resolveApiType(ui.type);
   const side: 'BUY' | 'SELL' = ui.side === 'buy' ? 'BUY' : 'SELL';
 
+  // Determine price for LIMIT and STOP orders
   let priceStr: string | undefined;
-  if (apiType === 'LIMIT') {
-    const p =
-      ui.price ||
-      (ui.instrument ? String(ui.side === 'buy' ? ui.instrument.ask : ui.instrument.bid) : '');
+  if (apiType === 'LIMIT' || apiType === 'STOP') {
+    const p = ui.price || (ui.instrument ? String(ui.side === 'buy' ? ui.instrument.ask : ui.instrument.bid) : '');
     const n = parseFloat(p);
     if (!p || Number.isNaN(n)) {
       return { ok: false, message: 'Limit/stop-style orders need a valid price for OMS LIMIT mapping.' };
@@ -101,17 +135,18 @@ export async function submitOrderToOms(fetchJson: FetchJsonFn, ui: PlaceUiOrder)
     priceStr = n.toFixed(Math.min(8, (ui.instrument?.digits ?? 5) + 2));
   }
 
-  const body = {
+  const body: Record<string, unknown> = {
     accountId,
     instrumentId,
     side,
     type: apiType,
-    quantity: qty,
-    ...(priceStr ? { price: priceStr } : {}),
+    quantity: qtyStr,
     timeInForce: 'DAY' as const,
     clientOrderId: `web-${nanoid(10)}`,
     externalRefId: `ext-${nanoid(12)}`,
   };
+
+  if (priceStr) body.price = priceStr;
 
   try {
     const res = await fetchJson('/api/orders', {
@@ -123,4 +158,116 @@ export async function submitOrderToOms(fetchJson: FetchJsonFn, ui: PlaceUiOrder)
     const msg = e instanceof Error ? e.message : 'OMS request failed';
     return { ok: false, message: msg };
   }
+}
+
+/**
+ * POST /api/orders/bracket with full bracket order payload.
+ * Called when takeProfitPrice or stopLossPrice is present on the order ticket.
+ */
+export async function submitBracketOrderToOms(
+  fetchJson: FetchJsonFn,
+  ui: PlaceUiOrder & {
+    triggerPrice?: string;
+    triggerCondition?: TriggerCondition;
+    trailingDistance?: string;
+    trailingPct?: string;
+    displayQty?: string;
+    slices?: number;
+    durationMinutes?: number;
+  },
+): Promise<{ ok: true; detail?: string } | { ok: false; message: string }> {
+  const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID;
+  const demoInstrumentId = process.env.NEXT_PUBLIC_DEMO_INSTRUMENT_ID;
+  const instrumentId = ui.instrument?.instrumentId ?? demoInstrumentId;
+
+  if (!accountId) {
+    return { ok: false, message: 'Set NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID for live OMS submit.' };
+  }
+  if (!instrumentId) {
+    return {
+      ok: false,
+      message: 'Pick a watchlist-backed instrument or set NEXT_PUBLIC_DEMO_INSTRUMENT_ID.',
+    };
+  }
+
+  const qty = parseFloat(ui.lots || '0');
+  if (isNaN(qty) || qty <= 0) {
+    return { ok: false, message: 'Quantity must be greater than 0' };
+  }
+  const qtyStr = qty.toFixed(2);
+  if (!/^\d{1,20}(\.\d{1,8})?$/.test(qtyStr)) {
+    return { ok: false, message: 'Invalid lot size for OMS quantity string.' };
+  }
+
+  const apiType = resolveApiType(ui.type);
+  const side: 'BUY' | 'SELL' = ui.side === 'buy' ? 'BUY' : 'SELL';
+
+  // Determine price
+  let priceStr: string | undefined;
+  if (apiType === 'LIMIT' || apiType === 'STOP') {
+    const p = ui.price || (ui.instrument ? String(ui.side === 'buy' ? ui.instrument.ask : ui.instrument.bid) : '');
+    const n = parseFloat(p);
+    if (!p || Number.isNaN(n)) {
+      return { ok: false, message: 'Limit/stop-style orders need a valid price.' };
+    }
+    priceStr = n.toFixed(Math.min(8, (ui.instrument?.digits ?? 5) + 2));
+  }
+
+  const digits = ui.instrument?.digits ?? 5;
+  const fmtPrice = (v: string) => {
+    const n = parseFloat(v);
+    if (Number.isNaN(n)) return undefined;
+    return n.toFixed(Math.min(8, digits + 2));
+  };
+
+  const body: PlaceBracketOrderRequest = {
+    accountId,
+    instrumentId,
+    side,
+    type: apiType,
+    quantity: qtyStr,
+    timeInForce: 'DAY',
+    clientOrderId: `web-${nanoid(10)}`,
+    externalRefId: `ext-${nanoid(12)}`,
+    bracket: {
+      takeProfitPrice: fmtPrice(ui.tp) ?? '',
+      stopLossPrice: fmtPrice(ui.sl) ?? '',
+    },
+  };
+
+  if (priceStr) body.price = priceStr;
+  if (ui.triggerPrice) body.triggerPrice = ui.triggerPrice;
+  if (ui.triggerCondition) body.triggerCondition = ui.triggerCondition;
+  if (ui.trailingDistance) body.trailingDistance = ui.trailingDistance;
+  if (ui.trailingPct) body.trailingPct = ui.trailingPct;
+  if (ui.displayQty) body.displayQty = ui.displayQty;
+  if (ui.slices != null) body.slices = ui.slices;
+  if (ui.durationMinutes != null) body.durationMinutes = ui.durationMinutes;
+
+  try {
+    const res = await fetchJson('/api/orders/bracket', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    return { ok: true, detail: JSON.stringify(res) };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Bracket order request failed';
+    return { ok: false, message: msg };
+  }
+}
+
+/**
+ * Fetch order book depth snapshot from GET /api/order-book/:symbol/depth.
+ * @param fetchJson  Wrapped fetch (handles auth / base URL)
+ * @param symbol     Trading symbol e.g. "EURUSD"
+ * @param levels     Number of bid/ask levels to return (default 10)
+ */
+export async function fetchOrderBookDepth(
+  fetchJson: FetchJsonFn,
+  symbol: string,
+  levels = 10,
+): Promise<OrderBookDepth> {
+  return fetchJson(
+    `/order-book/${encodeURIComponent(symbol)}/depth?levels=${levels}`,
+  ) as Promise<OrderBookDepth>;
 }
