@@ -1,4 +1,4 @@
-# Agent Instructions — NestTrade / Obsidian
+# Agent Instructions — Obsidian Platform
 
 > This file is the cross-tool agent contract (Codex / Cursor / Copilot CLI / etc).
 > **The source of truth is [`CLAUDE.md`](./CLAUDE.md) — read it first.** This

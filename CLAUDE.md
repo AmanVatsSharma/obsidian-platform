@@ -1,4 +1,4 @@
-# CLAUDE.md — NestTrade / Obsidian Platform
+# CLAUDE.md — Obsidian Platform
 
 > Authoritative briefing for Claude Code (and any LLM agent) working in this repo.
 > **Read this top-to-bottom on first session of the day.** Most sections are
@@ -8,7 +8,7 @@
 
 ## 0 · Five-line orientation
 
-- **What this is:** Nx 21 monorepo for **NestTrade / Obsidian** — multi-tenant trading platform. NestJS backend + 9 frontends + design system + IaC.
+- **What this is:** Nx 21 monorepo for **Obsidian** — multi-tenant trading platform. NestJS backend + 9 frontends + design system + IaC.
 - **Where the code is:** `apps/backend/src/modules/<25 modules>` · `apps/web` · `apps/broker-admin` · `libs/obsidian-ui` (design system) · `infra/aws/terraform` · `deploy/helm`.
 - **Hot patterns to never violate:** `AppError` for all errors · `AppLoggerService` for all logs · **outbox** for all cross-module events · resilience wrappers around every external call · DTOs with `class-validator` on every input · idempotency on every order/payment/ledger write.
 - **Most-broken tests:** contract tests run `--runInBand` because they share fixture state. If they're flaky, parallelism leaked in.
@@ -539,3 +539,51 @@ Need to do X?
 ---
 
 *Last updated: 2026-05-09 — when this changes substantially, also update `AGENTS.md` and the agent files in `.claude/agents/`.*
+
+
+<!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
+## Beads Issue Tracker
+
+This project uses **bd (beads)** for issue tracking. Run `bd prime` to see full workflow context and commands.
+
+### Quick Reference
+
+```bash
+bd ready              # Find available work
+bd show <id>          # View issue details
+bd update <id> --claim  # Claim work
+bd close <id>         # Complete work
+```
+
+### Rules
+
+- Use `bd` for ALL task tracking — do NOT use TodoWrite, TaskCreate, or markdown TODO lists
+- Run `bd prime` for detailed command reference and session close protocol
+- Use `bd remember` for persistent knowledge — do NOT use MEMORY.md files
+
+## Session Completion
+
+**When ending a work session**, you MUST complete ALL steps below. Work is NOT complete until `git push` succeeds.
+
+**MANDATORY WORKFLOW:**
+
+1. **File issues for remaining work** - Create issues for anything that needs follow-up
+2. **Run quality gates** (if code changed) - Tests, linters, builds
+3. **Update issue status** - Close finished work, update in-progress items
+4. **PUSH TO REMOTE** - This is MANDATORY:
+   ```bash
+   git pull --rebase
+   bd dolt push
+   git push
+   git status  # MUST show "up to date with origin"
+   ```
+5. **Clean up** - Clear stashes, prune remote branches
+6. **Verify** - All changes committed AND pushed
+7. **Hand off** - Provide context for next session
+
+**CRITICAL RULES:**
+- Work is NOT complete until `git push` succeeds
+- NEVER stop before pushing - that leaves work stranded locally
+- NEVER say "ready to push when you are" - YOU must push
+- If push fails, resolve and retry until it succeeds
+<!-- END BEADS INTEGRATION -->
