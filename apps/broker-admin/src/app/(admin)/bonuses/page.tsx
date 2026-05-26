@@ -26,6 +26,7 @@
 import { useState, useMemo } from 'react';
 import { Plus, Gift } from 'lucide-react';
 import { useBrokerData } from '@/lib/mock-data-context';
+import { useBonuses } from '@/lib/api/hooks/use-bonuses';
 import type { Bonus } from '@/lib/types';
 
 const TYPE_BADGE: Record<string, string> = {
@@ -188,13 +189,29 @@ function ActiveBonusesList() {
 }
 
 export default function BonusesPage() {
-  const { bonuses: initial } = useBrokerData();
-  const [bonuses, setBonuses] = useState<Bonus[]>([...initial]);
+  const { bonuses: apiBonuses, isLoading: apiLoading, updateBonus, deactivateBonus } = useBonuses();
+  const { bonuses: contextBonuses } = useBrokerData();
+  // Prefer API data when loaded; fall back to context mock data
+  const initial = apiLoading || apiBonuses.length === 0 ? contextBonuses : apiBonuses;
+  const [bonuses, setBonuses] = useState<Bonus[]>(initial);
   const [subTab, setSubTab] = useState<'campaigns' | 'active'>('campaigns');
 
-  const toggle = (id: string) => setBonuses(prev => prev.map(b =>
-    b.id === id ? { ...b, status: b.status === 'Active' ? 'Inactive' : 'Active' } : b
-  ));
+  // Sync API data into local state when it arrives
+  if (!apiLoading && apiBonuses.length > 0 && bonuses !== apiBonuses) {
+    setBonuses(apiBonuses);
+  }
+
+  const toggle = (id: string) => {
+    const current = bonuses.find(b => b.id === id);
+    if (!current) return;
+    if (current.status === 'Active') {
+      deactivateBonus(id);
+      setBonuses(prev => prev.map(b => b.id === id ? { ...b, status: 'Inactive' } : b));
+    } else {
+      updateBonus(id, { name: current.name, type: current.type, amount: current.amount, amountType: current.amountType, minDeposit: current.minDeposit, maxBonus: current.maxBonus, turnoverMultiple: current.turnoverMultiple, startDate: current.startDate, endDate: current.endDate, eligibleGroups: current.eligibleGroups });
+      setBonuses(prev => prev.map(b => b.id === id ? { ...b, status: 'Active' } : b));
+    }
+  };
 
   const activeCampaigns  = useMemo(() => bonuses.filter(b => b.status === 'Active'), [bonuses]);
   const totalAwarded = useMemo(() => bonuses.reduce((s, b) => s + b.totalAwarded, 0), [bonuses]);

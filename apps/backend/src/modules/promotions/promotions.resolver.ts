@@ -143,9 +143,9 @@ export class PromotionsResolver {
     return this.mapPromotion(updated);
   }
 
-  @Mutation(() => ObjectType)
-  async announcePromotion(@Args('id') id: string): Promise<{ announced: boolean }> {
-    return this.promotionsService.announcePromotion(id);
+  @Mutation(() => Boolean)
+  async announcePromotion(@Args('id') id: string): Promise<boolean> {
+    return (await this.promotionsService.announcePromotion(id)).announced;
   }
 
   // ── Mapper ───────────────────────────────────────────────────────────────

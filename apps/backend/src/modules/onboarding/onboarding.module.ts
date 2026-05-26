@@ -9,6 +9,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
+import { RbacModule } from '../rbac/rbac.module';
 import { OnboardingController } from './controllers/onboarding.controller';
 import { AdminKycController } from './controllers/admin-kyc.controller';
 import { OnboardingProfileEntity } from './entities/onboarding-profile.entity';
@@ -19,7 +20,7 @@ import { UsersModule } from '../users/users.module';
 import { OnboardingResolver } from './onboarding.resolver';
 
 @Module({
-  imports: [SharedModule, TypeOrmModule.forFeature([OnboardingProfileEntity, KycDocumentEntity]), UsersModule],
+  imports: [SharedModule, RbacModule, TypeOrmModule.forFeature([OnboardingProfileEntity, KycDocumentEntity]), UsersModule],
   controllers: [OnboardingController, AdminKycController],
   providers: [OnboardingService, KycDocumentService, OnboardingResolver],
   exports: [OnboardingService, KycDocumentService],

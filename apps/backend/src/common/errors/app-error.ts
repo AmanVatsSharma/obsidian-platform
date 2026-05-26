@@ -20,7 +20,14 @@ export type ErrorCode =
   | 'DEMO_ACCOUNT_OPERATION'
   | 'RISK_LIMIT_BREACH'
   | 'COMPLIANCE_BREACH'
-  | 'EXCHANGE_NOT_ENABLED';
+  | 'EXCHANGE_NOT_ENABLED'
+  | 'INVALID_BRACKET_PRICES'
+  | 'INVALID_BRACKET_CONFIG'
+  | 'BRACKET_INCOMPLETE'
+  | 'EXCHANGE_REJECTED'
+  | 'BRACKET_INVALID_PRICE'
+  | 'FORBIDDEN'
+  | 'UNAUTHORIZED';
 
 export class AppError extends Error {
   readonly code: ErrorCode;

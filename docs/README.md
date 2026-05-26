@@ -1,10 +1,10 @@
-# NestTrade documentation
+# Obsidian documentation
 
-High-level documentation for the NestTrade platform. Module-level docs live in each app or module; this folder points to them and describes the overall structure.
+High-level documentation for the Obsidian platform. Module-level docs live in each app or module; this folder points to them and describes the overall structure.
 
 ## Architecture overview
 
-NestTrade is an Nx monorepo containing:
+Obsidian is an Nx monorepo containing:
 
 - **Backend** — NestJS API (auth, users, RBAC, market, accounts, OMS, realtime, notifications, admin, tenancy, broker hierarchy, execution gateway, compliance, onboarding, risk, settlement, reconciliation, corporate actions, limits, SaaS control plane, dealing, support, partners, developer platform).
 - **Web apps** — Next.js applications: main trader web, broker-admin, platform-owner, dealer-workstation, support-ops, ib-portal, developer-portal, public-site.

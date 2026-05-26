@@ -28,9 +28,9 @@ import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { TenancyService } from './services/tenancy.service';
 import { JwtAuthGuard } from '@obsidian/backend-auth';
-import { TenantGuard } from '@obsidian/backend-rbac';
-import { PermissionsGuard } from '@obsidian/backend-rbac';
-import { Permissions } from '@obsidian/backend-rbac';
+import { TenantGuard } from '../rbac/guards/tenant.guard';
+import { PermissionsGuard } from '../rbac/guards/permissions.guard';
+import { Permissions } from '../rbac/decorators/permissions.decorator';
 import { AppLoggerService } from '../../shared/logger';
 
 @ObjectType('Tenant')

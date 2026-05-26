@@ -55,6 +55,22 @@ export class BrokerExchangeConfigEntity {
   @Column({ type: 'varchar', length: 64, nullable: true })
   connectorFamily?: string | null; // informational: which execution-gateway family handles orders
 
+  /**
+   * B-book routing strategy for this exchange+broker pair.
+   * A_ONLY     — always route to exchange (A-book)
+   * B_REQUIRED — always internalize on B-book (no exchange)
+   * B_PREFERRED — internalize if notional < maxBBookNotional, else A-book
+   */
+  @Column({ name: 'book_type_strategy', type: 'varchar', length: 16, nullable: true })
+  bookTypeStrategy?: 'A_ONLY' | 'B_REQUIRED' | 'B_PREFERRED' | null;
+
+  /**
+   * Maximum client notional (in INR) before a B_PREFERRED order falls back to A-book.
+   * Null/0 means unlimited (effectively Infinity). Ignored for B_REQUIRED.
+   */
+  @Column({ name: 'max_bbook_notional', type: 'numeric', precision: 28, scale: 2, nullable: true })
+  maxBBookNotional?: string | null;
+
   @CreateDateColumn({ type: 'timestamptz' })
   createdAt!: Date;
 

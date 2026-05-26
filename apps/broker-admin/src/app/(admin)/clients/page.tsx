@@ -34,8 +34,10 @@ import {
   TrendingUp, TrendingDown, Wallet, BarChart2, Shield, Phone, Mail,
 } from 'lucide-react';
 import { useClientsApi } from '@/lib/api/hooks/use-clients';
+import { useAccountBalances } from '@/lib/api/hooks/use-account-balances';
 import { MOCK_ORDERS, MOCK_TRANSACTIONS } from '@/lib/mock-data';
 import type { Client, ClientStatus, ClientType, KYCStatus } from '@/lib/types';
+import type { AccountBalances } from '@/lib/api/hooks/use-account-balances';
 
 // ─── HELPERS ───────────────────────────────────────────────────────────────────
 
@@ -87,6 +89,7 @@ function typeBadgeClass(t: ClientType) {
 
 interface ClientDrawerProps {
   client: Client;
+  balances: AccountBalances | null;
   onClose: () => void;
   approveKyc: (id: string) => void;
   rejectKyc: (id: string) => void;
@@ -94,7 +97,7 @@ interface ClientDrawerProps {
   unsuspendClient: (id: string) => void;
 }
 
-function ClientDrawer({ client, onClose, approveKyc, rejectKyc, suspendClient, unsuspendClient }: ClientDrawerProps) {
+function ClientDrawer({ client, balances, onClose, approveKyc, rejectKyc, suspendClient, unsuspendClient }: ClientDrawerProps) {
   const [activeTab, setActiveTab] = useState<'overview' | 'positions' | 'transactions' | 'notes' | 'kyc'>('overview');
   const [confirmAction, setConfirmAction] = useState<string | null>(null);
 
@@ -157,10 +160,10 @@ function ClientDrawer({ client, onClose, approveKyc, rejectKyc, suspendClient, u
               {/* Account Metrics */}
               <div className="grid grid-cols-2 gap-3">
                 {[
-                  { label: 'BALANCE', value: fmtUSD(client.balance), icon: Wallet, color: 'text-fg1' },
-                  { label: 'EQUITY', value: fmtUSD(client.equity), icon: TrendingUp, color: 'text-fg1' },
-                  { label: 'FLOAT P&L', value: fmtPnl(client.floatPnl), icon: BarChart2, color: pnlClass(client.floatPnl) },
-                  { label: 'MARGIN', value: client.marginPct != null ? `${client.marginPct}%` : '—', icon: Shield, color: (client.marginPct ?? 999) < 150 ? 'text-bear' : 'text-fg1' },
+                  { label: 'BALANCE', value: balances ? fmtUSD(balances.balance) : fmtUSD(client.balance), icon: Wallet, color: 'text-fg1' },
+                  { label: 'EQUITY', value: balances ? fmtUSD(balances.equity) : fmtUSD(client.equity), icon: TrendingUp, color: 'text-fg1' },
+                  { label: 'FLOAT P&L', value: balances ? fmtPnl(balances.unrealizedPnL) : fmtPnl(client.floatPnl), icon: BarChart2, color: pnlClass(balances?.unrealizedPnL ?? client.floatPnl) },
+                  { label: 'MARGIN', value: balances?.marginPct != null ? `${balances.marginPct.toFixed(1)}%` : client.marginPct != null ? `${client.marginPct}%` : '—', icon: Shield, color: (balances?.marginPct ?? client.marginPct ?? 999) < 150 ? 'text-bear' : 'text-fg1' },
                 ].map(m => (
                   <div key={m.label} className="card p-3">
                     <div className="flex items-center justify-between">
@@ -444,6 +447,8 @@ function SortTh({
 
 export default function ClientsPage() {
   const { clients, isLoading, error, approveKyc, rejectKyc, suspendClient, unsuspendClient } = useClientsApi();
+  const [selectedClient, setSelected] = useState<Client | null>(null);
+  const { balances } = useAccountBalances(selectedClient?.id ?? null);
 
   const [search, setSearch]         = useState('');
   const [filterStatus, setStatus]   = useState<ClientStatus | 'All'>('All');
@@ -451,7 +456,6 @@ export default function ClientsPage() {
   const [filterKyc, setKyc]         = useState<KYCStatus | 'All'>('All');
   const [sortKey, setSortKey]       = useState<SortKey>('volumeMTD');
   const [sortDir, setSortDir]       = useState<SortDir>('desc');
-  const [selectedClient, setSelected] = useState<Client | null>(null);
   const [selected, setBulk]         = useState<Set<string>>(new Set());
 
   const handleSort = useCallback((key: SortKey) => {
@@ -642,6 +646,7 @@ export default function ClientsPage() {
       {selectedClient && (
         <ClientDrawer
           client={selectedClient}
+          balances={balances}
           onClose={() => setSelected(null)}
           approveKyc={approveKyc}
           rejectKyc={rejectKyc}

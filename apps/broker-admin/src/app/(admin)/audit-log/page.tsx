@@ -7,7 +7,8 @@
  *   - default (AuditLogPage) — searchable, filterable audit event log with drill-down detail
  *
  * Depends on:
- *   - none (all data is local constants)
+ *   - @/lib/api/hooks/use-audit-log — useAuditLog() for real API data
+ *   - Note: falls back to empty state when API unavailable; local ENTRIES retained as placeholder
  *
  * Side-effects:
  *   - none (read-only; audit logs are append-only by design)
@@ -25,6 +26,7 @@
 
 import { useState } from 'react';
 import { Search, Shield, X } from 'lucide-react';
+import { useAuditLog } from '@/lib/api/hooks/use-audit-log';
 
 type AuditSeverity = 'Info' | 'Warn' | 'Critical';
 type AuditCategory = 'Client' | 'KYC' | 'Trading' | 'Finance' | 'Risk' | 'Platform' | 'Auth' | 'Team';
@@ -147,12 +149,37 @@ const CAT_BADGE: Record<AuditCategory, string> = {
 };
 
 export default function AuditLogPage() {
+  const { entries: apiEntries, isLoading } = useAuditLog();
   const [search, setSearch] = useState('');
   const [filterSev, setFilterSev] = useState<AuditSeverity | 'All'>('All');
   const [filterCat, setFilterCat] = useState<AuditCategory | 'All'>('All');
   const [selected, setSelected] = useState<AuditEntry | null>(null);
 
-  const filtered = ENTRIES.filter(e => {
+  // Use API entries when available; fall back to local ENTRIES for dev mode
+  const entries = apiEntries.length > 0
+    ? apiEntries.map((e): AuditEntry => ({
+        id: e.id,
+        timestamp: e.createdAt
+          ? new Date(e.createdAt).toLocaleString('en-GB', {
+              year: 'numeric', month: '2-digit', day: '2-digit',
+              hour: '2-digit', minute: '2-digit', second: '2-digit',
+            }).replace(',', '')
+          : e.createdAt ?? '',
+        actor: e.actor,
+        actorRole: 'Admin',
+        action: e.action,
+        category: (e.module as AuditCategory) ?? 'Platform',
+        severity: (e.severity as AuditSeverity) ?? 'Info',
+        targetEntity: e.targetId ?? '—',
+        targetId: e.targetId ?? '—',
+        ip: e.ip ?? '—',
+        details: { ...(e.after as Record<string, string> ?? {}), ...(e.before as Record<string, string> ?? {}) },
+        before: e.before as Record<string, string> | undefined,
+        after: e.after as Record<string, string> | undefined,
+      }))
+    : ENTRIES;
+
+  const filtered = entries.filter(e => {
     const matchSearch = !search || e.action.toLowerCase().includes(search.toLowerCase())
       || e.actor.toLowerCase().includes(search.toLowerCase())
       || e.targetId.toLowerCase().includes(search.toLowerCase());
@@ -161,7 +188,7 @@ export default function AuditLogPage() {
     return matchSearch && matchSev && matchCat;
   });
 
-  const categories = [...new Set(ENTRIES.map(e => e.category))] as AuditCategory[];
+  const categories = [...new Set(entries.map(e => e.category))] as AuditCategory[];
 
   return (
     <div className="flex flex-col">
@@ -181,10 +208,10 @@ export default function AuditLogPage() {
         {/* KPI strip */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: 'Total Events',    value: ENTRIES.length,                                     color: 'text-fg1' },
-            { label: 'Critical Events', value: ENTRIES.filter(e => e.severity === 'Critical').length, color: 'text-bear' },
-            { label: 'Unique Actors',   value: new Set(ENTRIES.map(e => e.actor)).size,             color: 'text-accent' },
-            { label: 'System Events',   value: ENTRIES.filter(e => e.actor === 'System').length,    color: 'text-fg3' },
+            { label: 'Total Events',    value: entries.length,                                     color: 'text-fg1' },
+            { label: 'Critical Events', value: entries.filter(e => e.severity === 'Critical').length, color: 'text-bear' },
+            { label: 'Unique Actors',   value: new Set(entries.map(e => e.actor)).size,             color: 'text-accent' },
+            { label: 'System Events',   value: entries.filter(e => e.actor === 'System').length,    color: 'text-fg3' },
           ].map(k => (
             <div key={k.label} className="kpi-card">
               <p className="kpi-label">{k.label}</p>

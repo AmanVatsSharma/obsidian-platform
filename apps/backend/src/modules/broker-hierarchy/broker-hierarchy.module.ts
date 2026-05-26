@@ -37,6 +37,8 @@ import { SharedModule } from '../../shared/shared.module';
 import { RbacModule } from '../rbac/rbac.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { SettlementModule } from '../settlement/settlement.module';
+import { UsersModule } from '../users/users.module';
+import { MarketModule } from '../market/market.module';
 import { BrokerHierarchyController } from './controllers/broker-hierarchy.controller';
 import { AdminHierarchyController } from './controllers/admin-hierarchy.controller';
 import { ClientGroupEntity } from './entities/client-group.entity';
@@ -55,6 +57,9 @@ import { IbCommissionService } from './services/ib-commission.service';
 import { BrokerExchangeConfigService } from './services/broker-exchange-config.service';
 import { BrokerMetricsService } from './services/broker-metrics.service';
 import { BrokerHierarchyResolver } from './broker-hierarchy.resolver';
+import { BrokerBookStrategyService } from './services/broker-book-strategy.service';
+import { CashLedgerEntryEntity } from '../accounts/entities/cash-ledger-entry.entity';
+import { SettlementJobEntity } from '../settlement/entities/settlement-job.entity';
 
 @Module({
   imports: [
@@ -62,6 +67,8 @@ import { BrokerHierarchyResolver } from './broker-hierarchy.resolver';
     RbacModule,
     AccountsModule,
     SettlementModule,
+    UsersModule,
+    MarketModule,
     TypeOrmModule.forFeature([
       BrokerEntity,
       BranchEntity,
@@ -74,10 +81,12 @@ import { BrokerHierarchyResolver } from './broker-hierarchy.resolver';
       BrokerExchangeConfigEntity,
       BrokerMetricsEntity,
       ClientGroupEntity,
+      CashLedgerEntryEntity,
+      SettlementJobEntity,
     ]),
   ],
   controllers: [BrokerHierarchyController, AdminHierarchyController],
-  providers: [BrokerHierarchyService, IbCommissionService, BrokerExchangeConfigService, BrokerMetricsService, BrokerHierarchyResolver],
-  exports: [BrokerHierarchyService, IbCommissionService, BrokerExchangeConfigService, BrokerMetricsService],
+  providers: [BrokerHierarchyService, IbCommissionService, BrokerExchangeConfigService, BrokerMetricsService, BrokerHierarchyResolver, BrokerBookStrategyService],
+  exports: [BrokerHierarchyService, IbCommissionService, BrokerExchangeConfigService, BrokerMetricsService, BrokerBookStrategyService],
 })
 export class BrokerHierarchyModule {}

@@ -71,7 +71,7 @@ export class SettlementOutboxHandler {
   async handle(msg: OutboxEntity): Promise<void> {
     this.logger.debug('handle:start', { msgId: msg.id, topic: msg.topic });
 
-    const payload = msg.payload as SettlementJobPayload;
+    const payload = msg.payload as unknown as SettlementJobPayload;
 
     if (!payload.executionId || !payload.accountId || !payload.instrumentId) {
       throw new Error(

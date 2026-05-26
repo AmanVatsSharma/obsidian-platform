@@ -1,4 +1,4 @@
-# NestTrade Backend Audit Report (MT5 Competition Context)
+# Obsidian Backend Audit Report (MT5 Competition Context)
 
 **Generated:** 2026-02-17  
 **Scope:** Backend implementation status after Nx enterprise restructuring + critical hardening  

@@ -25,6 +25,7 @@
 
 import { useState } from 'react';
 import { Megaphone, Image, Trophy, Plus, Eye } from 'lucide-react';
+import { usePromotions } from '@/lib/api/hooks/use-promotions';
 
 type CampaignStatus = 'Active' | 'Scheduled' | 'Ended' | 'Draft';
 
@@ -158,10 +159,19 @@ function fmtK(n: number) {
 }
 
 export default function PromotionsPage() {
+  const { promotions: apiPromotions, isLoading: apiLoading, updatePromotion } = usePromotions();
   const [tab, setTab] = useState<'campaigns' | 'banners' | 'leaderboard'>('campaigns');
-  const [campaigns, setCampaigns] = useState<Campaign[]>(INIT_CAMPAIGNS);
+  // Merge: prefer API data when available, fall back to local constants
+  const [campaigns, setCampaigns] = useState<Campaign[]>(
+    apiLoading || apiPromotions.length === 0 ? INIT_CAMPAIGNS : (apiPromotions as unknown as Campaign[])
+  );
   const [banners, setBanners] = useState<Banner[]>(INIT_BANNERS);
   const [selected, setSelected] = useState<Campaign | null>(null);
+
+  // Sync API data into local state when it arrives
+  if (!apiLoading && apiPromotions.length > 0 && campaigns === INIT_CAMPAIGNS) {
+    setCampaigns(apiPromotions as unknown as Campaign[]);
+  }
 
   const activeCampaigns = campaigns.filter(c => c.status === 'Active');
   const totalBudget = campaigns.reduce((s, c) => s + c.budget, 0);
@@ -308,13 +318,20 @@ export default function PromotionsPage() {
                   <button className="btn-ghost btn btn-sm flex-1">Edit</button>
                   {selected.status === 'Active' && (
                     <button className="btn-danger btn btn-sm"
-                      onClick={() => { setCampaigns(cs => cs.map(c => c.id === selected.id ? { ...c, status: 'Ended' } : c)); setSelected(null); }}>
+                      onClick={() => {
+                        updatePromotion(selected.id, { status: 'Ended' });
+                        setCampaigns(cs => cs.map(c => c.id === selected.id ? { ...c, status: 'Ended' } : c));
+                        setSelected(null);
+                      }}>
                       End Now
                     </button>
                   )}
                   {selected.status === 'Draft' && (
                     <button className="btn-primary btn btn-sm"
-                      onClick={() => setCampaigns(cs => cs.map(c => c.id === selected.id ? { ...c, status: 'Active' } : c))}>
+                      onClick={() => {
+                        updatePromotion(selected.id, { status: 'Active' });
+                        setCampaigns(cs => cs.map(c => c.id === selected.id ? { ...c, status: 'Active' } : c));
+                      }}>
                       Launch
                     </button>
                   )}

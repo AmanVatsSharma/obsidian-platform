@@ -44,9 +44,11 @@ import { KiteDataProviderAdapter } from './providers/kite/kite-data-provider.ada
 import { MarketAdminController } from './controllers/market-admin.controller';
 import { AdminInstrumentsController } from './controllers/admin-instruments.controller';
 import { MarketResolver } from './market.resolver';
+import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
   imports: [
+    RbacModule,
     TypeOrmModule.forFeature([
       ExchangeEntity,
       InstrumentEntity,

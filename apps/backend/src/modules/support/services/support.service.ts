@@ -27,7 +27,7 @@ export class SupportService {
 
   async createTicket(dto: CreateSupportTicketDto): Promise<SupportTicketEntity> {
     this.logger.debug('createTicket:start', dto);
-    const saved = await this.tickets.save(this.tickets.create(dto));
+    const saved = await this.tickets.save(this.tickets.create(dto as any) as unknown as SupportTicketEntity);
     this.logger.debug('createTicket:end', { ticketId: saved.id });
     return saved;
   }

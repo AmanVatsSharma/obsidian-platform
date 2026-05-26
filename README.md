@@ -1,6 +1,6 @@
-# NestTrade
+# Obsidian
 
-Enterprise-grade Nx monorepo for the NestTrade trading platform.
+Enterprise-grade Nx monorepo for the Obsidian trading platform.
 
 ## Documentation
 

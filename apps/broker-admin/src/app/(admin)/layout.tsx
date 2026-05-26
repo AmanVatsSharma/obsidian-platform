@@ -31,6 +31,7 @@ import { BrokerTopbar } from '../../shared/topbar/topbar';
 import { CommandPalette } from '../../shared/command-palette/command-palette';
 import { NotificationsPanel } from '../../shared/notifications/notifications-panel';
 import { AuthGuard } from '../../lib/auth/auth-guard';
+import { SetupGuard } from '../../lib/auth/setup-guard';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [cmdOpen, setCmdOpen] = useState(false);
@@ -55,22 +56,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   return (
     <AuthGuard>
-      <div className="flex h-screen overflow-hidden bg-[var(--bg-base)]">
-        <BrokerSidebar />
+      <SetupGuard>
+        <div className="flex h-screen overflow-hidden bg-[var(--bg-base)]">
+          <BrokerSidebar />
 
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <BrokerTopbar
-            onOpenCommandPalette={openCmd}
-            onOpenNotifications={openNotif}
-          />
-          <main className="flex-1 overflow-y-auto bg-[var(--bg-base)]">
-            {children}
-          </main>
+          <div className="flex flex-1 flex-col overflow-hidden">
+            <BrokerTopbar
+              onOpenCommandPalette={openCmd}
+              onOpenNotifications={openNotif}
+            />
+            <main className="flex-1 overflow-y-auto bg-[var(--bg-base)]">
+              {children}
+            </main>
+          </div>
+
+          <CommandPalette open={cmdOpen} onClose={closeCmd} />
+          <NotificationsPanel open={notifOpen} onClose={closeNotif} />
         </div>
-
-        <CommandPalette open={cmdOpen} onClose={closeCmd} />
-        <NotificationsPanel open={notifOpen} onClose={closeNotif} />
-      </div>
+      </SetupGuard>
     </AuthGuard>
   );
 }

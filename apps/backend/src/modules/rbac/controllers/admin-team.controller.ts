@@ -14,17 +14,17 @@
  *       POST   /admin/rbac/users/invite  — invite a new team member
  *
  * Depends on:
- *   - UsersService       — findAll (admin team), create, update, findOneOrThrow
  *   - RbacService        — ensureRole (for team member role assignment)
+ *   - UserEntity         — direct repository access for user management
  *
- * Side-effects: DB writes via UsersService
+ * Side-effects: DB writes via UserEntity repository
  *
  * Key invariants:
  *   - Team members are identified by tenantId on the UserEntity; client users and staff share the table
  *   - Role assignment uses ensureRole (upsert semantics)
  *
  * Read order:
- *   1. listTeamMembers() — paginated team listing via UsersService.findAll
+ *   1. listTeamMembers() — paginated team listing via UserEntity repository
  *   2. createTeamMember()  — creates UserEntity + assigns roles
  *   3. updateTeamMember()  — role replacement + status toggle
  *   4. listRbacUsers()    — full user listing (staff + clients) with role enrichment
@@ -32,12 +32,11 @@
  *   6. inviteRbacUser()   — invite flow (creates user + sends invite)
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-16
+ * Last-updated: 2026-05-20
  */
 
 import { Body, Controller, Get, Param, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AdminListTeamMembersQueryDto, CreateTeamMemberDto, UpdateTeamMemberDto } from '../dto/admin-team.dto';
-import { UsersService } from '../../users/users.service';
 import { RbacService } from '../rbac.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { TenantGuard } from '../guards/tenant.guard';
@@ -46,13 +45,13 @@ import { Roles } from '../decorators/roles.decorator';
 import { Tenant } from '../decorators/tenant.decorator';
 import { AppLoggerService } from '../../../shared/logger';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ListUsersDto } from '../../users/dto/list-users.dto';
 import { AppError } from '../../../common/errors/app-error';
 import { UserEntity } from '../../users/entities/user.entity';
 import { RoleEntity } from '../entities/role.entity';
 import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import * as argon2 from 'argon2';
 
 class ListRbacUsersQueryDto {
   @IsOptional()
@@ -107,7 +106,6 @@ export class AdminTeamController {
   private readonly rolesRepo: Repository<RoleEntity>;
 
   constructor(
-    private readonly users: UsersService,
     private readonly rbac: RbacService,
     private readonly logger: AppLoggerService,
     @InjectRepository(UserEntity)
@@ -130,12 +128,23 @@ export class AdminTeamController {
     @Query() query: AdminListTeamMembersQueryDto,
   ) {
     this.logger.debug('GET /admin/team-members', { tenantId, query });
-    const dto: ListUsersDto = {
-      page: query.page ? parseInt(query.page, 10) : 1,
-      limit: query.limit ? parseInt(query.limit, 10) : 20,
-      search: query.search,
-    };
-    return this.users.findAll(tenantId, dto);
+    const page = query.page ? parseInt(query.page, 10) : 1;
+    const limit = query.limit ? parseInt(query.limit, 10) : 20;
+    const offset = (page - 1) * limit;
+
+    const whereClause: any = { tenantId };
+    if (query.search) {
+      whereClause.email = query.search;
+    }
+
+    const [data, total] = await this.usersRepo.findAndCount({
+      where: whereClause,
+      skip: offset,
+      take: limit,
+      order: { createdAt: 'DESC' },
+    });
+
+    return { data, page, limit, total };
   }
 
   @Post('team-members')
@@ -146,9 +155,16 @@ export class AdminTeamController {
     @Body() dto: CreateTeamMemberDto,
   ) {
     this.logger.debug('POST /admin/team-members', { tenantId, email: dto.email });
-    // Ensure tenantId from body matches JWT context
-    const createDto = { ...dto, tenantId };
-    const user = await this.users.create(createDto);
+    const passwordHash = await argon2.hash('temp', { type: argon2.argon2id });
+    const user = await this.usersRepo.save(
+      this.usersRepo.create({
+        tenantId,
+        mobileE164: dto.mobileE164,
+        email: dto.email ?? null,
+        name: dto.name ?? null,
+        passwordHash,
+      }),
+    );
     // Assign roles
     for (const roleName of dto.roleNames) {
       await this.rbac.assignRoleToUser(tenantId, user.id, roleName);
@@ -166,21 +182,25 @@ export class AdminTeamController {
     @Body() dto: UpdateTeamMemberDto,
   ) {
     this.logger.debug('PATCH /admin/team-members/:id', { tenantId, id, dto });
+    const user = await this.usersRepo.findOne({ where: { id, tenantId } });
+    if (!user) throw new AppError('RESOURCE_NOT_FOUND', 'User not found');
+
     if (dto.status) {
-      if (dto.status === 'Inactive') {
-        await this.users.deactivate(tenantId, id);
-      } else {
-        await this.users.reactivate(tenantId, id);
-      }
+      user.isActive = dto.status === 'Active';
     }
+    await this.usersRepo.save(user);
+
     if (dto.roleNames) {
       // Remove all existing roles and reassign
-      await this.rbac.userHasAnyRole(tenantId, id, []); // ensure user exists
+      await this.usersRepo.manager.query(
+        'DELETE FROM user_roles WHERE tenant_id = $1 AND user_id = $2',
+        [tenantId, id],
+      );
       for (const roleName of dto.roleNames) {
         await this.rbac.assignRoleToUser(tenantId, id, roleName);
       }
     }
-    return this.users.findOneOrThrow(tenantId, id);
+    return user;
   }
 
   // ─── /admin/rbac/users ───────────────────────────────────────────────────────
@@ -193,11 +213,23 @@ export class AdminTeamController {
     @Query() query: ListRbacUsersQueryDto,
   ) {
     this.logger.debug('GET /admin/rbac/users', { tenantId, query });
-    return this.users.findAll(tenantId, {
-      page: query.page ? parseInt(query.page, 10) : 1,
-      limit: query.limit ? parseInt(query.limit, 10) : 20,
-      search: query.search,
+    const page = query.page ? parseInt(query.page, 10) : 1;
+    const limit = query.limit ? parseInt(query.limit, 10) : 20;
+    const offset = (page - 1) * limit;
+
+    const whereClause: any = { tenantId };
+    if (query.search) {
+      whereClause.email = query.search;
+    }
+
+    const [data, total] = await this.usersRepo.findAndCount({
+      where: whereClause,
+      skip: offset,
+      take: limit,
+      order: { createdAt: 'DESC' },
     });
+
+    return { data, page, limit, total };
   }
 
   @Patch('rbac/users/:id')
@@ -210,21 +242,26 @@ export class AdminTeamController {
     @Body() dto: UpdateRbacUserDto,
   ) {
     this.logger.debug('PATCH /admin/rbac/users/:id', { tenantId, id, dto });
-    const user = await this.users.findOneOrThrow(tenantId, id);
+    const user = await this.usersRepo.findOne({ where: { id, tenantId } });
+    if (!user) throw new AppError('RESOURCE_NOT_FOUND', 'User not found');
+
     if (dto.status === 'Inactive') {
-      await this.users.deactivate(tenantId, id);
+      user.isActive = false;
     } else if (dto.status === 'Active') {
-      await this.users.reactivate(tenantId, id);
+      user.isActive = true;
     }
+    await this.usersRepo.save(user);
+
     if (dto.roleId) {
       // Remove existing roles and assign new one
       await this.usersRepo.manager.query(
         'DELETE FROM user_roles WHERE tenant_id = $1 AND user_id = $2',
         [tenantId, id],
       );
-      await this.rbac.assignRoleToUser(tenantId, id, dto.roleId);
+      const role = await this.rolesRepo.findOne({ where: { id: dto.roleId, tenantId } });
+      if (role) await this.rbac.assignRoleToUser(tenantId, id, role.name);
     }
-    return this.users.findOneOrThrow(tenantId, id);
+    return user;
   }
 
   @Post('rbac/users/invite')
@@ -235,7 +272,16 @@ export class AdminTeamController {
     @Body() dto: InviteRbacUserDto,
   ) {
     this.logger.debug('POST /admin/rbac/users/invite', { tenantId, email: dto.email });
-    const user = await this.users.create({ tenantId, mobileE164: dto.mobileE164, email: dto.email, password: undefined } as any);
+    const passwordHash = await argon2.hash('temp', { type: argon2.argon2id });
+    const user = await this.usersRepo.save(
+      this.usersRepo.create({
+        tenantId,
+        mobileE164: dto.mobileE164,
+        email: dto.email ?? null,
+        name: dto.name ?? null,
+        passwordHash,
+      }),
+    );
     if (dto.roleId) {
       const role = await this.rolesRepo.findOne({ where: { id: dto.roleId, tenantId } });
       if (role) await this.rbac.assignRoleToUser(tenantId, user.id, role.name);

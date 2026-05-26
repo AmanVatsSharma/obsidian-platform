@@ -12,10 +12,12 @@ import { AwsSnsService } from './aws/sns.service';
 import { AwsSesService } from './aws/ses.service';
 import { RedisService } from './redis/redis.service';
 import { FxService } from './fx/fx.service';
+import { OutboxModule } from './outbox/outbox.module';
 
 @Global()
 @Module({
+  imports: [OutboxModule],
   providers: [AppLoggerService, AwsSnsService, AwsSesService, RedisService, FxService],
-  exports: [AppLoggerService, AwsSnsService, AwsSesService, RedisService, FxService],
+  exports: [AppLoggerService, AwsSnsService, AwsSesService, RedisService, FxService, OutboxModule],
 })
 export class SharedModule {}

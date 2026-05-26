@@ -90,14 +90,16 @@ export class RiskPolicyService {
 
   async createPolicy(dto: CreateRiskPolicyDto): Promise<RiskPolicyEntity> {
     this.logger.debug('createPolicy:start', dto);
-    const saved = await this.policies.save(this.policies.create(dto));
+    const entity = this.policies.create(dto as unknown as RiskPolicyEntity);
+    const saved = await this.policies.save(entity);
     this.logger.debug('createPolicy:end', { riskPolicyId: saved.id });
     return saved;
   }
 
   async assignPolicy(dto: AssignRiskPolicyDto): Promise<TenantRiskPolicyEntity> {
     this.logger.debug('assignPolicy:start', dto);
-    const saved = await this.assignments.save(this.assignments.create(dto));
+    const entity = this.assignments.create(dto as unknown as TenantRiskPolicyEntity);
+    const saved = await this.assignments.save(entity);
     this.logger.debug('assignPolicy:end', { assignmentId: saved.id });
     return saved;
   }

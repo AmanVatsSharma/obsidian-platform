@@ -92,7 +92,7 @@ export class SupportResolver {
     @Args('priority', { nullable: true }) priority?: string,
   ): Promise<SupportTicketObjectType> {
     this.logger.debug('SupportResolver.createTicket()', { tenantId, userId, subject });
-    const t = await this.svc.createTicket({ tenantId, userId, subject, description: '', metadata: {}, priority: priority as any });
+    const t = await this.svc.createTicket({ tenantId, userId, subject, description: '', metadata: undefined, priority: priority as any });
     return {
       id: t.id,
       tenantId: t.tenantId,

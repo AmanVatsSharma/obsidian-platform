@@ -1,6 +1,6 @@
 # Kafka (MSK) Module
 
-Creates Amazon MSK cluster for NestTrade event streaming.
+Creates Amazon MSK cluster for Obsidian event streaming.
 
 ## Inputs
 

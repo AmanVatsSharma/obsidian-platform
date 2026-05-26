@@ -23,27 +23,34 @@
 import {
   Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn, UpdateDateColumn,
 } from 'typeorm';
+import { Field, ID, Int, ObjectType } from '@nestjs/graphql';
 
 export type RuleStatus = 'ACTIVE' | 'INACTIVE';
 
+@ObjectType()
 @Entity('automation_rules')
 @Index('idx_rules_tenant', ['tenantId'])
 @Index('idx_rules_tenant_name', ['tenantId', 'name'], { unique: true })
 export class RuleEntity {
   @PrimaryGeneratedColumn('uuid')
+  @Field(() => ID)
   id!: string;
 
   @Column({ name: 'tenant_id', type: 'varchar', length: 64 })
+  @Field(() => ID)
   tenantId!: string;
 
   @Column({ name: 'name', type: 'varchar', length: 160 })
+  @Field()
   name!: string;
 
   @Column({ name: 'description', type: 'text', nullable: true })
+  @Field({ nullable: true })
   description?: string | null;
 
   /** Event that triggers this rule evaluation */
   @Column({ name: 'trigger_event', type: 'varchar', length: 64 })
+  @Field()
   triggerEvent!: string;
 
   /** JSONB array of condition objects: { field, op, value } */
@@ -55,20 +62,26 @@ export class RuleEntity {
   actions!: any[];
 
   @Column({ name: 'status', type: 'varchar', length: 16, default: 'ACTIVE' })
+  @Field()
   status!: RuleStatus;
 
   @Column({ name: 'priority', type: 'int', default: 0 })
+  @Field(() => Int)
   priority!: number;
 
   @Column({ name: 'execution_count', type: 'int', default: 0 })
+  @Field(() => Int)
   executionCount!: number;
 
   @Column({ name: 'last_triggered_at', type: 'timestamptz', nullable: true })
+  @Field({ nullable: true })
   lastTriggeredAt?: Date | null;
 
   @CreateDateColumn({ name: 'created_at', type: 'timestamptz' })
+  @Field()
   createdAt!: Date;
 
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
+  @Field()
   updatedAt!: Date;
 }

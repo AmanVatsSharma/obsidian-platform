@@ -1,41 +1,35 @@
 /**
  * path-register.js — workspace root
- * Loaded via --require before the compiled NestJS backend starts.
- * Maps @obsidian/backend-* path aliases to their compiled locations in dist/.
- * Required because TypeScript path aliases are compile-time only; Node.js
- * needs a runtime resolver to find the actual .js files.
+ * Registered via --require before the NestJS backend starts.
+ * Maps @obsidian/backend-* path aliases to their source locations in apps/backend/src/.
+ *
+ * Implementation note: loads from tsconfig.base.json directly (not explicit paths)
+ * because tsconfig-paths' explicit paths mode has a subtle bug where the implicit
+ * wildcard (added when addMatchAll=true) resolves relative to baseUrl as a directory
+ * path rather than the tsconfig-relative path. Loading from tsconfig.base.json uses
+ * the already-resolved absolute paths from tsconfig-paths, which work correctly.
  */
-const { register } = require('tsconfig-paths');
+const { register, loadConfig } = require('tsconfig-paths');
 const path = require('path');
 
+const REPO_ROOT = __dirname;
+
+// Load the full tsconfig chain from tsconfig.base.json — tsconfig-paths resolves
+// paths correctly when loaded from a file (absolute paths), but not with explicit
+// baseUrl (relative paths get wrong wildcard resolution).
+const tsconfigPath = path.join(REPO_ROOT, 'tsconfig.base.json');
+const { absoluteBaseUrl, paths } = loadConfig(tsconfigPath);
+
+if (!absoluteBaseUrl || !paths) {
+  throw new Error(
+    `[path-register] Failed to load tsconfig paths from ${tsconfigPath}. ` +
+    `absoluteBaseUrl=${absoluteBaseUrl}, paths=${paths}`
+  );
+}
+
 register({
-  baseUrl: path.join(__dirname, 'dist/apps/backend/src'),
-  paths: {
-    '@obsidian/backend-auth':              ['modules/auth/index'],
-    '@obsidian/backend-users':             ['modules/users/index'],
-    '@obsidian/backend-rbac':              ['modules/rbac/index'],
-    '@obsidian/backend-tenancy':           ['modules/tenancy/index'],
-    '@obsidian/backend-market':            ['modules/market/index'],
-    '@obsidian/backend-accounts':          ['modules/accounts/index'],
-    '@obsidian/backend-demo-accounts':     ['modules/demo-accounts/index'],
-    '@obsidian/backend-oms':               ['modules/oms/index'],
-    '@obsidian/backend-realtime':          ['modules/realtime/prana-stream/index'],
-    '@obsidian/backend-notifications':     ['modules/notifications/index'],
-    '@obsidian/backend-admin':             ['modules/admin/index'],
-    '@obsidian/backend-execution-gateway': ['modules/execution-gateway/index'],
-    '@obsidian/backend-broker-hierarchy':  ['modules/broker-hierarchy/index'],
-    '@obsidian/backend-compliance':        ['modules/compliance/index'],
-    '@obsidian/backend-onboarding':        ['modules/onboarding/index'],
-    '@obsidian/backend-risk-policy':       ['modules/risk-policy/index'],
-    '@obsidian/backend-settlement':        ['modules/settlement/index'],
-    '@obsidian/backend-reconciliation':    ['modules/reconciliation/index'],
-    '@obsidian/backend-corporate-actions': ['modules/corporate-actions/index'],
-    '@obsidian/backend-limits-controls':   ['modules/limits-and-controls/index'],
-    '@obsidian/backend-saas-control-plane':['modules/saas-control-plane/index'],
-    '@obsidian/backend-dealing':           ['modules/dealing/index'],
-    '@obsidian/backend-support':           ['modules/support/index'],
-    '@obsidian/backend-partners':          ['modules/partners/index'],
-    '@obsidian/backend-developer-platform':['modules/developer-platform/index'],
-    '@obsidian/backend/*':                 ['*'],
-  }
+  // absoluteBaseUrl from tsconfig-paths is already resolved to the repo root
+  baseUrl: absoluteBaseUrl,
+  // Use paths directly from tsconfig-paths — they are already absolute-compatible
+  paths,
 });

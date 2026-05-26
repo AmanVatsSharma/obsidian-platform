@@ -53,6 +53,10 @@ import { PartnersModule } from '@obsidian/backend-partners';
 import { DeveloperPlatformModule } from '@obsidian/backend-developer-platform';
 import { PlatformTenantSeeder } from './shared/bootstrap/platform-tenant-seeder';
 import { RulesEngineModule } from './modules/rules-engine/rules-engine.module';
+import { TenancyService } from './modules/tenancy/services/tenancy.service';
+import { RbacService } from './modules/rbac/rbac.service';
+import { UsersService } from './modules/users/users.service';
+import { AppLoggerService } from './shared/logger';
 import { PammModule } from './modules/pamm/pamm.module';
 import { CopyTradingModule } from './modules/copy-trading/copy-trading.module';
 import { LpRoutingModule } from './modules/lp-routing/lp-routing.module';
@@ -117,7 +121,14 @@ import { ReportsModule } from './modules/reports/reports.module';
     ReportsModule,
   ],
   controllers: [AppController],
-  providers: [AppService, { provide: APP_GUARD, useClass: TenantThrottlerGuard }, PlatformTenantSeeder],
+  providers: [
+    AppService,
+    { provide: APP_GUARD, useClass: TenantThrottlerGuard },
+    // NOTE: PlatformTenantSeeder is temporarily excluded from providers because NestJS DI cannot
+    // resolve its dependencies (TenancyService/RbacService/UsersService) eagerly in this module
+    // due to circular module references. Re-enable once the circular DI issue is resolved.
+    // PlatformTenantSeeder is non-critical: it only seeds platform tenant data on startup.
+  ],
 })
 export class AppModule {
   configure(consumer: MiddlewareConsumer) {

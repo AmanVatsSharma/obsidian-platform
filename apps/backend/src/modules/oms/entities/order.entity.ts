@@ -165,9 +165,12 @@ export class OrderEntity {
   @Field({ nullable: true })
   algoType?: 'TWAP' | 'VWAP' | 'ICEBERG' | null;
 
+  // NOTE: algoMeta is JSONB — cannot be GraphQL-mapped without a custom JSON scalar.
+  // Keeping @Column for DB persistence; @Field is omitted so schema generation succeeds.
+  // To expose: implement a GraphQL JSON scalar, add @Field(() => GraphQLJSON), re-add @Field.
   @Column({ name: 'algo_meta', type: 'jsonb', nullable: true })
-  @Field({ nullable: true })
-  algoMeta?: Record<string, unknown> | null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  algoMeta?: Record<string, any> | null;
 
   @Column({ name: 'status', type: 'varchar', length: 24, default: 'NEW' })
   @Field(() => String)

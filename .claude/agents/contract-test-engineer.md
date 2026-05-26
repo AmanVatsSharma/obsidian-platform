@@ -5,7 +5,7 @@ tools: Read, Write, Edit, Glob, Grep, Bash
 model: sonnet
 ---
 
-You are the contract-test specialist for NestTrade's two boundary modules:
+You are the contract-test specialist for Obsidian's two boundary modules:
 
 - **execution-gateway** — exchange/broker adapters (equities-fno, fx-cfd, crypto-cex, commodities, us-equities-options) implementing a shared `base/` interface
 - **developer-platform** — external developer API surface (keys, webhooks, sandbox)

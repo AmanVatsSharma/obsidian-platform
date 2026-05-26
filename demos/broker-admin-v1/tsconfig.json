@@ -9,19 +9,36 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "allowSyntheticDefaultImports": true,
     "forceConsistentCasingInFileNames": true,
     "incremental": true,
     "baseUrl": ".",
-    "plugins": [{ "name": "next" }],
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
     "paths": {
-      "@/app/*":              ["src/app/*"],
-      "@/lib/*":              ["src/lib/*"],
-      "@/shared/*":           ["src/shared/*"],
-      "@obsidian/obsidian-ui": ["./libs/obsidian-ui/src/index.ts"]
-    }
+      "@/app/*": [
+        "src/app/*"
+      ],
+      "@/lib/*": [
+        "src/lib/*"
+      ],
+      "@/shared/*": [
+        "src/shared/*"
+      ],
+      "@obsidian/obsidian-ui": [
+        "./libs/obsidian-ui/src/index.ts"
+      ]
+    },
+    "skipLibCheck": true
   },
   "include": [
     "**/*.js",

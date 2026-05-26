@@ -1,9 +1,24 @@
 /**
- * @file src/modules/rbac/entities/role.entity.ts
- * @module rbac
- * @description Role entity (tenant-scoped)
- * @author BharatERP
- * @created 2025-09-19
+ * File:        apps/backend/src/modules/rbac/entities/role.entity.ts
+ * Module:      rbac
+ * Purpose:     Role entity (tenant-scoped)
+ *
+ * Exports:
+ *   - RoleEntity  — DB entity (managed by RbacService)
+ *
+ * Depends on:
+ *   - none
+ *
+ * Side-effects: none
+ *
+ * Key invariants:
+ *   - none
+ *
+ * Read order:
+ *   1. RoleEntity — data shape
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-21
  */
 
 import {

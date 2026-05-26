@@ -1,31 +1,35 @@
 /**
  * File:        apps/broker-admin/src/app/(admin)/dealer-desk/page.tsx
  * Module:      broker-admin · Liquidity · Dealer Desk
- * Purpose:     Manual dealer intervention queue — price deviations, requotes, and dealer metrics
+ * Purpose:     Manual dealer intervention queue — price deviations, requotes, dealer
+ *              metrics, and live position management with hedge capability.
  *
  * Exports:
- *   - default (DealerDeskPage) — three tabs: Queue | History | Performance
+ *   - default (DealerDeskPage) — four tabs: Queue | Positions | History | Performance
  *
  * Depends on:
- *   - none (all data is local state)
+ *   - ../../../lib/api/hooks/use-dealer-desk — live positions, quotes, hedge submission
  *
  * Side-effects:
- *   - Approve/Requote/Reject update local queue state
+ *   - Queue: Approve/Requote/Reject update local queue state
+ *   - Positions: POST /admin/dealer-desk/hedge on hedge action
  *   - Queue items auto-expire (simulated with local state only)
  *
  * Key invariants:
  *   - Deviation % = abs(requested - market) / market * 100
  *   - Items older than 30s highlighted red (urgency indicator)
  *   - Requote moves item to Requoted status in history
+ *   - Positions tab shows real data from backend with mock fallback
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-05-18
  */
 
 'use client';
 
 import { useState } from 'react';
-import { Clock, CheckCircle, XCircle, RefreshCw, TrendingUp } from 'lucide-react';
+import { Clock, CheckCircle, XCircle, RefreshCw, TrendingUp, TrendingDown } from 'lucide-react';
+import { useDealerDesk, type DealerPosition, type DealerQuote } from '../../../lib/api/hooks/use-dealer-desk';
 
 type QueueItem = {
   id: string;
@@ -75,15 +79,35 @@ function devPct(req: number, mkt: number) {
 }
 
 export default function DealerDeskPage() {
-  const [tab, setTab] = useState<'queue' | 'history' | 'performance'>('queue');
+  const { positions, quotes, submitHedge, loading: positionsLoading, totalPnl } = useDealerDesk();
+  const [tab, setTab] = useState<'queue' | 'positions' | 'history' | 'performance'>('positions');
   const [queue, setQueue] = useState<QueueItem[]>(INIT_QUEUE);
   const [requoteValue, setRequoteValue] = useState<Record<string, string>>({});
+  const [hedgeSubmitting, setHedgeSubmitting] = useState<string | null>(null);
+  const [hedgeError, setHedgeError] = useState<string | null>(null);
 
   const pending = queue.filter(q => q.status === 'Pending');
 
   const approve  = (id: string) => setQueue(q => q.map(i => i.id === id ? { ...i, status: 'Approved' } : i));
   const reject   = (id: string) => setQueue(q => q.map(i => i.id === id ? { ...i, status: 'Rejected' } : i));
   const requote  = (id: string) => setQueue(q => q.map(i => i.id === id ? { ...i, status: 'Requoted' } : i));
+
+  const handleHedge = async (pos: DealerPosition, side: 'BUY_HEDGE' | 'SELL_HEDGE') => {
+    setHedgeError(null);
+    setHedgeSubmitting(pos.positionId);
+    try {
+      await submitHedge({
+        symbol: pos.symbol,
+        side,
+        lots: pos.lots,
+        notes: `Manual hedge from dealer desk · position ${pos.positionId}`,
+      });
+    } catch (err) {
+      setHedgeError(err instanceof Error ? err.message : 'Failed to submit hedge');
+    } finally {
+      setHedgeSubmitting(null);
+    }
+  };
 
   const STATUS_BADGE: Record<QueueItem['status'], string> = {
     Pending:  'status-pending',
@@ -122,12 +146,121 @@ export default function DealerDeskPage() {
         </div>
 
         <div className="chart-tabs">
+          <button className={`chart-tab ${tab === 'positions' ? 'active' : ''}`} onClick={() => setTab('positions')}>
+            Positions {positions.length > 0 && <span className="ml-1 font-mono text-[9px] text-accent">{positions.length}</span>}
+          </button>
           <button className={`chart-tab ${tab === 'queue' ? 'active' : ''}`} onClick={() => setTab('queue')}>
             Queue {pending.length > 0 && <span className="ml-1 font-mono text-[9px] text-warn">{pending.length}</span>}
           </button>
           <button className={`chart-tab ${tab === 'history' ? 'active' : ''}`} onClick={() => setTab('history')}>History</button>
-          <button className={`chart-tab ${tab === 'performance' ? 'active' : ''}`} onClick={() => setTab('performance')}>Dealer Performance</button>
+          <button className={`chart-tab ${tab === 'performance' ? 'active' : ''}`} onClick={() => setTab('performance')}>Performance</button>
         </div>
+
+        {/* Positions panel */}
+        {tab === 'positions' && (
+          <div className="space-y-4">
+            {/* P&L KPI */}
+            <div className="grid grid-cols-4 gap-3">
+              {[
+                { label: 'Open Positions', value: positions.length, color: 'text-fg1', icon: <TrendingUp size={14} className="text-fg3" /> },
+                { label: 'Total P&L', value: `$${totalPnl.toFixed(2)}`, color: totalPnl >= 0 ? 'text-bull' : 'text-bear', icon: totalPnl >= 0 ? <TrendingUp size={14} className="text-bull" /> : <TrendingDown size={14} className="text-bear" /> },
+                { label: 'Live Quotes', value: quotes.filter(q => q.status === 'LIVE').length, color: 'text-accent', icon: <Clock size={14} className="text-accent" /> },
+                { label: 'Stale Quotes', value: quotes.filter(q => q.status === 'STALE').length, color: 'text-warn', icon: <Clock size={14} className="text-warn" /> },
+              ].map(k => (
+                <div key={k.label} className="kpi-card">
+                  <div className="flex items-center justify-between">
+                    <p className="kpi-label">{k.label}</p>{k.icon}
+                  </div>
+                  <p className={`kpi-value ${k.color}`}>{k.value}</p>
+                </div>
+              ))}
+            </div>
+
+            {/* Quotes strip */}
+            {quotes.length > 0 && (
+              <div className="flex gap-2 overflow-x-auto pb-1">
+                {quotes.map(q => (
+                  <div key={q.symbol} className={`flex-shrink-0 rounded border px-3 py-2 text-[11px] ${q.status === 'STALE' ? 'border-warn/40 bg-warn/5' : 'border-[var(--border)] bg-[var(--bg-panel)]'}`}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono font-semibold text-fg1">{q.symbol}</span>
+                      <span className={`font-mono ${q.status === 'STALE' ? 'text-warn' : 'text-bull'}`}>{q.bid.toFixed(q.symbol.includes('JPY') || q.symbol.includes('NIFTY') || q.symbol.includes('BANK') || q.symbol.includes('XAU') || q.symbol.includes('BTC') ? 2 : 5)}</span>
+                      <span className="text-fg3">/</span>
+                      <span className="font-mono text-bear">{q.ask.toFixed(q.symbol.includes('JPY') || q.symbol.includes('NIFTY') || q.symbol.includes('BANK') || q.symbol.includes('XAU') || q.symbol.includes('BTC') ? 2 : 5)}</span>
+                      <span className="ml-1 font-mono text-fg3">({q.spread.toFixed(4)})</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Positions table */}
+            {positionsLoading ? (
+              <div className="card p-8 flex flex-col items-center gap-3">
+                <div className="h-5 w-5 rounded-full border-2 border-accent border-t-transparent animate-spin" />
+                <p className="text-[12px] text-fg3">Loading positions...</p>
+              </div>
+            ) : positions.length === 0 ? (
+              <div className="card flex flex-col items-center py-10 text-center">
+                <TrendingUp size={28} className="mb-3 text-fg3" />
+                <p className="text-[12px] font-medium text-fg2">No open positions</p>
+                <p className="mt-1 text-[11px] text-fg3">Positions will appear here once clients trade</p>
+              </div>
+            ) : (
+              <div className="card overflow-x-auto">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Symbol</th><th>Exchange</th><th>Side</th><th>Lots</th><th>Entry</th><th>Current</th><th>P&L</th><th>Value</th><th>Hedge</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {positions.map(pos => {
+                      const isProfitable = pos.pnl >= 0;
+                      const priceDecimals = pos.symbol.includes('JPY') || pos.symbol.includes('NIFTY') || pos.symbol.includes('BANK') || pos.symbol.includes('XAU') || pos.symbol.includes('BTC') ? 2 : 5;
+                      return (
+                        <tr key={pos.positionId} className="hover:bg-[var(--bg-hover)]">
+                          <td className="mono-cell font-bold text-[12px] text-fg1">{pos.symbol}</td>
+                          <td className="mono-cell text-[11px] text-fg3">{pos.exchange}</td>
+                          <td><span className={`badge ${pos.side === 'BUY' ? 'badge-bull' : 'badge-bear'}`}>{pos.side}</span></td>
+                          <td className="mono-cell text-[12px] text-fg1">{pos.lots}</td>
+                          <td className="mono-cell text-[12px] text-fg2">{pos.entryPrice.toFixed(priceDecimals)}</td>
+                          <td className="mono-cell text-[12px] text-accent">{pos.currentPrice.toFixed(priceDecimals)}</td>
+                          <td className={`mono-cell text-[12px] font-bold ${isProfitable ? 'text-bull' : 'text-bear'}`}>
+                            {isProfitable ? '+' : ''}{pos.pnl.toFixed(2)}
+                          </td>
+                          <td className="mono-cell text-[12px] text-fg2">${pos.value.toFixed(2)}</td>
+                          <td>
+                            <div className="flex gap-1">
+                              <button
+                                className="btn btn-xs bg-bull/10 border-bull/30 text-bull hover:bg-bull/20 disabled:opacity-40"
+                                onClick={() => handleHedge(pos, 'BUY_HEDGE')}
+                                disabled={hedgeSubmitting === pos.positionId}
+                              >
+                                {hedgeSubmitting === pos.positionId ? '...' : 'BUY'}
+                              </button>
+                              <button
+                                className="btn btn-xs bg-bear/10 border-bear/30 text-bear hover:bg-bear/20 disabled:opacity-40"
+                                onClick={() => handleHedge(pos, 'SELL_HEDGE')}
+                                disabled={hedgeSubmitting === pos.positionId}
+                              >
+                                {hedgeSubmitting === pos.positionId ? '...' : 'SELL'}
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {hedgeError && (
+              <div className="rounded border border-bear/40 bg-bear/5 px-4 py-2">
+                <p className="text-[11px] text-bear">{hedgeError}</p>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Queue */}
         {tab === 'queue' && (

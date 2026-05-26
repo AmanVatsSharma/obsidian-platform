@@ -4,9 +4,9 @@
 - `features/<name>/` — Vertical slices (UI + feature `lib/`). Import other features only via their **public `index.ts`** or through `shared`.
 - `shared/` — Cross-cutting app code (e.g. providers) used by multiple features. Do not import feature code from here.
 
-**Dependency direction:** `app` → `features` → `shared` → `libs` (`@nesttrade/*`). Avoid `features` → `features` unless mediated by `shared` or an explicit integration module.
+**Dependency direction:** `app` → `features` → `shared` → `libs` (`@obsidian/*`). Avoid `features` → `features` unless mediated by `shared` or an explicit integration module.
 
-Path aliases: `@/features/*`, `@/shared/*` (see `tsconfig.json`). Shared design system: **`@nesttrade/obsidian-ui`** (`libs/obsidian-ui`); Tailwind preset is imported with a **relative** path in `tailwind.config.ts` (PostCSS does not resolve TS paths).
+Path aliases: `@/features/*`, `@/shared/*` (see `tsconfig.json`). Shared design system: **`@obsidian/obsidian-ui`** (`libs/obsidian-ui`); Tailwind preset is imported with a **relative** path in `tailwind.config.ts` (PostCSS does not resolve TS paths).
 
 If you change where `app/` lives, delete `apps/web/.next` before the next build so generated types do not point at stale paths.
 

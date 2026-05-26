@@ -27,6 +27,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
+import { OutboxModule } from '../../shared/outbox/outbox.module';
+import { RbacModule } from '../rbac/rbac.module';
 import { ExecutionEntity } from '../oms/entities/execution.entity';
 import { ReconciliationController } from './controllers/reconciliation.controller';
 import { LpStatementLineEntity } from './entities/lp-statement-line.entity';
@@ -37,6 +39,8 @@ import { ReconciliationResolver } from './reconciliation.resolver';
 @Module({
   imports: [
     SharedModule,
+    OutboxModule,
+    RbacModule,
     TypeOrmModule.forFeature([
       ReconciliationBreakEntity,
       LpStatementLineEntity,

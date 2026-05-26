@@ -6,6 +6,7 @@
  * @created 2025-09-19
  */
 
+import { ObjectType, Field, ID } from '@nestjs/graphql';
 import {
   Column,
   CreateDateColumn,
@@ -15,21 +16,27 @@ import {
   Unique,
 } from 'typeorm';
 
+@ObjectType()
 @Entity('daily_statements')
 @Unique('ux_daily_statement_account_date', ['tenantId', 'accountId', 'date'])
 export class DailyStatementEntity {
+  @Field(() => ID)
   @PrimaryGeneratedColumn('uuid', { name: 'id' })
   id!: string;
 
+  @Field(() => String)
   @Column({ name: 'tenant_id', type: 'varchar', length: 64 })
   tenantId!: string;
 
+  @Field(() => ID)
   @Column({ name: 'account_id', type: 'uuid' })
   accountId!: string;
 
+  @Field(() => String)
   @Column({ name: 'date', type: 'date' })
   date!: string; // UTC date (YYYY-MM-DD)
 
+  @Field(() => String)
   @Column({
     name: 'opening_cash',
     type: 'numeric',
@@ -39,6 +46,7 @@ export class DailyStatementEntity {
   })
   openingCash!: string;
 
+  @Field(() => String)
   @Column({
     name: 'closing_cash',
     type: 'numeric',
@@ -48,6 +56,7 @@ export class DailyStatementEntity {
   })
   closingCash!: string;
 
+  @Field(() => String)
   @Column({
     name: 'deposits',
     type: 'numeric',
@@ -57,6 +66,7 @@ export class DailyStatementEntity {
   })
   deposits!: string;
 
+  @Field(() => String)
   @Column({
     name: 'withdrawals',
     type: 'numeric',
@@ -66,6 +76,7 @@ export class DailyStatementEntity {
   })
   withdrawals!: string;
 
+  @Field(() => String)
   @Column({
     name: 'fees',
     type: 'numeric',
@@ -75,6 +86,7 @@ export class DailyStatementEntity {
   })
   fees!: string;
 
+  @Field(() => String)
   @Column({
     name: 'realized_pnl',
     type: 'numeric',
@@ -84,6 +96,7 @@ export class DailyStatementEntity {
   })
   realizedPnl!: string;
 
+  @Field(() => String)
   @Column({
     name: 'unrealized_pnl',
     type: 'numeric',
@@ -93,6 +106,7 @@ export class DailyStatementEntity {
   })
   unrealizedPnl!: string;
 
+  @Field(() => String)
   @Column({
     name: 'equity',
     type: 'numeric',
@@ -102,6 +116,7 @@ export class DailyStatementEntity {
   })
   equity!: string;
 
+  @Field(() => String)
   @Column({
     name: 'maintenance_margin',
     type: 'numeric',
@@ -111,6 +126,7 @@ export class DailyStatementEntity {
   })
   maintenanceMargin!: string;
 
+  @Field(() => String)
   @Column({
     name: 'buying_power',
     type: 'numeric',
@@ -120,6 +136,7 @@ export class DailyStatementEntity {
   })
   buyingPower!: string;
 
+  @Field(() => Date)
   @CreateDateColumn({ name: 'created_at' })
   createdAt!: Date;
 }

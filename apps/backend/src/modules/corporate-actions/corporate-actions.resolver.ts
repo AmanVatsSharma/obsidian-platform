@@ -7,6 +7,7 @@
  * Exports:
  *   - CorporateActionsResolver — @Query(() => [CorporateActionEntity]), .corporateAction()
  *                                  @Mutation(() => CorporateActionEntity) — announceCorporateAction
+ *   - CorporateActionInput     — GraphQL input type for announceCorporateAction mutation
  *
  * Depends on:
  *   - CorporateActionsService — listActions, createAction
@@ -27,11 +28,11 @@
  *   2. CorporateActionsService  — business logic
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-19
+ * Last-updated: 2026-05-20
  */
 
-import { Resolver, Query, Mutation, Args, ID as GQLID } from '@nestjs/graphql';
-import { ObjectType, Field, ID } from '@nestjs/graphql';
+import { Resolver, Query, Mutation, Args, ID as GQLID, InputType, Field } from '@nestjs/graphql';
+import { ObjectType, Field as GQLField } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@obsidian/backend-auth';
 import { TenantGuard } from '@obsidian/backend-rbac';
@@ -43,21 +44,21 @@ import { getRequestContext } from '../../shared/request-context';
 import { CreateCorporateActionDto } from './dtos/create-corporate-action.dto';
 import { CorporateActionEntity } from './entities/corporate-action.entity';
 
-/* ── GraphQL ObjectTypes ─────────────────────────────────────────────────────── */
+/* ── GraphQL Input/Output Types ───────────────────────────────────────────────── */
 
-@ObjectType()
+@InputType()
 export class CorporateActionInput {
-  @Field()
+  @Field(() => String)
   actionType!: string;
 
-  @Field()
+  @Field(() => String)
   instrumentId!: string;
 
-  @Field()
+  @Field(() => String)
   effectiveDate!: string;
 
-  @Field({ nullable: true })
-  payload!: Record<string, unknown> | null;
+  @Field(() => String, { nullable: true })
+  payload?: string;
 }
 
 /* ── Resolver ──────────────────────────────────────────────────────────────── */
@@ -98,9 +99,16 @@ export class CorporateActionsResolver {
   @Mutation(() => CorporateActionEntity)
   @Permissions('corporate-actions:write')
   async announceCorporateAction(
-    @Args('input') dto: CreateCorporateActionDto,
+    @Args('input', { type: () => CorporateActionInput }) input: CorporateActionInput,
   ): Promise<CorporateActionEntity> {
-    this.logger.debug('CorporateActionsResolver.announceCorporateAction()', dto);
+    this.logger.debug('CorporateActionsResolver.announceCorporateAction()', input);
+    const dto = new CreateCorporateActionDto();
+    const ctx = getRequestContext();
+    dto.tenantId = ctx.tenantId;
+    dto.actionType = input.actionType as 'DIVIDEND' | 'SPLIT' | 'BONUS' | 'MERGER' | 'DELISTING';
+    dto.instrumentId = input.instrumentId;
+    dto.effectiveDate = input.effectiveDate;
+    dto.payload = input.payload ? (JSON.parse(input.payload) as Record<string, unknown>) : {};
     return this.corporateActionsService.createAction(dto);
   }
 }

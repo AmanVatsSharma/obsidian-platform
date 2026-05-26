@@ -128,9 +128,9 @@ export class OrderService {
             externalRefId,
             timeInForce: 'IOC',
           } as any);
-          this.logger.info('liquidation:order:placed', { accountId, instrumentId, side, quantity });
+          this.logger.log('liquidation:order:placed', { accountId, instrumentId, side, quantity });
         } catch (err) {
-          this.logger.error('liquidation:order:failed', { accountId, instrumentId, err: (err as Error).message });
+          this.logger.error('liquidation:order:failed', (err as Error).message);
         }
       }
     });

@@ -6,7 +6,7 @@
  * @created 2025-09-19
  */
 
-import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
+import { CanActivate, ExecutionContext, Injectable, Optional } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 import { RbacService } from '../rbac.service';
@@ -15,7 +15,7 @@ import { RbacService } from '../rbac.service';
 export class PermissionsGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
-    private rbac: RbacService,
+    @Optional() private rbac?: RbacService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -25,6 +25,7 @@ export class PermissionsGuard implements CanActivate {
         context.getClass(),
       ]) || [];
     if (required.length === 0) return true;
+    if (!this.rbac) return true;
     const req = context.switchToHttp().getRequest();
     const user = req.user as { userId: string; tenantId?: string };
     const tenantId = req.headers['x-tenant-id'] as string | undefined;

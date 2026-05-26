@@ -1,9 +1,24 @@
 /**
- * @file src/modules/rbac/entities/permission.entity.ts
- * @module rbac
- * @description Permission entity (tenant-scoped)
- * @author BharatERP
- * @created 2025-09-19
+ * File:        apps/backend/src/modules/rbac/entities/permission.entity.ts
+ * Module:      rbac
+ * Purpose:     Permission entity (tenant-scoped)
+ *
+ * Exports:
+ *   - PermissionEntity  — DB entity (managed by RbacService)
+ *
+ * Depends on:
+ *   - none
+ *
+ * Side-effects: none
+ *
+ * Key invariants:
+ *   - none
+ *
+ * Read order:
+ *   1. PermissionEntity — data shape
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-21
  */
 
 import {

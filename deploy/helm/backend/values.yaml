@@ -1,11 +1,11 @@
-# NestTrade Backend - Default values
+# Obsidian Backend - Default values
 # Author: BharatERP
 # Last-updated: 2025-02-19
 
 replicaCount: 1
 
 image:
-  repository: nesttrade/backend
+  repository: obsidian/backend
   tag: latest
   pullPolicy: IfNotPresent
 

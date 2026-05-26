@@ -47,7 +47,7 @@ import { SettlementResolver } from './settlement.resolver';
     SettlementOutboxHandler,
     // Register SettlementOutboxHandler as a multi-provider under OUTBOX_HANDLERS
     // so OutboxWorkerSkeleton (which @Injects OUTBOX_HANDLERS) discovers it.
-    { provide: OUTBOX_HANDLERS, useClass: SettlementOutboxHandler, multi: true },
+    { provide: OUTBOX_HANDLERS, useClass: SettlementOutboxHandler, multi: true } as any,
   ],
   exports: [SettlementService, TypeOrmModule],
 })

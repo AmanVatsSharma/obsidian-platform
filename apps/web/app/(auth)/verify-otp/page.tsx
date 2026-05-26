@@ -1,3 +1,24 @@
+/**
+ * File:        apps/web/app/(auth)/verify-otp/page.tsx
+ * Module:      web · Auth · Verify OTP (debug/direct)
+ * Purpose:     Raw OTP verification form kept for direct API testing; replaced in production UX by /login.
+ *
+ * Exports:
+ *   - VerifyOtpPage() — client component
+ *
+ * Depends on:
+ *   - @/shared/providers/auth-provider — useAuth().verifyOtp
+ *
+ * Side-effects:
+ *   - POST /auth/otp/verify via AuthProvider; stores access token on success
+ *
+ * Key invariants:
+ *   - Debug-only; no Obsidian styling applied intentionally
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-09
+ */
+
 "use client";
 import { useAuth } from '@/shared/providers/auth-provider';
 import { useState } from 'react';

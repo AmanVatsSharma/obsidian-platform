@@ -109,13 +109,28 @@ export class UsersResolver {
 
   @Query(() => UserListDto)
   @UseGuards(JwtAuthGuard, TenantGuard, PermissionsGuard)
-    @Permissions('users:read')
+  @Permissions('users:read')
   async users(
     @Args('tenantId') tenantId: string,
     @Args('page', { nullable: true }) page?: number,
     @Args('limit', { nullable: true }) limit?: number,
     @Args('search', { nullable: true }) search?: string,
   ): Promise<UserListDto> {
-    return this.usersService.findAll(tenantId, { page, limit, search }) as any;
+    return this.usersService.findAll(tenantId, { page, limit, search }).then(r => ({
+      data: r.data.map(e => ({
+        id: e.id,
+        tenantId: e.tenantId,
+        email: e.email ?? null,
+        isMobileVerified: e.isMobileVerified,
+        isEmailVerified: e.isEmailVerified,
+        name: e.name ?? null,
+        countryCode: e.countryCode ?? null,
+        isActive: e.isActive,
+        createdAt: e.createdAt,
+      } as UserDto)),
+      page: r.page,
+      limit: r.limit,
+      total: r.total,
+    }));
   }
 }

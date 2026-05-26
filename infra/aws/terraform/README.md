@@ -1,6 +1,6 @@
-# NestTrade AWS Infrastructure
+# Obsidian AWS Infrastructure
 
-Terraform-managed AWS infrastructure for NestTrade broker SaaS platform.
+Terraform-managed AWS infrastructure for Obsidian broker SaaS platform.
 
 ## Modules
 

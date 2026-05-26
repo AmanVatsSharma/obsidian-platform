@@ -112,7 +112,7 @@ export class LimitsAndControlsService {
 
   async createException(dto: CreateLimitExceptionDto): Promise<LimitExceptionEntity> {
     this.logger.debug('createException:start', dto);
-    const saved = await this.exceptions.save(this.exceptions.create(dto));
+    const saved = await this.exceptions.save(this.exceptions.create(dto as any) as unknown as LimitExceptionEntity);
     this.logger.debug('createException:end', { exceptionId: saved.id });
     return saved;
   }

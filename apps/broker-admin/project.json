@@ -30,7 +30,11 @@
     "lint": {
       "executor": "@nx/eslint:lint",
       "options": {
-        "lintFilePatterns": ["apps/broker-admin/**/*.{ts,tsx,js,jsx}"]
+        "lintFilePatterns": [
+          "apps/broker-admin/src/**/*.{ts,tsx,js,jsx}",
+          "apps/broker-admin/*.config.{js,ts,mjs}",
+          "apps/broker-admin/next.config.{js,ts,mjs}"
+        ]
       }
     }
   }

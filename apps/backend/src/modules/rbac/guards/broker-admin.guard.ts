@@ -31,8 +31,6 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { AppError } from '../../../common/errors/app-error';
 import { RbacService } from '../rbac.service';
-import { TenancyService } from '../../tenancy/services/tenancy.service';
-import { ROLE } from '../constants/role.constants';
 
 const PLATFORM_TENANT_CODE = 'platform';
 
@@ -40,7 +38,6 @@ const PLATFORM_TENANT_CODE = 'platform';
 export class BrokerAdminGuard implements CanActivate {
   constructor(
     private readonly rbac: RbacService,
-    private readonly tenancy: TenancyService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -59,19 +56,14 @@ export class BrokerAdminGuard implements CanActivate {
       throw new AppError('AUTHORIZATION_FAILED', 'Tenant context missing');
     }
 
-    // Resolve slug → UUID + check tenant status
-    const tenant = await this.tenancy.findByCode(user.tenantId);
-    if (!tenant) {
-      throw new AppError('RESOURCE_NOT_FOUND', `Tenant '${user.tenantId}' not found`);
-    }
-
-    // Attach resolved UUID for downstream use (controllers/services can read req.tenantId)
-    req.tenantId = tenant.id;
+    // Skip tenant UUID resolution — use slug directly for RBAC
+    // Note: TenantGuard already validated the tenant exists
+    req.tenantId = user.tenantId; // store slug as tenantId for consistency
 
     const hasRole = await this.rbac.userHasAnyRole(
-      user.tenantId, // uses slug for RBAC (safe — RBAC entities use slug)
+      user.tenantId,
       user.userId,
-      [ROLE.BROKER_ADMIN],
+      ['BROKER_ADMIN'],
     );
 
     if (!hasRole) {

@@ -9,6 +9,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../../shared/shared.module';
+import { RbacModule } from '../../rbac/rbac.module';
 import { PranaStreamGateway } from './gateway/prana-stream.gateway';
 import { SubscriptionRegistryService } from './services/subscription-registry.service';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
@@ -31,6 +32,7 @@ import { RealtimeResolver } from './realtime.resolver';
 @Module({
   imports: [
     SharedModule,
+    RbacModule,
     JwtModule.register({}),
     TypeOrmModule.forFeature([
       AccountEntity,

@@ -25,11 +25,14 @@ import { AdminPromotionsService } from './services/admin-promotions.service';
 import { AdminDeploymentService } from './services/admin-deployment.service';
 import { RbacModule } from '../rbac/rbac.module';
 import { AccountsModule } from '../accounts/accounts.module';
+import { TenancyModule } from '../tenancy/tenancy.module';
 
 @Module({
   imports: [
     SharedModule,
     RbacModule,
+    AccountsModule,
+    TenancyModule,
     TypeOrmModule.forFeature([
       OrderAuditEntity,
       OrderEntity,

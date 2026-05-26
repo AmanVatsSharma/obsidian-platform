@@ -27,6 +27,8 @@ import { useMemo, useState } from 'react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AlertTriangle, Shield, Activity } from 'lucide-react';
 import { useBrokerData } from '@/lib/mock-data-context';
+import { useAmlMonitor } from '@/lib/api/hooks/use-aml-monitor';
+import type { AMLCase } from '@/lib/types';
 
 const RISK_BANDS = [
   { label: '0–25',   color: 'var(--bull)',    bg: 'bg-bull/10',   text: 'text-bull'   },
@@ -51,7 +53,8 @@ const SEVERITY_COLOR: Record<string, string> = {
 };
 
 export default function AMLMonitorPage() {
-  const { clients, transactions, surveillance } = useBrokerData();
+  const { clients, transactions } = useBrokerData();
+  const { cases: amlCases } = useAmlMonitor();
   const [selectedPattern, setSelectedPattern] = useState<string | null>(null);
 
   const amlScores = useMemo(() =>
@@ -80,6 +83,11 @@ export default function AMLMonitorPage() {
     [transactions]
   );
 
+  const openAmlCases = useMemo(() =>
+    amlCases.filter(c => c.status === 'Review' || c.status === 'Suspicious' || c.status === 'Reported').length,
+    [amlCases]
+  );
+
   const chartData = distribution.map(d => ({ name: d.label, count: d.count, color: d.color }));
 
   return (
@@ -90,7 +98,7 @@ export default function AMLMonitorPage() {
           <p className="module-subtitle">
             {highRiskClients.length} high-risk clients ·{' '}
             {flaggedTxns.length} flagged transactions ·{' '}
-            {AML_PATTERNS.filter(p => p.severity === 'Critical').length} critical patterns
+            {openAmlCases} open AML cases
           </p>
         </div>
       </div>
@@ -101,7 +109,7 @@ export default function AMLMonitorPage() {
           {[
             { label: 'High-Risk Clients',    value: highRiskClients.length,                         icon: <AlertTriangle size={16} className="text-bear" />,   color: 'text-bear'   },
             { label: 'Flagged Transactions', value: flaggedTxns.length,                              icon: <Activity size={16} className="text-warn" />,        color: 'text-warn'   },
-            { label: 'Open AML Patterns',    value: AML_PATTERNS.length,                             icon: <Shield size={16} className="text-accent" />,        color: 'text-accent' },
+            { label: 'Open AML Cases',      value: openAmlCases,                                    icon: <Shield size={16} className="text-accent" />,        color: 'text-accent' },
             { label: 'Avg Risk Score',       value: (amlScores.reduce((s,n)=>s+n,0)/Math.max(1,amlScores.length)).toFixed(1), icon: <Activity size={16} className="text-fg2" />, color: 'text-fg1' },
           ].map(k => (
             <div key={k.label} className="kpi-card">

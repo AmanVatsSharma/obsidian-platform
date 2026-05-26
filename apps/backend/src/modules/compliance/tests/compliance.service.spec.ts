@@ -75,7 +75,7 @@ describe('ComplianceService', () => {
       kycTier: 'BASIC',
       amlRiskLevel: 'LOW',
       sanctionsProvider: 'provider-x',
-      suitabilityRules: {},
+      suitabilityRules: '{}',
       auditRetentionDays: 365,
     });
     expect(result.id).toBe('policy-1');

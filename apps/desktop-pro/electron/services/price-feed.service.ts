@@ -46,7 +46,7 @@ export class PriceFeedService {
     }
   }
 
-  connect(url = process.env['NESTTRADE_WS_URL'] ?? 'http://localhost:3000'): void {
+  connect(url = process.env['OBSIDIAN_WS_URL'] ?? 'http://localhost:3000'): void {
     if (this.socket?.connected) return;
 
     this.socket = io(url, {

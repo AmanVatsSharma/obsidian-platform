@@ -35,7 +35,7 @@ describe('PartnersService', () => {
       tenantId: '50edbf05-f7f0-4f95-a9d5-141bce0e7471',
       name: 'Acme Corp',
       code: 'ACME',
-      metadata: {},
+      metadata: '{}',
     });
     expect(result.id).toBe('partner-1');
   });

@@ -1,6 +1,6 @@
-# NestTrade Helm Charts
+# Obsidian Helm Charts
 
-Helm chart skeletons for deploying NestTrade workloads to EKS.
+Helm chart skeletons for deploying Obsidian workloads to EKS.
 
 ## Charts
 

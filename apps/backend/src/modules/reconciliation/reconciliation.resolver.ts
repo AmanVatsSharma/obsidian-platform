@@ -29,6 +29,7 @@ import { ObjectType, Field, ID, Int, Float } from '@nestjs/graphql';
 import { Resolver, Query, Mutation, Args } from '@nestjs/graphql';
 import { UseGuards } from '@nestjs/common';
 import { ReconciliationService } from './services/reconciliation.service';
+import { ReconciliationBreakEntity } from './entities/reconciliation-break.entity';
 import { JwtAuthGuard } from '@obsidian/backend-auth';
 import { TenantGuard } from '@obsidian/backend-rbac';
 import { PermissionsGuard } from '@obsidian/backend-rbac';
@@ -91,26 +92,14 @@ export class ReconciliationResolver {
     this.logger.setContext(ReconciliationResolver.name);
   }
 
-  @Query(() => [ReconciliationBreakObjectType], { name: 'reconciliationBreaks' })
+  @Query(() => [ReconciliationBreakEntity], { name: 'reconciliationBreaks' })
   @Permissions('reconciliation:read')
   async listBreaks(
     @Tenant() tenantId: string,
     @Args('status', { nullable: true }) status?: string,
-  ): Promise<ReconciliationBreakObjectType[]> {
+  ): Promise<ReconciliationBreakEntity[]> {
     this.logger.debug('ReconciliationResolver.listBreaks()', { tenantId, status });
-    const breaks = await this.svc.listBreaks(tenantId, { status: status as any });
-    return breaks.map((b) => ({
-      id: b.id,
-      tenantId: b.tenantId,
-      symbol: (b as any).symbol ?? "UNKNOWN",
-      breakType: b.breakType,
-      status: b.status,
-      message: (b as any).message ?? null,
-      quantityDiff: parseFloat((b as any).quantityDiff ?? '0'),
-      priceDiff: parseFloat((b as any).priceDiff ?? '0'),
-      isAging: b.isAging ?? false,
-      createdAt: b.createdAt?.toISOString() ?? '',
-    }));
+    return this.svc.listBreaks(tenantId, { status: status as any });
   }
 
   @Mutation(() => ReconciliationResultObjectType)
@@ -120,33 +109,21 @@ export class ReconciliationResolver {
     @Args('statementDate') statementDate: string,
   ): Promise<ReconciliationResultObjectType> {
     this.logger.debug('ReconciliationResolver.runReconciliation()', { tenantId, statementDate });
-    const result = await this.svc.runReconciliation({ tenantId, statementDate });
+    const breaks = await this.svc.runReconciliation({ tenantId, statementDate });
     return {
-      breaksFound: result.length,
+      breaksFound: breaks.length,
       tradesMatched: 0,
       ranAt: new Date().toISOString(),
     };
   }
 
-  @Mutation(() => ReconciliationBreakObjectType)
+  @Mutation(() => ReconciliationBreakEntity)
   @Permissions('reconciliation:write')
   async resolveReconciliationBreak(
     @Tenant() tenantId: string,
     @Args('id') id: string,
-  ): Promise<ReconciliationBreakObjectType> {
+  ): Promise<ReconciliationBreakEntity> {
     this.logger.debug('ReconciliationResolver.resolveBreak()', { tenantId, id });
-    const b = await this.svc.resolveBreak(id, tenantId);
-    return {
-      id: b.id,
-      tenantId: b.tenantId,
-      symbol: (b as any).symbol ?? '',
-      breakType: b.breakType,
-      status: b.status,
-      message: (b as any).message ?? null,
-      quantityDiff: parseFloat((b as any).quantityDiff ?? '0'),
-      priceDiff: parseFloat((b as any).priceDiff ?? '0'),
-      isAging: b.isAging ?? false,
-      createdAt: b.createdAt?.toISOString() ?? '',
-    };
+    return this.svc.resolveBreak(id, tenantId);
   }
 }

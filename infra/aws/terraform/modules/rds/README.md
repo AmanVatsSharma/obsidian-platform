@@ -1,6 +1,6 @@
 # RDS Module
 
-Creates RDS PostgreSQL instance for NestTrade primary data store.
+Creates RDS PostgreSQL instance for Obsidian primary data store.
 
 ## Inputs
 

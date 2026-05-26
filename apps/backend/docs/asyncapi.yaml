@@ -1,6 +1,6 @@
 asyncapi: 3.0.0
 info:
-  title: NestTrade Realtime API
+  title: Obsidian Realtime API
   version: 1.0.0
   description: Realtime streams (SSE/WS) for orders and positions
 servers:

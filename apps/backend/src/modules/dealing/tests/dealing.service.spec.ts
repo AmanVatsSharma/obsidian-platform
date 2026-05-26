@@ -37,7 +37,7 @@ describe('DealingService', () => {
       side: 'BUY',
       quantity: '100',
       price: '750.50',
-      metadata: {},
+      metadata: '{}',
     });
     expect(result.id).toBe('deal-1');
   });

@@ -1,11 +1,11 @@
-# NestTrade Web - Default values
+# Obsidian Web - Default values
 # Author: BharatERP
 # Last-updated: 2025-02-19
 
 replicaCount: 1
 
 image:
-  repository: nesttrade/web
+  repository: obsidian/web
   tag: latest
   pullPolicy: IfNotPresent
 

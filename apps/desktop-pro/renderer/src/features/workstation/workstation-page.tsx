@@ -41,13 +41,13 @@ export function WorkstationPage() {
     async (path, init) => {
       const fullUrl = path.startsWith('http')
         ? path
-        : `${window.__NESTTRADE_API_BASE__ ?? 'http://localhost:3000'}${path}`;
+        : `${window.__OBSIDIAN_API_BASE__ ?? 'http://localhost:3000'}${path}`;
 
       const res = await fetch(fullUrl, {
         ...init,
         headers: {
           'content-type': 'application/json',
-          'x-tenant-id': window.__NESTTRADE_TENANT_ID__ ?? 'acme',
+          'x-tenant-id': window.__OBSIDIAN_TENANT_ID__ ?? 'acme',
           ...(token ? { authorization: `Bearer ${token}` } : {}),
           ...(init?.headers as Record<string, string>),
         },
@@ -59,8 +59,8 @@ export function WorkstationPage() {
   );
 
   const omsConfig: OmsConfig = {
-    accountId: window.__NESTTRADE_ACCOUNT_ID__,
-    demoInstrumentId: window.__NESTTRADE_DEMO_INSTRUMENT_ID__,
+    accountId: window.__OBSIDIAN_ACCOUNT_ID__,
+    demoInstrumentId: window.__OBSIDIAN_DEMO_INSTRUMENT_ID__,
   };
 
   return (
@@ -73,9 +73,9 @@ export function WorkstationPage() {
 
 declare global {
   interface Window {
-    __NESTTRADE_API_BASE__?: string;
-    __NESTTRADE_TENANT_ID__?: string;
-    __NESTTRADE_ACCOUNT_ID__?: string;
-    __NESTTRADE_DEMO_INSTRUMENT_ID__?: string;
+    __OBSIDIAN_API_BASE__?: string;
+    __OBSIDIAN_TENANT_ID__?: string;
+    __OBSIDIAN_ACCOUNT_ID__?: string;
+    __OBSIDIAN_DEMO_INSTRUMENT_ID__?: string;
   }
 }

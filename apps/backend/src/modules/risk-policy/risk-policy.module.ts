@@ -28,6 +28,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
+import { RbacModule } from '../rbac/rbac.module';
 import { ComplianceModule } from '../compliance/compliance.module';
 import { RiskPolicyResolver } from './risk-policy.resolver';
 import { RiskPolicyController } from './controllers/risk-policy.controller';
@@ -41,6 +42,7 @@ import { RiskDashboardService } from './services/risk-dashboard.service';
 @Module({
   imports: [
     SharedModule,
+    RbacModule,
     ComplianceModule,
     TypeOrmModule.forFeature([RiskPolicyEntity, TenantRiskPolicyEntity, TenantEntity]),
   ],

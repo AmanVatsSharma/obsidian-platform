@@ -25,7 +25,7 @@
 - `src/lib/mock-data.ts` — Initial mock arrays.
 - `src/lib/mock-data-context.tsx` — React context for mock state and actions (addTenant, upsertEntitlement, addBillingInvoice).
 
-**Dependencies:** Next.js, `@nesttrade/web-auth` (hasRole, SessionPrincipal). No backend fetch in this phase.
+**Dependencies:** Next.js, `@obsidian/web-auth` (hasRole, SessionPrincipal). No backend fetch in this phase.
 
 **Change-log**
 - 2026-03-15: Platform Owner UI completed with mock data: layout + sidebar, tenants (list + create), entitlements (list + upsert), billing (list + create), audit controls (read-only list + tenant filter). Types and mock data aligned with backend; backend integration deferred.

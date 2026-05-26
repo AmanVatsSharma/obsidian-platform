@@ -1,23 +1,26 @@
 /**
  * File:        apps/broker-admin/src/app/(admin)/dashboard/page.tsx
  * Module:      broker-admin · Dashboard
- * Purpose:     Executive overview — KPIs, revenue chart, live activity feed, top clients, system status
+ * Purpose:     Executive overview — KPIs, revenue chart, live activity feed, top clients, system status.
+ *              Now wired to real backend APIs (GET /admin/dashboard/stats, GET /admin/users) with
+ *              graceful fallback to mock data when APIs are unavailable.
  *
  * Exports:
  *   - DashboardPage() — page component
  *
  * Depends on:
  *   - recharts              — ComposedChart, BarChart, ResponsiveContainer
- *   - ../../../lib/mock-data-context — useBrokerData
+ *   - ../../../lib/api/hooks/use-broker-dashboard — useRealBrokerData (API-first, mock fallback)
  *
  * Side-effects:
- *   - setInterval 3s for activity feed simulation
+ *   - setInterval 4s for activity feed simulation
  *
  * Key invariants:
  *   - 'use client' — recharts is client-only
+ *   - Falls back to mock data if API calls fail (safe default, always renders)
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-05-11
  */
 
 'use client';
@@ -36,7 +39,7 @@ import {
 } from 'recharts';
 import { Activity, AlertTriangle, DollarSign, TrendingUp, UserCheck, Users } from 'lucide-react';
 import { cn } from '@obsidian/obsidian-ui';
-import { useBrokerData } from '../../../lib/mock-data-context';
+import { useRealBrokerData } from '../../../lib/api/hooks/use-broker-dashboard';
 import type { ActivityEvent } from '../../../lib/types';
 
 // ─── FORMATTERS ────────────────────────────────────────────────────────────────
@@ -101,7 +104,7 @@ function KPICard({ label, value, sub, delta, up, sparkData, icon }: KPICardProps
 // ─── REVENUE CHART ────────────────────────────────────────────────────────────
 
 function RevenueChart() {
-  const { revenueData } = useBrokerData();
+  const { revenueData } = useRealBrokerData();
   const [tab, setTab] = useState<'daily' | 'weekly'>('daily');
 
   const displayed = useMemo(() => {
@@ -115,7 +118,7 @@ function RevenueChart() {
           spread:     chunk.reduce((a, b) => a + b.spread, 0),
           commission: chunk.reduce((a, b) => a + b.commission, 0),
           swap:       chunk.reduce((a, b) => a + b.swap, 0),
-          bonusCost:  chunk.reduce((a, b) => a + b.bonusCost, 0),
+          bonusCost:  chunk.reduce((a, b) => a + (b.bonusCost ?? 0), 0),
           total:      chunk.reduce((a, b) => a + b.total, 0),
         });
       }
@@ -197,7 +200,7 @@ const EVENT_COLORS: Record<string, string> = {
 };
 
 function ActivityFeed() {
-  const { activityFeed } = useBrokerData();
+  const { activityFeed } = useRealBrokerData();
   const [feed, setFeed] = useState<ActivityEvent[]>(activityFeed.slice(0, 8));
 
   useEffect(() => {
@@ -256,7 +259,7 @@ function ActivityFeed() {
 // ─── TOP CLIENTS ──────────────────────────────────────────────────────────────
 
 function TopClients() {
-  const { clients } = useBrokerData();
+  const { clients } = useRealBrokerData();
   const top = [...clients].sort((a, b) => b.volumeMTD - a.volumeMTD).slice(0, 5);
 
   return (
@@ -305,7 +308,7 @@ function TopClients() {
 // ─── SYSTEM STATUS GRID ───────────────────────────────────────────────────────
 
 function SystemStatusGrid() {
-  const { systemStatus } = useBrokerData();
+  const { systemStatus } = useRealBrokerData();
   return (
     <div className="card">
       <div className="card-header">
@@ -348,7 +351,7 @@ function SystemStatusGrid() {
 // ─── EXPOSURE BAR CHART ───────────────────────────────────────────────────────
 
 function ExposureChart() {
-  const { riskMetrics } = useBrokerData();
+  const { riskMetrics } = useRealBrokerData();
   const data = riskMetrics.map(r => ({
     symbol: r.symbol,
     net: Math.abs(r.netExposure) / 1_000,
@@ -391,7 +394,7 @@ function ExposureChart() {
 // ─── PAGE ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
-  const { clients, config, riskMetrics, pendingKycCount, pendingTxCount, openAlertCount } = useBrokerData();
+  const { clients, config, riskMetrics, pendingKycCount, pendingTxCount, openAlertCount } = useRealBrokerData();
 
   const activeClients  = clients.filter(c => c.status === 'Active').length;
   const totalEquity    = clients.reduce((a, c) => a + c.equity, 0);

@@ -259,7 +259,7 @@ function ChartScreen({
     if (!containerRef.current) return;
     let chart: any;
     const init = async () => {
-      const { createChart, CrosshairMode, CandlestickSeries, HistogramSeries } = await import('lightweight-charts');
+      const { createChart, CrosshairMode } = await import('lightweight-charts');
       if (!containerRef.current) return;
       chart = createChart(containerRef.current, {
         width: containerRef.current.clientWidth,
@@ -272,14 +272,14 @@ function ChartScreen({
         handleScroll: true, handleScale: true,
       });
 
-      const series = chart.addSeries(CandlestickSeries, {
+      const series = chart.addCandlestickSeries({
         upColor: '#10D996', downColor: '#FF3B5C',
         borderUpColor: '#10D996', borderDownColor: '#FF3B5C',
         wickUpColor: '#10D996', wickDownColor: '#FF3B5C',
       });
       candleRef.current = series;
 
-      const volSeries = chart.addSeries(HistogramSeries, { priceFormat: { type: 'volume' as const }, priceScaleId: 'volume' });
+      const volSeries = chart.addHistogramSeries({ priceFormat: { type: 'volume' as const }, priceScaleId: 'volume' });
       chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
 
       const candles = generateOHLCV(instrument?.bid ?? 1.08452, 200);

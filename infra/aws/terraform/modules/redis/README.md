@@ -1,6 +1,6 @@
 # Redis Module
 
-Creates ElastiCache Redis cluster for NestTrade caching and sessions.
+Creates ElastiCache Redis cluster for Obsidian caching and sessions.
 
 ## Inputs
 

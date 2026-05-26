@@ -62,8 +62,8 @@ export class PartnerPayoutResult {
   @Field()
   status!: string;
 
-  @Field({ nullable: true })
-  audit!: Record<string, unknown> | null;
+  @Field(() => String, { nullable: true })
+  audit!: string | null;
 }
 
 /* ── Resolver ──────────────────────────────────────────────────────────────── */
@@ -122,7 +122,7 @@ export class PartnersResolver {
     return {
       partnerId: result.partnerId,
       status: result.status,
-      audit: result.audit,
+      audit: typeof result.audit === 'object' ? JSON.stringify(result.audit) : String(result.audit ?? null),
     };
   }
 }

@@ -37,7 +37,7 @@ describe('SupportService', () => {
       subject: 'Reset leverage',
       description: 'Need leverage reset for desk account',
       priority: 'HIGH',
-      metadata: {},
+      metadata: '{}',
     });
     expect(result.id).toBe('ticket-1');
   });

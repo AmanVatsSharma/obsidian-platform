@@ -30,6 +30,45 @@ import { AppError } from '../../common/errors/app-error';
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
+  // DEV ONLY: Direct login bypass for platform owner
+  // TODO: Remove this before production!
+  @Post('dev/login')
+  async devLogin(
+    @Body() dto: { tenantId: string; mobileE164: string; password?: string },
+  ) {
+    if (process.env.NODE_ENV === 'production') {
+      throw new AppError('FORBIDDEN', 'Dev login disabled in production');
+    }
+    // Accept any password in dev, or use default dev password
+    if (dto.password && dto.password !== 'platform123') {
+      throw new AppError('UNAUTHORIZED', 'Invalid password');
+    }
+    // Find or create user
+    let user;
+    try {
+      user = await (this.auth as any).users.findByMobile(dto.tenantId, dto.mobileE164);
+    } catch {}
+    if (!user) {
+      user = await (this.auth as any).users.create({
+        tenantId: dto.tenantId,
+        mobileE164: dto.mobileE164,
+        name: 'Platform Owner',
+      });
+    }
+    // Generate tokens
+    const tokenId = require('crypto').randomUUID();
+    const jwt = require('@nestjs/jwt');
+    const accessToken = await (this.auth as any).jwt.signAsync(
+      { sub: user.id, tid: dto.tenantId, role: 'platform_owner' },
+      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '24h' },
+    );
+    const refreshToken = await (this.auth as any).jwt.signAsync(
+      { sub: user.id, tid: dto.tenantId, jti: tokenId },
+      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: '30d' },
+    );
+    return { accessToken, refreshToken, tokenId, userId: user.id };
+  }
+
   @Post('otp/request')
   @ApiOperation({ summary: 'Request OTP', description: 'Send login OTP to a mobile number. Include header x-tenant-id for multi-tenant environments (optional in dev).' })
   @ApiBody({ type: RequestOtpDto, examples: { default: { value: { tenantId: 'acme', mobileE164: '+911234567890' } } } })

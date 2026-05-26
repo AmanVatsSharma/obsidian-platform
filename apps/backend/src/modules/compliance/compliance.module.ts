@@ -28,6 +28,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
+import { RbacModule } from '../rbac/rbac.module';
 import { ComplianceResolver } from './compliance.resolver';
 import { ComplianceController } from './controllers/compliance.controller';
 import { AdminComplianceController } from './controllers/admin-compliance.controller';
@@ -42,9 +43,9 @@ import { DfsaAdapter } from './adapters/dfsa.adapter';
 import { FcaAdapter } from './adapters/fca.adapter';
 
 @Module({
-  imports: [SharedModule, TypeOrmModule.forFeature([CompliancePolicyEntity, SurveillanceAlertEntity])],
+  imports: [SharedModule, RbacModule, TypeOrmModule.forFeature([CompliancePolicyEntity, SurveillanceAlertEntity])],
   controllers: [ComplianceController, AdminComplianceController, AdminCompliancePoliciesController, AdminSurveillanceController, AdminAmlController],
   providers: [ComplianceResolver, ComplianceService, SurveillanceService, DfsaAdapter, FcaAdapter],
-  exports: [ComplianceService, SurveillanceService, SurveillanceAlertEntity],
+  exports: [ComplianceService, SurveillanceService, TypeOrmModule],
 })
 export class ComplianceModule {}

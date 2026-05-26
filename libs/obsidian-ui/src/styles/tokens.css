@@ -75,6 +75,14 @@
   --dur:       180ms;
   --dur-slow:  300ms;
 
+  /* ─── DENSITY DEFAULTS ────────────────────────────────────────────────
+   * `regular` is the product default. Overrides for compact / comfortable
+   * follow below as [data-density="..."] blocks (set by ObsidianProvider).
+   * ──────────────────────────────────────────────────────────────────── */
+  --row-h:     36px;
+  --card-pad:  18px;
+  --sec-gap:   24px;
+
   /* ─── BACKWARD-COMPAT ALIASES ────────────────────────────────────────
    * Existing components resolve Tailwind utilities through --obs-* vars.
    * These aliases forward them to the new dark-terminal tokens so no
@@ -154,6 +162,30 @@
   --shadow-glow-bull:   0 0 14px rgba(5,142,101,0.14);
   --shadow-glow-bear:   0 0 14px rgba(209,30,63,0.14);
   --shadow-glow-accent: 0 0 14px rgba(37,99,235,0.14);
+}
+
+/* ─── DENSITY OVERRIDES ──────────────────────────────────────────────────
+ * Set by ObsidianProvider via document.documentElement.dataset.density.
+ * Tighten or loosen the vertical rhythm globally without changing component
+ * code; consumers reference --row-h / --card-pad / --sec-gap.
+ * ──────────────────────────────────────────────────────────────────────── */
+:root[data-density="compact"],
+[data-density="compact"] {
+  --row-h:    30px;
+  --card-pad: 14px;
+  --sec-gap:  18px;
+}
+:root[data-density="regular"],
+[data-density="regular"] {
+  --row-h:    36px;
+  --card-pad: 18px;
+  --sec-gap:  24px;
+}
+:root[data-density="comfortable"],
+[data-density="comfortable"] {
+  --row-h:    42px;
+  --card-pad: 24px;
+  --sec-gap:  32px;
 }
 
 @media (prefers-reduced-motion: reduce) {

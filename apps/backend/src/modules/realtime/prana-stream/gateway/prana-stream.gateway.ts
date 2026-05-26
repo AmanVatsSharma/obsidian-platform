@@ -28,6 +28,12 @@ type SubscribePayload = {
   accounts?: boolean;
 };
 
+type OrderBookSubscribePayload = {
+  channel: 'orderbook';
+  exchange: string;
+  symbol: string;
+};
+
 @WebSocketGateway({ namespace: '/ws/prana', cors: { origin: '*' } })
 @UseGuards(WsJwtGuard)
 export class PranaStreamGateway
@@ -59,22 +65,34 @@ export class PranaStreamGateway
     this.aggregator.recomputeMarketSubscriptions().catch(() => undefined);
   }
 
-  @SubscribeMessage('subscribe')
-  async subscribe(client: Socket, @MessageBody() payload: SubscribePayload) {
-    const userId = (client.handshake.auth?.userId as string) || '';
-    const tenantId = (client.handshake.auth?.tenantId as string) || '';
-    await this.subs.apply(client.id, userId, payload);
-    await this.aggregator.recomputeMarketSubscriptions();
-    const snapshots = await this.aggregator.getSnapshots(userId, tenantId, payload);
-    if (snapshots) client.emit('snapshot', snapshots);
-    return { ok: true };
-  }
-
   @SubscribeMessage('unsubscribe')
   async unsubscribe(client: Socket, @MessageBody() payload: SubscribePayload) {
     const userId = (client.handshake.auth?.userId as string) || '';
     await this.subs.remove(client.id, payload);
     await this.aggregator.recomputeMarketSubscriptions();
+    return { ok: true };
+  }
+
+  /**
+   * Unified subscribe handler supporting both domain subscriptions (watchlist/orders/positions/accounts)
+   * and orderbook channel subscriptions. Orderbook payloads have channel === 'orderbook'.
+   */
+  @SubscribeMessage('subscribe')
+  async subscribe(client: Socket, @MessageBody() payload: SubscribePayload | OrderBookSubscribePayload) {
+    if ((payload as OrderBookSubscribePayload).channel === 'orderbook') {
+      const ob = payload as OrderBookSubscribePayload;
+      const key = `${ob.exchange}:${ob.symbol}`.toUpperCase();
+      client.join(`orderbook:${key}`);
+      this.logger.debug('orderbook subscription registered', { key, clientId: client.id });
+      return { ok: true, key };
+    }
+    const p = payload as SubscribePayload;
+    const userId = (client.handshake.auth?.userId as string) || '';
+    const tenantId = (client.handshake.auth?.tenantId as string) || '';
+    await this.subs.apply(client.id, userId, p);
+    await this.aggregator.recomputeMarketSubscriptions();
+    const snapshots = await this.aggregator.getSnapshots(userId, tenantId, p);
+    if (snapshots) client.emit('snapshot', snapshots);
     return { ok: true };
   }
 }

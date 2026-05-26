@@ -1,0 +1,7 @@
+{
+  "extends": ["../../eslint.config.mjs"],
+  "root": true,
+  "rules": {
+    "@nx/enforce-module-boundaries": "off"
+  }
+}

@@ -158,7 +158,7 @@ export class LimitsAndControlsResolver {
 
   @Mutation(() => ExposureLimitObjectType)
   @Permissions('limits:write')
-  async upsertExposureLimit(@Args() dto: CreateExposureLimitDto): Promise<ExposureLimitObjectType> {
+  async upsertExposureLimit(@Args('input', { type: () => CreateExposureLimitDto }) dto: CreateExposureLimitDto): Promise<ExposureLimitObjectType> {
     const limit = await this.adminLimitsService.createLimit(dto);
     return this.mapExposureLimit(limit);
   }
@@ -168,7 +168,7 @@ export class LimitsAndControlsResolver {
   async updateExposureLimit(
     @Args('id') id: string,
     @Tenant() tenantId: string,
-    @Args() dto: UpdateExposureLimitDto,
+    @Args('input', { type: () => UpdateExposureLimitDto }) dto: UpdateExposureLimitDto,
   ): Promise<ExposureLimitObjectType> {
     const limit = await this.adminLimitsService.updateLimit(id, tenantId, dto);
     return this.mapExposureLimit(limit);
@@ -197,7 +197,7 @@ export class LimitsAndControlsResolver {
 
   @Mutation(() => LimitControlObjectType)
   @Permissions('limits:write')
-  async createLimitControl(@Args() dto: CreateLimitControlDto): Promise<LimitControlObjectType> {
+  async createLimitControl(@Args('input', { type: () => CreateLimitControlDto }) dto: CreateLimitControlDto): Promise<LimitControlObjectType> {
     const control = await this.limitsService.createControl(dto);
     return this.mapControl(control);
   }
@@ -213,7 +213,7 @@ export class LimitsAndControlsResolver {
 
   @Mutation(() => LimitExceptionObjectType)
   @Permissions('limits:write')
-  async createLimitException(@Args() dto: CreateLimitExceptionDto): Promise<LimitExceptionObjectType> {
+  async createLimitException(@Args('input', { type: () => CreateLimitExceptionDto }) dto: CreateLimitExceptionDto): Promise<LimitExceptionObjectType> {
     const exception = await this.limitsService.createException(dto);
     return this.mapException(exception);
   }

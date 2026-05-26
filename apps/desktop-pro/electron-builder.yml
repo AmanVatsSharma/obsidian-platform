@@ -13,15 +13,15 @@
 # Key invariants:
 #   - appId must match the deep-link protocol registration in electron/main.ts
 #   - hardenedRuntime + entitlements required for macOS notarization (Gatekeeper)
-#   - publish provider set to s3; bucket nesttrade-releases must exist in AWS
+#   - publish provider set to s3; bucket obsidian-releases must exist in AWS
 #   - signing env vars APPLE_ID / APPLE_APP_SPECIFIC_PASSWORD injected by CI
 #
 # Author:      BharatERP
 # Last-updated: 2026-04-26
 
-appId: trade.nesttrade.desktop
-productName: NestTrade Pro
-copyright: "Copyright © 2026 NestTrade"
+appId: trade.obsidian.desktop
+productName: Obsidian Pro
+copyright: "Copyright © 2026 Obsidian"
 
 directories:
   output: dist/packages
@@ -65,10 +65,10 @@ linux:
 
 publish:
   provider: s3
-  bucket: nesttrade-releases
+  bucket: obsidian-releases
   region: ap-south-1
   path: /desktop-pro
 
 protocols:
-  - name: NestTrade
-    schemes: [nesttrade]
+  - name: Obsidian
+    schemes: [obsidian]

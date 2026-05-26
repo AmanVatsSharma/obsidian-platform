@@ -50,10 +50,10 @@ export default function RevenuePage() {
     async function load() {
       try {
         const [revenueData, planData, invoicesData, brokersData] = await Promise.all([
-          api.getRevenueSeries().catch(() => null),
+          api.getPlatformDashboardRevenue().catch(() => null),
           api.getPlanRevenueBreakdown().catch(() => null),
           api.listAllBilling().catch(() => null),
-          api.listBrokersWithMetrics().catch(() => null),
+          api.getPlatformDashboardBrokers().catch(() => null),
         ]);
 
         if (cancelled) return;
@@ -68,7 +68,7 @@ export default function RevenuePage() {
           setPlanRevenue(cast);
         }
         if (invoicesData) setInvoices(invoicesData);
-        if (brokersData) setBrokers(brokersData.map(apiBrokerToUi));
+        if (brokersData?.brokers) setBrokers(brokersData.brokers.map(apiBrokerToUi));
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load revenue data');
       } finally {

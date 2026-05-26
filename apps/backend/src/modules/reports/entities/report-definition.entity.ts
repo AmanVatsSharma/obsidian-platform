@@ -22,19 +22,25 @@
  */
 
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { ObjectType, Field, ID, Float } from '@nestjs/graphql';
 
+@ObjectType()
 @Entity('report_definitions')
 export class ReportDefinitionEntity {
   @PrimaryGeneratedColumn('uuid')
+  @Field(() => ID)
   id!: string;
 
   @Column({ type: 'uuid' })
+  @Field(() => ID)
   tenantId!: string;
 
   @Column({ type: 'varchar', length: 255 })
+  @Field()
   name!: string;
 
   @Column({ type: 'varchar', length: 64 })
+  @Field()
   type!: string;
 
   @Column({ type: 'jsonb', default: [] })
@@ -44,14 +50,18 @@ export class ReportDefinitionEntity {
   filters!: Record<string, unknown>;
 
   @Column({ type: 'uuid' })
+  @Field(() => ID)
   createdBy!: string;
 
   @Column({ type: 'timestamptz', nullable: true })
+  @Field({ nullable: true })
   lastRunAt!: Date | null;
 
   @CreateDateColumn({ type: 'timestamptz' })
+  @Field()
   createdAt!: Date;
 
   @UpdateDateColumn({ type: 'timestamptz' })
+  @Field()
   updatedAt!: Date;
 }

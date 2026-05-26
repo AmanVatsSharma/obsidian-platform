@@ -1,6 +1,6 @@
-# Obsidian UI (`@nesttrade/obsidian-ui`)
+# Obsidian UI (`@obsidian/obsidian-ui`)
 
-Enterprise design system for NestTrade web surfaces: **semantic tokens**, **Tailwind preset**, **Radix** primitives, and **layout** shells.
+Enterprise design system for Obsidian web surfaces: **semantic tokens**, **Tailwind preset**, **Radix** primitives, and **layout** shells.
 
 ## Consumption (Next.js app)
 
@@ -8,7 +8,7 @@ Enterprise design system for NestTrade web surfaces: **semantic tokens**, **Tail
 2. **Config:**
    - `tailwind.config.ts` — import preset via **relative path** (Node loads config outside TS path aliases), e.g. `../../libs/obsidian-ui/src/tailwind/preset`; **`content`** must include the obsidian-ui `src` tree.
    - `postcss.config.js` — `tailwindcss`, `autoprefixer`.
-   - `next.config.js` — `transpilePackages: ['@nesttrade/obsidian-ui']`.
+   - `next.config.js` — `transpilePackages: ['@obsidian/obsidian-ui']`.
 3. **Styles:** Import tokens + base once — in global CSS:
 
    ```css

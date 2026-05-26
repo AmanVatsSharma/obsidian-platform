@@ -47,6 +47,15 @@ import { AppLoggerService } from '../../../shared/logger';
 import { AppError } from '../../../common/errors/app-error';
 import { DealingService } from '../services/dealing.service';
 
+export class HedgeOrderDto {
+  tenantId?: string;
+  symbol!: string;
+  side!: string;
+  lots!: number;
+  price?: number;
+  notes?: string;
+}
+
 @ApiTags('admin/dealer-desk')
 @Controller('admin/dealer-desk')
 @UseGuards(JwtAuthGuard, TenantGuard, PermissionsGuard)
@@ -127,12 +136,12 @@ export class AdminDealerDeskController {
       side: dto.side as 'BUY' | 'SELL' | 'BUY_HEDGE' | 'SELL_HEDGE',
       quantity: String(dto.lots),
       price: String(dto.price ?? 0),
-      metadata: {
+      metadata: JSON.stringify({
         type: 'HEDGE',
         submittedBy: 'dealer',
         submittedAt: new Date().toISOString(),
         notes: dto.notes ?? '',
-      },
+      }),
     });
 
     this.logger.debug('hedge deal created', { dealId: deal.id, symbol: dto.symbol, side: dto.side, lots: dto.lots });
@@ -187,13 +196,4 @@ export class AdminDealerDeskController {
 
     return quotes;
   }
-}
-
-export class HedgeOrderDto {
-  tenantId?: string;
-  symbol!: string;
-  side!: string;
-  lots!: number;
-  price?: number;
-  notes?: string;
 }

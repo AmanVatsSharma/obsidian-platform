@@ -35,3 +35,22 @@ body.obsidian-root,
     outline-color: ButtonText;
   }
 }
+
+/* ─── KEYFRAMES — referenced by ObsidianBadge dot, ToastViewport entry ───
+ * Kept here (not console.css) so the primitives work in any surface, not
+ * only inside the Account Console.
+ * ───────────────────────────────────────────────────────────────────── */
+@keyframes obsidian-blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.25; }
+}
+
+@keyframes obsidian-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.45; }
+}
+
+@keyframes obsidian-toast-slide {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}

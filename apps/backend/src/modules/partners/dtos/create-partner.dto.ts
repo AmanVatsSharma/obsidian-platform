@@ -7,23 +7,30 @@
  */
 
 import { IsEmail, IsObject, IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import { InputType, Field } from '@nestjs/graphql';
 
+@InputType()
 export class CreatePartnerDto {
+  @Field(() => String)
   @IsUUID()
   tenantId!: string;
 
+  @Field(() => String)
   @IsString()
   @MaxLength(128)
   name!: string;
 
+  @Field(() => String)
   @IsString()
   @MaxLength(64)
   code!: string;
 
+  @Field(() => String, { nullable: true })
   @IsOptional()
   @IsEmail()
   contactEmail?: string;
 
+  @Field(() => String, { nullable: true })
   @IsObject()
-  metadata!: Record<string, unknown>;
+  metadata?: string | null;
 }

@@ -219,14 +219,14 @@ export class RiskPolicyResolver {
 
   @Mutation(() => RiskPolicyObjectType)
   @Permissions('risk-policy:write')
-  async createRiskPolicy(@Args() dto: CreateRiskPolicyDto): Promise<RiskPolicyObjectType> {
+  async createRiskPolicy(@Args('input', { type: () => CreateRiskPolicyDto }) dto: CreateRiskPolicyDto): Promise<RiskPolicyObjectType> {
     const policy = await this.riskPolicyService.createPolicy(dto);
     return this.mapPolicy(policy);
   }
 
   @Mutation(() => TenantRiskPolicyObjectType)
   @Permissions('risk-policy:write')
-  async assignRiskPolicy(@Args() dto: AssignRiskPolicyDto): Promise<TenantRiskPolicyObjectType> {
+  async assignRiskPolicy(@Args('input', { type: () => AssignRiskPolicyDto }) dto: AssignRiskPolicyDto): Promise<TenantRiskPolicyObjectType> {
     const assignment = await this.riskPolicyService.assignPolicy(dto);
     return {
       id: assignment.id,
@@ -266,8 +266,8 @@ export class RiskPolicyResolver {
       tenantId: p.tenantId,
       jurisdictionCode: p.jurisdictionCode,
       policyName: p.policyName,
-      maxLeverage: p.maxLeverage,
-      maxOrderNotional: p.maxOrderNotional,
+      maxLeverage: String(p.maxLeverage),
+      maxOrderNotional: String(p.maxOrderNotional),
       restrictedProducts: p.restrictedProducts ?? [],
       sanctionsCheckRequired: String(p.sanctionsCheckRequired),
       createdAt: p.createdAt?.toISOString() ?? '',

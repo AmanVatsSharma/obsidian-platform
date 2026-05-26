@@ -27,6 +27,7 @@
 
 'use client';
 
+import type * as THREE from 'three';
 import { useEffect, useRef, useState } from 'react';
 import { DeviceTier } from '@/lib/device-tier';
 import { loadThree } from '@/lib/three-loader';

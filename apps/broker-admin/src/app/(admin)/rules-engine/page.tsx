@@ -1,16 +1,17 @@
 /**
  * File:        apps/broker-admin/src/app/(admin)/rules-engine/page.tsx
  * Module:      broker-admin · Workflow · Rules Engine
- * Purpose:     Visual event→condition→action rule builder and management
+ * Purpose:     Visual event→condition→action rule builder and management.
+ *              Fully wired to GET/POST/PATCH/DELETE /admin/rules API.
  *
  * Exports:
  *   - default (RulesEnginePage) — rule list + rule detail + add-rule modal
  *
  * Depends on:
- *   - none (all rule data is local state)
+ *   - @/lib/api/hooks/use-rules-engine — useRulesEngine() for real API data
  *
  * Side-effects:
- *   - Local state only; rule toggles and deletions do not persist
+ *   - Rule toggles, creates, updates, and deletes call real backend APIs
  *
  * Key invariants:
  *   - Each rule: { trigger, conditions: Condition[], actions: Action[] }
@@ -18,22 +19,23 @@
  *   - Actions execute in order on rule match
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-05-16
  */
 
 'use client';
 
 import { useState } from 'react';
-import { Plus, Zap, X, ChevronRight } from 'lucide-react';
+import { Plus, Zap, X, ChevronRight, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
+import { useRulesEngine } from '@/lib/api/hooks/use-rules-engine';
 
 type Condition = {
   field: string;
-  op: '>' | '<' | '=' | '>=' | '<=' | 'includes' | 'not_includes';
+  op: string;
   value: string | number;
 };
 
 type Action = {
-  type: 'tag_client' | 'send_email' | 'trigger_bonus' | 'notify_admin' | 'restrict_withdrawal' | 'assign_group';
+  type: string;
   params: Record<string, string | number>;
 };
 
@@ -76,78 +78,6 @@ const ACTION_COLOR: Record<Action['type'], string> = {
   assign_group:         'badge-purple',
 };
 
-const INIT_RULES: Rule[] = [
-  {
-    id: 'R001',
-    name: 'Welcome Bonus: First Deposit',
-    description: 'Auto-award welcome bonus when a verified client makes their first deposit over $100',
-    trigger: 'deposit.completed',
-    conditions: [
-      { field: 'deposit.amount',   op: '>=',     value: 100       },
-      { field: 'client.kycLevel',  op: 'includes', value: 'Full'  },
-      { field: 'client.deposits',  op: '=',       value: 1        },
-    ],
-    actions: [
-      { type: 'trigger_bonus',  params: { bonusId: 'welcome-50', template: 'Welcome Bonus' } },
-      { type: 'send_email',     params: { templateId: 'bonus-awarded' } },
-      { type: 'tag_client',     params: { tag: 'bonus-recipient' } },
-    ],
-    enabled: true,
-    executionCount: 142,
-    lastTriggered: '2024-01-15 14:22',
-  },
-  {
-    id: 'R002',
-    name: 'VIP Auto-Upgrade',
-    description: 'Promote client to VIP group when monthly deposit volume exceeds $50,000',
-    trigger: 'deposit.completed',
-    conditions: [
-      { field: 'client.depositVolumeMTD', op: '>=', value: 50_000 },
-      { field: 'client.group',            op: '=',  value: 'Professional' },
-    ],
-    actions: [
-      { type: 'assign_group',   params: { group: 'VIP' } },
-      { type: 'send_email',     params: { templateId: 'vip-upgrade' } },
-      { type: 'notify_admin',   params: { message: 'Client promoted to VIP' } },
-    ],
-    enabled: true,
-    executionCount: 18,
-    lastTriggered: '2024-01-14 09:41',
-  },
-  {
-    id: 'R003',
-    name: 'Margin Call: Restrict Withdrawals',
-    description: 'Block withdrawal requests when client margin level is below 150%',
-    trigger: 'withdrawal.requested',
-    conditions: [
-      { field: 'account.marginLevel', op: '<', value: 150 },
-    ],
-    actions: [
-      { type: 'restrict_withdrawal', params: { reason: 'Insufficient margin for pending withdrawal' } },
-      { type: 'send_email',          params: { templateId: 'withdrawal-blocked' } },
-    ],
-    enabled: true,
-    executionCount: 31,
-    lastTriggered: '2024-01-15 11:07',
-  },
-  {
-    id: 'R004',
-    name: 'KYC Approval: Unlock Full Access',
-    description: 'Tag client and send confirmation when KYC is fully approved',
-    trigger: 'kyc.approved',
-    conditions: [
-      { field: 'client.kycLevel', op: 'includes', value: 'Full' },
-    ],
-    actions: [
-      { type: 'tag_client',   params: { tag: 'kyc-verified' } },
-      { type: 'send_email',   params: { templateId: 'kyc-approved' } },
-    ],
-    enabled: false,
-    executionCount: 0,
-    lastTriggered: undefined,
-  },
-];
-
 const OP_LABEL: Record<Condition['op'], string> = {
   '>': '>', '<': '<', '=': '=', '>=': '≥', '<=': '≤', 'includes': 'is', 'not_includes': 'is not',
 };
@@ -185,14 +115,43 @@ function Toggle({ on, onChange }: { on: boolean; onChange: (v: boolean) => void 
 }
 
 export default function RulesEnginePage() {
-  const [rules, setRules] = useState<Rule[]>(INIT_RULES);
+  const { rules, isLoading, error, refetch, toggleRule, deleteRule } = useRulesEngine();
   const [selected, setSelected] = useState<Rule | null>(null);
-
-  const toggle = (id: string) =>
-    setRules(rs => rs.map(r => r.id === id ? { ...r, enabled: !r.enabled } : r));
 
   const enabledCount = rules.filter(r => r.enabled).length;
   const totalExecutions = rules.reduce((s, r) => s + r.executionCount, 0);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col">
+        <div className="module-header">
+          <p className="module-title">Rules Engine</p>
+        </div>
+        <div className="flex flex-col items-center justify-center gap-3 py-20">
+          <Loader2 size={32} className="text-fg3 animate-spin" />
+          <p className="font-ui text-[12px] text-fg3">Loading rules…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex flex-col">
+        <div className="module-header">
+          <p className="module-title">Rules Engine</p>
+        </div>
+        <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
+          <AlertCircle size={32} className="text-bear" />
+          <p className="font-display text-[13px] font-semibold tracking-widest text-fg1 uppercase">Failed to Load</p>
+          <p className="font-ui text-[12px] text-fg3">{error}</p>
+          <button className="btn btn-primary btn-sm gap-1.5" onClick={refetch}>
+            <RefreshCw size={12} /> Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col">
@@ -210,8 +169,8 @@ export default function RulesEnginePage() {
         {/* KPI strip */}
         <div className="grid grid-cols-4 gap-3">
           {[
-            { label: 'Active Rules',     value: enabledCount,                     color: 'text-bull'   },
-            { label: 'Total Rules',      value: rules.length,                     color: 'text-fg1'    },
+            { label: 'Active Rules',     value: enabledCount,                      color: 'text-bull'   },
+            { label: 'Total Rules',      value: rules.length,                      color: 'text-fg1'    },
             { label: 'Total Executions', value: totalExecutions.toLocaleString(), color: 'text-accent' },
             { label: 'Triggers Covered', value: new Set(rules.map(r=>r.trigger)).size, color: 'text-fg2' },
           ].map(k => (
@@ -255,7 +214,7 @@ export default function RulesEnginePage() {
                         <p className="mono-cell text-[9px] text-fg3">{rule.lastTriggered}</p>
                       )}
                     </div>
-                    <Toggle on={rule.enabled} onChange={() => toggle(rule.id)} />
+                    <Toggle on={rule.enabled} onChange={() => toggleRule(rule.id)} />
                     <ChevronRight size={13} className="text-fg3" />
                   </div>
                 </div>
@@ -344,7 +303,7 @@ export default function RulesEnginePage() {
               <div className="flex gap-2 border-t border-[var(--border)] p-3">
                 <button className="btn-ghost btn btn-sm flex-1">Edit Rule</button>
                 <button className="btn-danger btn btn-sm"
-                  onClick={() => { setRules(rs => rs.filter(r => r.id !== selected.id)); setSelected(null); }}>
+                  onClick={async () => { await deleteRule(selected.id); setSelected(null); }}>
                   Delete
                 </button>
               </div>

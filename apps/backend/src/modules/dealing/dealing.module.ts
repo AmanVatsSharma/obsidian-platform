@@ -16,6 +16,8 @@ import { DealingQuoteEntity } from './entities/dealing-quote.entity';
 import { DealingService } from './services/dealing.service';
 import { RbacModule } from '../rbac/rbac.module';
 import { MarketModule } from '../market/market.module';
+import { AccountsModule } from '../accounts/accounts.module';
+import { PositionsModule } from '../oms/positions/positions.module';
 import { DealingResolver } from './dealing.resolver';
 
 @Module({
@@ -23,6 +25,8 @@ import { DealingResolver } from './dealing.resolver';
     SharedModule,
     RbacModule,
     MarketModule,
+    AccountsModule,
+    PositionsModule,
     TypeOrmModule.forFeature([DealEntity, DealingQuoteEntity]),
   ],
   controllers: [DealingController, AdminDealerDeskController],

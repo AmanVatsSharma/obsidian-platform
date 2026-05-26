@@ -146,7 +146,7 @@ export class CopyTradingResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard, TenantGuard, PermissionsGuard)
+  @UseGuards(JwtAuthGuard, TenantGuard)
   @Permissions('copy-trading:write')
   async followStrategy(
     @Args('masterUserId') masterUserId: string,
@@ -167,7 +167,7 @@ export class CopyTradingResolver {
   }
 
   @Mutation(() => Boolean)
-  @UseGuards(JwtAuthGuard, TenantGuard, PermissionsGuard)
+  @UseGuards(JwtAuthGuard, TenantGuard)
   @Permissions('copy-trading:write')
   async unfollowStrategy(
     @Args('masterUserId') masterUserId: string,

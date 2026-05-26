@@ -53,7 +53,7 @@ async function bootstrap() {
 
   // Socket.IO Redis adapter for horizontal scaling
   try {
-    const redisUrl = process.env.REDIS_URL as string | undefined;
+    const redisUrl = process.env.REDIS_URL;
     if (redisUrl) {
       const { IoAdapter } = await import('@nestjs/platform-socket.io');
       const { createAdapter } = await import('@socket.io/redis-adapter');

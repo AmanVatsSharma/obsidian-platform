@@ -57,7 +57,7 @@ export function Hero() {
   const [txt,   setTxt]   = useState('');
   const [phase, setPhase] = useState<Phase>('type');
   const charIdx = useRef(0);
-  const timer   = useRef<ReturnType<typeof setTimeout>>();
+  const timer   = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   // ── Staggered entry animation ────────────────────────────────────
   const [v, setV] = useState([false, false, false, false, false, false]);

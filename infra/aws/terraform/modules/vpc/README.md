@@ -1,6 +1,6 @@
 # VPC Module
 
-Creates VPC with public/private subnets, NAT gateways, and security groups for NestTrade.
+Creates VPC with public/private subnets, NAT gateways, and security groups for Obsidian.
 
 ## Inputs
 

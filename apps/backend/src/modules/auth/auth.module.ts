@@ -6,7 +6,7 @@
  * @created 2025-09-18
  */
 
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { UsersModule } from '../users/users.module';
@@ -17,17 +17,17 @@ import { SharedModule } from '../../shared/shared.module';
 import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { AdminAuthController } from './controllers/admin-auth.controller';
-import { RbacModule } from '../rbac/rbac.module';
 import { AuthResolver } from './auth.resolver';
+import { RbacModule } from '../rbac/rbac.module';
 
 @Module({
   imports: [
-    UsersModule,
+    forwardRef(() => UsersModule),
+    forwardRef(() => RbacModule),
     SharedModule,
     PassportModule.register({ session: false }),
     JwtModule.register({}),
     TypeOrmModule.forFeature([RefreshTokenEntity]),
-    RbacModule,
   ],
   providers: [AuthService, JwtAccessStrategy, AuthResolver],
   controllers: [AuthController, AdminAuthController],

@@ -28,10 +28,10 @@
 
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { JwtAuthGuard } from '@obsidian/backend-auth';
-import { TenantGuard } from '@obsidian/backend-rbac';
-import { PermissionsGuard } from '@obsidian/backend-rbac';
-import { Permissions } from '@obsidian/backend-rbac';
-import { Tenant } from '@obsidian/backend-rbac';
+import { TenantGuard } from '../../rbac/guards/tenant.guard';
+import { PermissionsGuard } from '../../rbac/guards/permissions.guard';
+import { Permissions } from '../../rbac/decorators/permissions.decorator';
+import { Tenant } from '../../rbac/decorators/tenant.decorator';
 import { CrmService } from '../services/crm.service';
 import { CreateCrmOutreachDto } from '../dtos/create-crm-outreach.dto';
 import { CreateRetentionOfferDto } from '../dtos/create-retention-offer.dto';

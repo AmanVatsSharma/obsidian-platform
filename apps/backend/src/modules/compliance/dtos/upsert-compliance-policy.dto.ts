@@ -7,30 +7,37 @@
  */
 
 import { IsIn, IsInt, IsNotEmpty, IsObject, IsString, IsUUID, Min } from 'class-validator';
+import { InputType, Field } from '@nestjs/graphql';
 
+@InputType()
 export class UpsertCompliancePolicyDto {
+  @Field(() => String)
   @IsUUID()
   tenantId!: string;
 
+  @Field(() => String)
   @IsString()
   @IsNotEmpty()
   jurisdictionCode!: string;
 
-  @IsString()
+  @Field(() => String)
   @IsIn(['BASIC', 'ENHANCED', 'INSTITUTIONAL'])
   kycTier!: 'BASIC' | 'ENHANCED' | 'INSTITUTIONAL';
 
-  @IsString()
+  @Field(() => String)
   @IsIn(['LOW', 'MEDIUM', 'HIGH'])
   amlRiskLevel!: 'LOW' | 'MEDIUM' | 'HIGH';
 
+  @Field(() => String)
   @IsString()
   @IsNotEmpty()
   sanctionsProvider!: string;
 
+  @Field(() => String, { nullable: true })
   @IsObject()
-  suitabilityRules!: Record<string, unknown>;
+  suitabilityRules?: string | null;
 
+  @Field(() => Number)
   @IsInt()
   @Min(365)
   auditRetentionDays!: number;

@@ -4,6 +4,7 @@
  * @description Trader route group shell using Obsidian UI AppShell and navigation
  * @author BharatERP
  * @created 2026-04-03
+ * @last-updated 2026-05-09
  */
 
 import Link from 'next/link';
@@ -22,7 +23,8 @@ const traderNavItems: UiNavItem[] = [
   { label: 'Portfolio', href: '/portfolio', description: 'Positions, holdings, and PnL surfaces' },
   { label: 'Orders', href: '/orders', description: 'Live orders, history, and advanced order types' },
   { label: 'Funds', href: '/funds', description: 'Deposits, withdrawals, and transfer controls' },
-  { label: 'Settings', href: '/settings', description: 'Security, sessions, API keys, and preferences' },
+  { label: 'Account console', href: '/console', description: 'Profile, security, accounts, KYC, funding, API & preferences' },
+  { label: 'Settings', href: '/settings', description: 'Legacy quick settings (will be merged into Account console)' },
 ];
 
 export default function TraderLayout({ children }: { children: React.ReactNode }) {

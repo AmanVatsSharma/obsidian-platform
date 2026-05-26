@@ -28,7 +28,7 @@ import {
   ComposedChart, Bar, Line, XAxis, YAxis, Tooltip, Legend,
   ResponsiveContainer, CartesianGrid,
 } from 'recharts';
-import { useBrokerData } from '@/lib/mock-data-context';
+import { usePnLStats } from '@/lib/api/hooks/use-pnl-stats';
 import type { RevenuePoint } from '@/lib/types';
 
 type Period = 'daily' | 'weekly' | 'monthly';
@@ -57,8 +57,8 @@ function CustomTooltip({ active, payload, label }: { active?: boolean; payload?:
 }
 
 export default function PnLPage() {
-  const { revenueData } = useBrokerData();
-  const [period, setPeriod] = useState<Period>('daily');
+  const [period, setPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const { data: revenueData, isLoading } = usePnLStats(period);
 
   // Aggregate data by period
   const chartData = useMemo((): RevenuePoint[] => {
@@ -108,6 +108,17 @@ export default function PnLPage() {
       </div>
 
       <div className="p-6 space-y-5">
+        {isLoading ? (
+          <div className="flex items-center justify-center py-24">
+            <span className="font-ui text-[12px] text-fg3">Loading P&L data…</span>
+          </div>
+        ) : revenueData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center gap-2 py-24 text-center">
+            <p className="font-ui text-[12px] text-fg2">No revenue data available</p>
+            <p className="font-ui text-[11px] text-fg3">Try selecting a different period</p>
+          </div>
+        ) : (
+          <>
         {/* Revenue KPI strip */}
         <div className="grid grid-cols-6 gap-3">
           {[
@@ -188,6 +199,8 @@ export default function PnLPage() {
             </tbody>
           </table>
         </div>
+          </>
+        )}  {/* end of revenueData.length === 0 guard */}
       </div>
     </div>
   );

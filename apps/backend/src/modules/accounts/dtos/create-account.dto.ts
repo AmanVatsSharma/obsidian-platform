@@ -7,7 +7,9 @@
  */
 
 import { IsIn, IsOptional, IsString, Length } from 'class-validator';
+import { InputType } from '@nestjs/graphql';
 
+@InputType()
 export class CreateAccountDto {
   @IsString()
   @Length(1, 64)

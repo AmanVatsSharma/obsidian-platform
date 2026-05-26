@@ -20,5 +20,6 @@ export * from './guards/permissions.guard';
 export * from './guards/platform-owner.guard';
 export * from './guards/roles.guard';
 export * from './guards/tenant.guard';
+export * from './guards/broker-admin.guard';
 export * from './constants/role.constants';
 export * from './constants/permission.constants';

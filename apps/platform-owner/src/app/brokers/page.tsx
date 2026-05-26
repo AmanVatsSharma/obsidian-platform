@@ -40,11 +40,11 @@ export default function BrokersPage() {
     let cancelled = false;
     setLoading(true);
     setCurrentPage(1);
-    api.listBrokersWithMetrics()
-      .then((data) => { if (!cancelled) setApiBrokers(data); })
+    api.getPlatformDashboardBrokers(200)
+      .then((data) => { if (!cancelled) setApiBrokers(data?.brokers ?? null); })
       .catch(() => {
         if (cancelled) return;
-        api.listBrokers().then(setApiBrokers).catch(() => { if (!cancelled) setApiError(true); });
+        api.listBrokersWithMetrics().then(setApiBrokers).catch(() => { if (!cancelled) setApiError(true); });
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };

@@ -1,10 +1,13 @@
 /**
  * File:        libs/trading-ui/src/panels/trading-top-bar.tsx
  * Module:      trading-ui · Panels
- * Purpose:     Workstation header: pinned symbols ticker, search, session badges, account chip.
+ * Purpose:     Workstation header: pinned symbols ticker, search, session badges,
+ *              and an account chip / settings affordance that deep-link to the
+ *              hosting app's account console (e.g. /console in apps/web).
  *
  * Exports:
- *   - TradingTopBar({ activeInstrument, prices, onSymbolClick, account, pinned }) → ReactNode
+ *   - TradingTopBar({ activeInstrument, prices, onSymbolClick, account, pinned,
+ *                     accountConsoleHref? }) → ReactNode
  *
  * Depends on:
  *   - ../types/instrument — Instrument, AccountSnapshot
@@ -15,14 +18,19 @@
  *   - none
  *
  * Key invariants:
- *   - activeInstrument prop is accepted but not used for rendering (kept for future highlight use)
+ *   - activeInstrument prop is accepted but not used for rendering (kept for
+ *     future active-symbol highlight)
  *   - pinned list is typically the first 5 instruments from the watchlist
+ *   - This file uses plain <a> (NOT next/link) because it is shared between the
+ *     Next.js web app and the Electron desktop app. The hosting app supplies its
+ *     own routing convention via `accountConsoleHref`. Default '/console' works
+ *     for apps/web; desktop-pro can override or add the route as needed.
  *
  * Read order:
  *   1. TradingTopBar — component entry
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-26
+ * Last-updated: 2026-05-09
  */
 
 'use client';
@@ -38,18 +46,24 @@ export function TradingTopBar({
   onSymbolClick,
   account,
   pinned,
+  accountConsoleHref = '/console',
 }: {
   activeInstrument: Instrument | null;
   prices: PriceMap;
   onSymbolClick: (i: Instrument) => void;
   account: AccountSnapshot;
   pinned: Instrument[];
+  /**
+   * Where to navigate when the user clicks the Settings gear or the account
+   * chip in the top bar. Defaults to '/console' (apps/web Account Console).
+   */
+  accountConsoleHref?: string;
 }) {
   return (
     <header className="topbar">
       <span className="topbar-logo">
         <span className="topbar-logo-dot" />
-        NESTTRADE
+        OBSIDIAN
       </span>
 
       {pinned.map((inst) => {
@@ -88,19 +102,29 @@ export function TradingTopBar({
           <Bell size={15} />
           <span className="notif-dot" />
         </button>
-        <button type="button" className="topbar-btn" data-tip="Settings" aria-label="Settings">
+        <a
+          href={accountConsoleHref}
+          className="topbar-btn"
+          data-tip="Account console"
+          aria-label="Open account console"
+        >
           <Settings size={15} />
-        </button>
+        </a>
       </div>
 
-      <div className="account-chip">
+      <a
+        href={accountConsoleHref}
+        className="account-chip"
+        aria-label="Open account console"
+        style={{ textDecoration: 'none', color: 'inherit' }}
+      >
         <div className="account-avatar">{account.name.slice(0, 2).toUpperCase()}</div>
         <div>
           <div className="account-chip-label">Balance</div>
           <div className="account-chip-balance">${fmt(account.balance)}</div>
         </div>
         <ChevronDown size={12} style={{ color: 'var(--text-muted)' }} />
-      </div>
+      </a>
     </header>
   );
 }

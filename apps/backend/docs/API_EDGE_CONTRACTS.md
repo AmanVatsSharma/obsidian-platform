@@ -5,7 +5,7 @@ Canonical contracts for API edge layer: REST and GraphQL boundaries, request/res
 
 ## REST Contracts
 - **Transactional endpoints** (orders, auth, funds): JSON request/response with DTO validation.
-- **Versioning**: `Accept: application/vnd.nesttrade.v1+json` or path prefix `/api/v1/`.
+- **Versioning**: `Accept: application/vnd.obsidian.v1+json` or path prefix `/api/v1/`.
 - **Idempotency**: `Idempotency-Key` header for POST/PUT where applicable.
 
 ## GraphQL Contracts

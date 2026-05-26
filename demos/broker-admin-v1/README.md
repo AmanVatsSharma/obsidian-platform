@@ -1,4 +1,4 @@
-# NestTrade Broker Admin — Demo Snapshot v1
+# Obsidian Broker Admin — Demo Snapshot v1
 
 **Snapshotted:** 2026-05-09  
 **Status:** Production-ready baseline — 35 modules, 36 routes, Obsidian dark terminal UI
@@ -53,4 +53,4 @@ bash demos/run-demo.sh
 
 ## Dependency note
 
-`@nesttrade/obsidian-ui` is inlined at `./libs/obsidian-ui/` — no monorepo needed.
+`@obsidian/obsidian-ui` is inlined at `./libs/obsidian-ui/` — no monorepo needed.

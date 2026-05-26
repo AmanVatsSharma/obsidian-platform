@@ -266,6 +266,15 @@ export class RealtimeAggregatorService {
       v: 1,
     });
   }
+
+  /**
+   * Broadcast an order-book depth update to all watchers of this exchange:symbol pair.
+   * The key is stored in the frame.key field; the gateway routes it to the right room.
+   */
+  publishOrderBook(key: string, frame: any) {
+    if (!this.server) return;
+    this.server.to(`orderbook:${key}`).emit('orderbook.depth', frame);
+  }
 }
 
 

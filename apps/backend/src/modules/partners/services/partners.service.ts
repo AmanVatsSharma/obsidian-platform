@@ -27,7 +27,7 @@ export class PartnersService {
 
   async createPartner(dto: CreatePartnerDto): Promise<PartnerEntity> {
     this.logger.debug('createPartner:start', dto);
-    const saved = await this.partners.save(this.partners.create(dto));
+    const saved = await this.partners.save(this.partners.create(dto as any) as unknown as PartnerEntity);
     this.logger.debug('createPartner:end', { partnerId: saved.id });
     return saved;
   }

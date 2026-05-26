@@ -1,3 +1,24 @@
+/**
+ * File:        apps/web/app/(auth)/request-otp/page.tsx
+ * Module:      web · Auth · Request OTP (debug/direct)
+ * Purpose:     Raw OTP request form kept for direct API testing; replaced in production UX by /login.
+ *
+ * Exports:
+ *   - RequestOtpPage() — client component
+ *
+ * Depends on:
+ *   - @/shared/providers/auth-provider — useAuth().requestOtp
+ *
+ * Side-effects:
+ *   - POST /auth/otp/request via AuthProvider
+ *
+ * Key invariants:
+ *   - Debug-only; no Obsidian styling applied intentionally
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-09
+ */
+
 "use client";
 import { useAuth } from '@/shared/providers/auth-provider';
 import { useState } from 'react';

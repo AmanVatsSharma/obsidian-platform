@@ -7,10 +7,10 @@
  *   - default (TransactionsPage) — server/client page component
  *
  * Depends on:
- *   - @/lib/mock-data-context — useBrokerData() for transactions + approve/reject
+ *   - @/lib/api/hooks/use-transactions — useTransactionsApi() for real API data
  *
  * Side-effects:
- *   - approveTransaction / rejectTransaction mutate shared context state
+ *   - approveTx / rejectTx fire real API calls to admin deposit/withdrawal endpoints
  *
  * Key invariants:
  *   - Only Pending/Processing transactions show Review action
@@ -25,7 +25,7 @@
 
 import { useState, useMemo } from 'react';
 import { CheckCircle, XCircle, ChevronRight, X, AlertTriangle } from 'lucide-react';
-import { useBrokerData } from '@/lib/mock-data-context';
+import { useTransactionsApi } from '@/lib/api/hooks/use-transactions';
 import type { Transaction, TransactionStatus } from '@/lib/types';
 
 const TYPE_BADGE: Record<string, string> = {
@@ -192,7 +192,7 @@ function PaymentMethodsGrid() {
 }
 
 export default function TransactionsPage() {
-  const { transactions, approveTransaction, rejectTransaction } = useBrokerData();
+  const { transactions, approveTx, rejectTx } = useTransactionsApi();
   const [tab, setTab]             = useState('Pending');
   const [subTab, setSubTab]       = useState<'queue' | 'methods'>('queue');
   const [reviewing, setReviewing] = useState<Transaction | null>(null);
@@ -203,11 +203,26 @@ export default function TransactionsPage() {
   const displayed = useMemo(() => transactions.filter(currentFilter), [transactions, tab, currentFilter]);
   const allSelected = displayed.length > 0 && displayed.every(t => selected.has(t.id));
 
-  const handleApprove = (id: string) => { approveTransaction(id); setReviewing(null); };
-  const handleReject  = (id: string) => { rejectTransaction(id);  setReviewing(null); };
+  const handleApprove = (id: string) => {
+    const txn = transactions.find(t => t.id === id);
+    if (!txn) return;
+    const kind = txn.type === 'Deposit' ? 'deposit' : 'withdrawal';
+    approveTx(id, kind);
+    setReviewing(null);
+  };
+  const handleReject  = (id: string) => {
+    const txn = transactions.find(t => t.id === id);
+    if (!txn) return;
+    const kind = txn.type === 'Deposit' ? 'deposit' : 'withdrawal';
+    rejectTx(id, kind);
+    setReviewing(null);
+  };
 
   const handleBulkApprove = () => {
-    [...selected].forEach(id => approveTransaction(id));
+    displayed.filter(t => selected.has(t.id) && t.status === 'Pending').forEach(txn => {
+      const kind = txn.type === 'Deposit' ? 'deposit' : 'withdrawal';
+      approveTx(txn.id, kind);
+    });
     setSelected(new Set());
     setBulkConfirm(false);
   };

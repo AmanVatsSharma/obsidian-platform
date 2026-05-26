@@ -63,7 +63,7 @@ export class ComplianceService {
     const existing = await this.policies.findOne({
       where: { tenantId: dto.tenantId, jurisdictionCode: dto.jurisdictionCode },
     });
-    const entity = this.policies.create({ ...(existing ?? {}), ...dto });
+    const entity = this.policies.create({ ...(existing ?? {}), ...dto } as any) as unknown as CompliancePolicyEntity;
     const saved = await this.policies.save(entity);
     this.logger.debug('upsertPolicy:end', { policyId: saved.id });
     return saved;

@@ -43,7 +43,7 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const apiBase = window.__NESTTRADE_API_BASE__ ?? 'http://localhost:3000';
+  const apiBase = window.__OBSIDIAN_API_BASE__ ?? 'http://localhost:3000';
 
   const requestOtp = async () => {
     setLoading(true);
@@ -88,7 +88,7 @@ export function LoginPage() {
       <div className="login-card">
         <div className="login-logo">
           <span className="topbar-logo-dot" />
-          NESTTRADE PRO
+          OBSIDIAN PRO
         </div>
 
         {step === 'phone' ? (

@@ -21,7 +21,9 @@
       "@/app/*":              ["src/app/*"],
       "@/lib/*":              ["src/lib/*"],
       "@/shared/*":           ["src/shared/*"],
-      "@obsidian/obsidian-ui": ["../../libs/obsidian-ui/src/index.ts"]
+      "@/components/*":       ["src/components/*"],
+      "@obsidian/obsidian-ui": ["../../libs/obsidian-ui/src/index.ts"],
+      "@obsidian/web-auth": ["../../libs/web-auth/src/index.ts"]
     }
   },
   "include": [

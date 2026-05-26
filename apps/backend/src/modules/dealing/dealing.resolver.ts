@@ -69,8 +69,8 @@ export class DealObjectType {
   @Field()
   status!: string;
 
-  @Field({ nullable: true })
-  metadata!: Record<string, unknown> | null;
+  @Field(() => String, { nullable: true })
+  metadata!: string | null;
 
   @Field()
   createdAt!: string;
@@ -96,8 +96,8 @@ export class DealOverrideResultObjectType {
   @Field()
   status!: string;
 
-  @Field(() => Object)
-  audit!: Record<string, unknown>;
+  @Field(() => String)
+  audit!: string;
 }
 
 /* ── Resolver ──────────────────────────────────────────────────────────────── */
@@ -133,7 +133,7 @@ export class DealingResolver {
     @Args('side') side: string,
     @Args('quantity', { type: () => Float }) quantity: number,
     @Args('price', { type: () => Float }) price: number,
-    @Args('metadata', { type: () => Object, nullable: true }) metadata?: Record<string, unknown>,
+    @Args('metadata', { type: () => String, nullable: true }) metadataArg?: string,
   ): Promise<DealObjectType> {
     const saved = await this.dealingService.createDeal({
       tenantId,
@@ -141,7 +141,7 @@ export class DealingResolver {
       side,
       quantity: String(quantity),
       price: String(price),
-      metadata: metadata ?? {},
+      metadata: metadataArg ? (JSON.parse(metadataArg) as Record<string, unknown>) : {},
     } as any);
     return this.mapDeal(saved);
   }
@@ -153,7 +153,12 @@ export class DealingResolver {
     @Args('action') action: string,
     @Args('reason') reason: string,
   ): Promise<DealOverrideResultObjectType> {
-    return this.dealingService.requestManualOverride(dealId, { action, reason } as any);
+    const result = await this.dealingService.requestManualOverride(dealId, { action, reason } as any);
+    return {
+      id: result.id,
+      status: result.status,
+      audit: typeof result.audit === 'object' ? JSON.stringify(result.audit) : String(result.audit),
+    };
   }
 
   // ── Mapper ───────────────────────────────────────────────────────────────
@@ -167,7 +172,7 @@ export class DealingResolver {
       quantity: Number(d.quantity),
       price: Number(d.price),
       status: d.status,
-      metadata: d.metadata ?? null,
+      metadata: typeof d.metadata === 'object' ? JSON.stringify(d.metadata) : d.metadata ?? null,
       createdAt: d.createdAt?.toISOString() ?? '',
       updatedAt: d.updatedAt?.toISOString() ?? '',
     };

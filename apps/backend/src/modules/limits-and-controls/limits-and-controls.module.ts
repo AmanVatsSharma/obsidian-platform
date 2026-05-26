@@ -29,6 +29,7 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
+import { RbacModule } from '../rbac/rbac.module';
 import { LimitsAndControlsResolver } from './limits-and-controls.resolver';
 import { LimitsAndControlsController } from './controllers/limits-and-controls.controller';
 import { AdminLimitsController } from './controllers/admin-limits.controller';
@@ -41,7 +42,7 @@ import { LimitsAndControlsService } from './services/limits-and-controls.service
 import { AdminLimitsService } from './services/admin-limits.service';
 
 @Module({
-  imports: [SharedModule, TypeOrmModule.forFeature([LimitControlEntity, LimitExceptionEntity, ExposureLimitEntity, TenantEntity])],
+  imports: [SharedModule, RbacModule, TypeOrmModule.forFeature([LimitControlEntity, LimitExceptionEntity, ExposureLimitEntity, TenantEntity])],
   controllers: [LimitsAndControlsController, AdminLimitsController, AdminExposureLimitsController],
   providers: [LimitsAndControlsResolver, LimitsAndControlsService, AdminLimitsService],
   exports: [LimitsAndControlsService, AdminLimitsService],

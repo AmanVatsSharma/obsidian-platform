@@ -5,7 +5,7 @@
  *             accepts both Bearer header tokens and access_token cookies.
  *
  * Exports:
- *   - JwtAuthGuard — GraphQL/REST auth guard (extends AuthGuard('jwt'))
+ *   - JwtAuthGuard — GraphQL/REST auth guard
  *
  * Depends on:
  *   - @nestjs/passport       — AuthGuard base class
@@ -22,14 +22,14 @@
  * Last-updated: 2026-05-22
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, ExecutionContext } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { Request } from 'express';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
   canActivate(context: any) {
-    const request = context.switchToHttp?.().getRequest<Request>();
+    const request = context.switchToHttp?.().getRequest?.() as Request | undefined;
     if (request) {
       // Already has a Bearer header — use it directly
       if (request.headers.authorization?.toLowerCase().startsWith('bearer ')) {

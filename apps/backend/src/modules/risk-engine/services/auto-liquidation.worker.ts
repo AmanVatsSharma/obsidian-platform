@@ -263,7 +263,7 @@ export class AutoLiquidationWorker implements OnModuleInit, OnModuleDestroy {
         category: 'risk',
       });
     } catch (err) {
-      this.logger.error('notify: failed', { accountId, action, err });
+      this.logger.error('notify: failed', (err as Error).message);
     }
   }
 }

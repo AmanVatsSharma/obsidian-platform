@@ -61,9 +61,9 @@ export default function DashboardPage() {
     async function load() {
       try {
         const [statsData, revenueData, brokersData, healthData] = await Promise.all([
-          api.getPlatformStats().catch(() => null),
-          api.getRevenueSeries().catch(() => null),
-          api.listBrokersWithMetrics().catch(() => null),
+          api.getPlatformDashboardStats().catch(() => null),
+          api.getPlatformDashboardRevenue().catch(() => null),
+          api.getPlatformDashboardBrokers().catch(() => null),
           api.getPlatformHealth().catch(() => null),
         ]);
 
@@ -71,7 +71,7 @@ export default function DashboardPage() {
 
         if (statsData) setStats(statsData);
         if (revenueData) setRevenueSeries(revenueData);
-        if (brokersData) setBrokers(brokersData.map(apiBrokerToUi));
+        if (brokersData?.brokers) setBrokers(brokersData.brokers.map(apiBrokerToUi));
         if (healthData) setInfraServices(healthData.services as InfraService[]);
       } catch (err) {
         if (!cancelled) setError(err instanceof Error ? err.message : 'Failed to load dashboard');

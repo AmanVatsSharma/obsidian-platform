@@ -232,4 +232,42 @@ export const api = {
     apiRequest<{ id: string; brokerCode: string }>(`/saas/suspended/${tenantCode}/reactivate`, {
       method: 'POST',
     }),
+
+  // Platform dashboard endpoints — wired to /platform/dashboard/*
+  getPlatformDashboardStats: () =>
+    apiRequest<{
+      totalBrokers: number;
+      activeBrokers: number;
+      totalClients: number;
+      totalAum: string;
+      totalMonthlyRevenue: string;
+      totalMonthlyRevenuePrev: string;
+    }>('/platform/dashboard/stats'),
+
+  getPlatformDashboardBrokers: (limit = 10, offset = 0) =>
+    apiRequest<{
+      brokers: Array<{
+        id: string;
+        tenantId: string;
+        brokerCode: string;
+        displayName: string;
+        status: string;
+        createdAt: string;
+        metrics?: {
+          aum: string;
+          clients: number;
+          monthlyRevenue: string;
+          monthlyRevenuePrev: string;
+          healthScore: number;
+          lastActivityAt: string | null;
+          computedAt: string | null;
+        };
+      }>;
+      total: number;
+    }>(`/platform/dashboard/brokers?limit=${limit}&offset=${offset}`),
+
+  getPlatformDashboardRevenue: (months = 12) =>
+    apiRequest<Array<{ month: string; mrr: number; newBusiness: number; churn: number }>>(
+      `/platform/dashboard/revenue?months=${months}`,
+    ),
 };

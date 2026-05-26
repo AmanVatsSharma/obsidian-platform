@@ -109,6 +109,17 @@ export class PriceFeedService implements OnModuleInit, OnModuleDestroy {
     return this.quotesSubject.asObservable();
   }
 
+  /**
+   * Returns the last cached last-trade-price for an instrument, or null if not yet
+   * received. Instruments are keyed as 'EXCHANGE:SYMBOL' (uppercase).
+   */
+  async getLastPrice(instrumentId: string): Promise<string | null> {
+    const key = instrumentId.toUpperCase();
+    const quote = this.latestQuotes.get(key);
+    if (!quote) return null;
+    return String(quote.price);
+  }
+
   private async pollOnce(): Promise<void> {
     const allKeys = Array.from(this.subscribers.keys());
     if (allKeys.length === 0) return;

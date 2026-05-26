@@ -1,6 +1,6 @@
 # EKS Module
 
-Creates EKS cluster and node groups for NestTrade workloads.
+Creates EKS cluster and node groups for Obsidian workloads.
 
 ## Inputs
 

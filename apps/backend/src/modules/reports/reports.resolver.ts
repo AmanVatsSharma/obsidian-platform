@@ -61,8 +61,8 @@ export class ReportDefinitionObjectType {
   @Field(() => [String])
   columns!: string[];
 
-  @Field(() => Object, { nullable: true })
-  filters!: Record<string, unknown> | null;
+  @Field(() => String, { nullable: true })
+  filters!: string | null;
 
   @Field()
   createdBy!: string;
@@ -126,14 +126,14 @@ export class ReportsResolver {
     @Args('type') type: string,
     @Args('createdBy') createdBy: string,
     @Args('columns', { type: () => [String] }) columns: string[],
-    @Args('filters', { type: () => Object, nullable: true }) filters?: Record<string, unknown>,
+    @Args('filters', { type: () => String, nullable: true }) filtersArg?: string,
   ): Promise<ReportDefinitionObjectType> {
     const saved = await this.reportsService.createReport({
       tenantId,
       name,
       type,
       columns,
-      filters: filters ?? {},
+      filters: filtersArg ? (JSON.parse(filtersArg) as Record<string, unknown>) : {},
       createdBy,
     } as any);
     return this.mapReport(saved);
@@ -159,7 +159,7 @@ export class ReportsResolver {
       name: r.name,
       type: r.type,
       columns: r.columns ?? [],
-      filters: r.filters ?? null,
+      filters: typeof r.filters === 'object' ? JSON.stringify(r.filters) : String(r.filters ?? null),
       createdBy: r.createdBy,
       lastRunAt: r.lastRunAt?.toISOString() ?? null,
       createdAt: r.createdAt?.toISOString() ?? '',

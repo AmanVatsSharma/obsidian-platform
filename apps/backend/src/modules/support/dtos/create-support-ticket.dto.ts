@@ -7,24 +7,32 @@
  */
 
 import { IsIn, IsObject, IsString, IsUUID, MaxLength } from 'class-validator';
+import { InputType, Field } from '@nestjs/graphql';
 
+@InputType()
 export class CreateSupportTicketDto {
+  @Field(() => String)
   @IsUUID()
   tenantId!: string;
 
+  @Field(() => String)
   @IsUUID()
   userId!: string;
 
+  @Field(() => String)
   @IsString()
   @MaxLength(256)
   subject!: string;
 
+  @Field(() => String)
   @IsString()
   description!: string;
 
+  @Field(() => String)
   @IsIn(['LOW', 'MEDIUM', 'HIGH', 'CRITICAL'])
   priority!: 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL';
 
+  @Field(() => String, { nullable: true })
   @IsObject()
-  metadata!: Record<string, unknown>;
+  metadata?: string | null;
 }

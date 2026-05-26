@@ -26,50 +26,63 @@
 
 import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, IsUUID, Max, Min } from 'class-validator';
 import { Type } from 'class-transformer';
+import { InputType, Field } from '@nestjs/graphql';
 
+@InputType()
 export class CreateExposureLimitDto {
+  @Field(() => String)
   @IsUUID()
   tenantId!: string;
 
+  @Field(() => String)
   @IsString()
   @IsNotEmpty()
   instrumentId!: string;
 
+  @Field(() => Number)
   @IsNumber()
   @Min(0)
   maxNetExposure!: number;
 
+  @Field(() => Number)
   @IsNumber()
   @Min(0)
   @Max(1)
   alertThreshold!: number;
 
+  @Field(() => Number)
   @IsNumber()
   @Min(0)
   hardLimit!: number;
 
+  @Field(() => Boolean, { nullable: true })
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;
 }
 
+@InputType()
 export class UpdateExposureLimitDto {
+  @Field(() => Number, { nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
   maxNetExposure?: number;
 
+  @Field(() => Number, { nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
   @Max(1)
   alertThreshold?: number;
 
+  @Field(() => Number, { nullable: true })
   @IsOptional()
   @IsNumber()
   @Min(0)
   hardLimit?: number;
 
+  @Field(() => Boolean, { nullable: true })
   @IsOptional()
   @IsBoolean()
   enabled?: boolean;

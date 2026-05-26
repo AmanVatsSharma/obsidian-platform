@@ -6,7 +6,7 @@
  * @created 2026-02-17
  */
 
-import { IsDateString, IsIn, IsObject, IsString, IsUUID } from 'class-validator';
+import { IsDateString, IsIn, IsObject, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class CreateCorporateActionDto {
   @IsUUID()

@@ -279,39 +279,33 @@ export class BrokerHierarchyResolver {
   private mapBranch(b: BranchEntity): BranchObjectType {
     return {
       id: b.id,
-      tenantId: (b as any).tenantId ?? '',
+      tenantId: b.tenantId,
       brokerId: b.brokerId,
-      name: (b as any).name ?? '',
-      region: (b as any).region ?? null,
-      status: (b as any).status ?? 'ACTIVE',
-      createdAt: (b as any).createdAt instanceof Date
-        ? (b as any).createdAt.toISOString()
-        : String((b as any).createdAt ?? ''),
+      name: b.displayName,
+      region: null,
+      status: 'ACTIVE',
+      createdAt: b.createdAt instanceof Date ? b.createdAt.toISOString() : String(b.createdAt ?? ''),
     };
   }
 
   private mapDesk(d: DeskEntity): DeskObjectType {
     return {
       id: d.id,
-      tenantId: (d as any).tenantId ?? '',
+      tenantId: '',
       branchId: d.branchId,
-      name: (d as any).name ?? '',
-      createdAt: (d as any).createdAt instanceof Date
-        ? (d as any).createdAt.toISOString()
-        : String((d as any).createdAt ?? ''),
+      name: d.displayName,
+      createdAt: d.createdAt instanceof Date ? d.createdAt.toISOString() : String(d.createdAt ?? ''),
     };
   }
 
   private mapDealer(d: DealerEntity): DealerObjectType {
     return {
       id: d.id,
-      tenantId: (d as any).tenantId ?? '',
+      tenantId: d.tenantId,
       deskId: d.deskId,
-      userId: (d as any).userId ?? '',
-      displayName: (d as any).displayName ?? null,
-      createdAt: (d as any).createdAt instanceof Date
-        ? (d as any).createdAt.toISOString()
-        : String((d as any).createdAt ?? ''),
+      userId: d.userId,
+      displayName: null,
+      createdAt: d.createdAt instanceof Date ? d.createdAt.toISOString() : String(d.createdAt ?? ''),
     };
   }
 }

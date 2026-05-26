@@ -6,30 +6,20 @@
  *              useClass below — all consumers stay the same.
  * @author BharatERP
  * @created 2026-02-19
- * @last-updated 2026-04-24
- *
- * Exports:
- *   - MESSAGE_PUBLISHER token (IMessagePublisher) — injectable anywhere in the app
- *   - RedisPublisher                               — concrete Redis pub/sub implementation
- *
- * Key invariants:
- *   - If REDIS_URL is not set, publisher is a no-op (development safety net)
- *   - Each message is JSON-serialised; consumers must deserialise from the channel
+ * @last-updated 2026-05-22
  */
 
-import { Global, Module } from '@nestjs/common';
-import { SharedModule } from '../shared.module';
+import { Module } from '@nestjs/common';
 import { RedisPublisher } from './redis.publisher';
 
 export const MESSAGE_PUBLISHER = 'IMessagePublisher';
 
-@Global()
 @Module({
-  imports: [SharedModule],
+  imports: [],
   providers: [
     RedisPublisher,
     { provide: MESSAGE_PUBLISHER, useClass: RedisPublisher },
   ],
-  exports: [MESSAGE_PUBLISHER],
+  exports: [MESSAGE_PUBLISHER, RedisPublisher],
 })
 export class MessagingModule {}
