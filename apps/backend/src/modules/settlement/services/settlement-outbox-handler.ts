@@ -34,6 +34,7 @@
 import { Injectable } from '@nestjs/common';
 import { OutboxEntity } from '../../../shared/outbox/entities/outbox.entity';
 import { AppLoggerService } from '../../../shared/logger';
+import { AppError } from '../../../common/errors/app-error';
 import { SettlementService } from './settlement.service';
 import { detectSegment, Segment } from './segment-detector';
 
@@ -74,7 +75,8 @@ export class SettlementOutboxHandler {
     const payload = msg.payload as unknown as SettlementJobPayload;
 
     if (!payload.executionId || !payload.accountId || !payload.instrumentId) {
-      throw new Error(
+      throw new AppError(
+        'VALIDATION_ERROR',
         `[SettlementOutboxHandler] Missing required fields in settlement.job.create payload: ` +
         `executionId=${payload.executionId}, accountId=${payload.accountId}, instrumentId=${payload.instrumentId}`,
       );
@@ -92,7 +94,7 @@ export class SettlementOutboxHandler {
     const currency = payload.currency ?? 'INR';
     const amount = this.computeAmount(payload);
 
-    const tenantId = payload.tenantId ?? (msg.tenantId as string);
+    const tenantId = payload.tenantId ?? (msg.tenantId);
 
     await this.settlementService.createJob({
       tenantId,
