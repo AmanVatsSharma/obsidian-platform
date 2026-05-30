@@ -3,7 +3,6 @@ mutation PlaceOrder($input: PlaceOrderInput!) {
     id
     clientOrderId
     status
-    message
     createdAt
   }
 }

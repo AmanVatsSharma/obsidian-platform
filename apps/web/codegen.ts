@@ -17,23 +17,26 @@
 import type { CodegenConfig } from '@graphql-codegen/cli';
 
 const config: CodegenConfig = {
-  schema: '/home/amansharma/Desktop/DevOPS/Obsidian/src/generated/schema.gql',
+  schema: '../backend/src/generated/schema.gql',
   documents: [
-    'apps/web/gql/operations/**/*.gql',
-    'apps/web/features/**/*.gql',
+    'gql/operations/**/*.gql',
+    'features/**/*.gql',
   ],
   generates: {
-    'apps/web/gql/generated/graphql.ts': {
+    'gql/generated/graphql.ts': {
       plugins: ['typescript'],
       config: {
-        namingConvention: 'keep-case',
         defaultScalarType: 'unknown',
         scalars: {
           DateTime: 'string',
           UUID: 'string',
           JSON: 'unknown',
           Void: 'void',
+          BigInt: 'number',
+          Long: 'number',
         },
+        strict: true,
+        maybeValue: 'T | undefined',
       },
     },
     'apps/web/gql/generated/hooks.ts': {
@@ -41,18 +44,16 @@ const config: CodegenConfig = {
       presetConfig: {
         extension: '.ts',
         importPath: '@apollo/client',
+        baseTypesPath: './graphql.ts',
       },
       plugins: ['typescript-operations', 'typescript-react-apollo'],
       config: {
         withHooks: true,
         withComponent: false,
         withMutationFn: true,
-        strictScalars: true,
+        strictScalars: false,
       },
     },
-  },
-  hooks: {
-    afterAllFileWrite: ['npx prettier --write'],
   },
 };
 
