@@ -6,6 +6,7 @@
  * Exports:
  *   - requestOtp(mobile)                  → Promise<{ success: boolean }>
  *   - verifyOtp(mobile, otp)              → Promise<OtpVerifyResponse>
+ *   - devLogin(tenantId, mobile, password) → Promise<{ accessToken, refreshToken, tokenId, userId }>
  *   - listBrokers()                       → Promise<ApiBroker[]>
  *   - getBroker(tenantCode)               → Promise<ApiBroker | null>
  *   - onboardBroker(dto)                  → Promise<OnboardBrokerResponse>
@@ -13,7 +14,7 @@
  *   - ApiBroker, OtpVerifyResponse, OnboardBrokerRequest, OnboardBrokerResponse — API shapes
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-09
+ * Last-updated: 2026-05-28
  */
 
 import { apiRequest } from './client';
@@ -23,6 +24,13 @@ export interface OtpVerifyResponse {
   refreshToken: string;
   csrfToken: string;
   tokenId: string;
+}
+
+export interface DevLoginResponse {
+  accessToken: string;
+  refreshToken: string;
+  tokenId: string;
+  userId: string;
 }
 
 export interface ApiBrokerMetrics {
@@ -74,6 +82,12 @@ export const api = {
     apiRequest<OtpVerifyResponse>('/auth/otp/verify', {
       method: 'POST',
       body: JSON.stringify({ tenantId: 'platform', mobileE164, otp }),
+    }),
+
+  devLogin: (tenantId: string, mobileE164: string, password: string) =>
+    apiRequest<DevLoginResponse>('/auth/dev/login', {
+      method: 'POST',
+      body: JSON.stringify({ tenantId, mobileE164, password }),
     }),
 
   listBrokers: () =>

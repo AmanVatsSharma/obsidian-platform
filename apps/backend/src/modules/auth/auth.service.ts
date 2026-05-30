@@ -35,8 +35,8 @@ type TokenPair = { accessToken: string; refreshToken: string };
 
 @Injectable()
 export class AuthService {
-  private readonly accessTtl: string;
-  private readonly refreshTtl: string;
+  private readonly accessTtl: number;
+  private readonly refreshTtl: number;
 
   constructor(
     private readonly users: UsersService,
@@ -48,8 +48,19 @@ export class AuthService {
     private readonly redis: RedisService,
   ) {
     this.logger.setContext(AuthService.name);
-    this.accessTtl = process.env.JWT_ACCESS_TTL || '15m';
-    this.refreshTtl = process.env.JWT_REFRESH_TTL || '30d';
+    const accessTtlStr = process.env.JWT_ACCESS_TTL || '15m';
+    const refreshTtlStr = process.env.JWT_REFRESH_TTL || '30d';
+    this.accessTtl = this.parseTtlMs(accessTtlStr);
+    this.refreshTtl = this.parseTtlMs(refreshTtlStr);
+  }
+
+  private parseTtlMs(ttl: string): number {
+    const match = ttl.match(/^(\d+)(m|h|d|s)?$/i);
+    if (!match) return parseInt(ttl, 10) * 1000;
+    const val = parseInt(match[1], 10);
+    const unit = (match[2] ?? 's').toLowerCase();
+    const multipliers: Record<string, number> = { s: 1000, m: 60000, h: 3600000, d: 86400000 };
+    return val * (multipliers[unit] ?? 1000);
   }
 
   async requestOtp(dto: RequestOtpDto): Promise<{ success: boolean }> {
@@ -129,14 +140,14 @@ export class AuthService {
     const tokenId = randomUUID();
     const accessToken = await this.jwt.signAsync(
       { sub: user.id, tid: dto.tenantId },
-      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: this.accessTtl },
+      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: this.accessTtl / 1000 },
     );
     const refreshToken = await this.jwt.signAsync(
       { sub: user.id, tid: dto.tenantId, jti: tokenId },
-      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: this.refreshTtl },
+      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: this.refreshTtl / 1000 },
     );
     const hashed = await argon2.hash(refreshToken, { type: argon2.argon2id });
-    const expiresAt = new Date(Date.now() + this.parseTtlMs(this.refreshTtl));
+    const expiresAt = new Date(Date.now() + this.refreshTtl);
     await this.tokens.save({
       tenantId: dto.tenantId,
       userId: user.id,
@@ -197,14 +208,14 @@ export class AuthService {
     const newTokenId = randomUUID();
     const accessToken = await this.jwt.signAsync(
       { sub: userId, tid: tenantId },
-      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: this.accessTtl },
+      { secret: process.env.JWT_ACCESS_SECRET, expiresIn: this.accessTtl / 1000 },
     );
     const refreshToken = await this.jwt.signAsync(
       { sub: userId, tid: tenantId, jti: newTokenId },
-      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: this.refreshTtl },
+      { secret: process.env.JWT_REFRESH_SECRET, expiresIn: this.refreshTtl / 1000 },
     );
     const hashed = await argon2.hash(refreshToken, { type: argon2.argon2id });
-    const expiresAt = new Date(Date.now() + this.parseTtlMs(this.refreshTtl));
+    const expiresAt = new Date(Date.now() + this.refreshTtl);
     await this.tokens.save({
       tenantId: tenantId ?? '',
       userId,
@@ -217,28 +228,6 @@ export class AuthService {
       lastUsedAt: new Date(),
     });
     return { accessToken, refreshToken, tokenId: newTokenId };
-  }
-
-  private parseTtlMs(ttl: string): number {
-    // Simple parser for (\d+)(ms|s|m|h|d)
-    const match = ttl.match(/^(\d+)(ms|s|m|h|d)$/);
-    if (!match) return 0;
-    const value = Number(match[1]);
-    const unit = match[2];
-    switch (unit) {
-      case 'ms':
-        return value;
-      case 's':
-        return value * 1000;
-      case 'm':
-        return value * 60_000;
-      case 'h':
-        return value * 3_600_000;
-      case 'd':
-        return value * 86_400_000;
-      default:
-        return 0;
-    }
   }
 
   // TOTP flows
@@ -263,7 +252,7 @@ export class AuthService {
     const isValid = authenticator.check(code, secret);
     if (!isValid) return { enabled: false };
     // Persist on user
-    await this.users.update(userId, { profile: undefined } as any); // no-op to reuse service; we need a dedicated repo method
+    await this.users.update(userId, { profile: undefined }); // no-op to reuse service; we need a dedicated repo method
     // Direct repo update to avoid DTO constraints
     await (this.users as any).repo.update(
       { id: userId },

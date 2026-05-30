@@ -68,7 +68,7 @@ import { ReportsModule } from './modules/reports/reports.module';
   imports: [
     GraphQLModule.forRoot<ApolloDriverConfig>({
       driver: ApolloDriver,
-      autoSchemaFile: join(process.cwd(), '../../src/generated/schema.gql'),
+      autoSchemaFile: join(process.cwd(), 'src/generated/schema.gql'),
       sortSchema: true,
       playground: process.env['NODE_ENV'] !== 'production',
       introspection: process.env['NODE_ENV'] !== 'production',

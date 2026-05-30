@@ -1,26 +1,28 @@
 /**
  * File:        apps/platform-owner/src/app/login/page.tsx
  * Module:      platform-owner · Login Page
- * Purpose:     Two-step OTP login for the Platform Owner. Uses the Obsidian shared
+ * Purpose:     Password + OTP login for the Platform Owner. Uses the Obsidian shared
  *              auth UI (AuthShell + FormCard + MarketHero) with platform variant.
  *
  * Exports:
  *   - LoginPage()  — client component; Obsidian split-layout form
  *
  * Depends on:
- *   - ../../lib/api/endpoints     — api.requestOtp, api.verifyOtp
+ *   - ../../lib/api/endpoints     — api.requestOtp, api.verifyOtp, api.devLogin
  *   - ../../lib/auth/auth-context — useAuth().login
- *   - @obsidian/web-auth          — AuthShell, FormCard, TextInput, PrimaryButton
+ *   - @obsidian/web-auth          — AuthShell, FormCard, TextInput, PrimaryButton, GhostButton
  *
  * Side-effects:
+ *   - POST /api/auth/dev/login (dev-only password login)
  *   - POST /api/auth/otp/request and /api/auth/otp/verify with x-tenant-id: 'platform'
  *
  * Key invariants:
- *   - tenantId is always 'platform' for this app (no subdomain resolution needed)
+ *   - tenantId is always 'platform' for this app
  *   - heroVariant='platform' uses tailored hero copy for the control-plane context
+ *   - Dev bypass: password 'platform123' or OTP flow
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-09
+ * Last-updated: 2026-05-28
  */
 
 'use client';
@@ -29,16 +31,17 @@ import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { api as endpoints } from '../../lib/api/endpoints';
 import { useAuth } from '../../lib/auth/auth-context';
-import { AuthShell, FormCard, TextInput, PrimaryButton, FieldLabel, AuthIcons } from '@obsidian/web-auth';
+import { AuthShell, FormCard, TextInput, PrimaryButton, GhostButton, FieldLabel, AuthIcons } from '@obsidian/web-auth';
 
-type Step = 'mobile' | 'otp';
+type Step = 'credentials' | 'otp';
 
 export default function LoginPage() {
   const router = useRouter();
   const { login } = useAuth();
 
-  const [step, setStep] = useState<Step>('mobile');
+  const [step, setStep] = useState<Step>('credentials');
   const [mobile, setMobile] = useState('');
+  const [password, setPassword] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -70,7 +73,21 @@ export default function LoginPage() {
     e.preventDefault();
   }
 
-  async function handleMobileSubmit() {
+  async function handlePasswordSubmit() {
+    setError(null);
+    setLoading(true);
+    try {
+      const res = await endpoints.devLogin('platform', mobile, password);
+      login(res.accessToken, mobile);
+      router.replace('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid credentials');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleOtpRequest() {
     setError(null);
     setLoading(true);
     try {
@@ -97,24 +114,30 @@ export default function LoginPage() {
     }
   }
 
-  if (step === 'mobile') {
+  if (step === 'credentials') {
     return (
       <AuthShell heroVariant="platform">
         <FormCard
-          title="Platform Owner Sign In"
+          title="PLATFORM OWNER SIGN IN"
           subtitle="Access the Obsidian control plane. Onboard brokers, manage tenants, and control platform-wide settings."
           footer={
             <div style={{
-              fontFamily: 'var(--font-data)', fontSize: 9, fontWeight: 600,
-              letterSpacing: '0.08em', color: 'var(--fg3)', textTransform: 'uppercase', textAlign: 'center',
+              fontFamily: 'var(--font-data)',
+              fontSize: 9,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              color: 'var(--fg3)',
+              textTransform: 'uppercase',
+              textAlign: 'center',
             }}>
               OBSIDIAN PLATFORM · RESTRICTED ACCESS · PLATFORM OWNERS ONLY
             </div>
           }
         >
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {/* Mobile input */}
             <div>
-              <FieldLabel>Mobile number (E.164)</FieldLabel>
+              <FieldLabel style={{ marginBottom: 6 }}>MOBILE NUMBER</FieldLabel>
               <TextInput
                 value={mobile}
                 onChange={setMobile}
@@ -125,17 +148,70 @@ export default function LoginPage() {
               />
             </div>
 
+            {/* Password input */}
+            <div>
+              <FieldLabel style={{ marginBottom: 6 }}>PASSWORD</FieldLabel>
+              <TextInput
+                value={password}
+                onChange={setPassword}
+                type="password"
+                placeholder="Enter password"
+                icon={AuthIcons.lock}
+              />
+            </div>
+
+            {/* Error message */}
             {error && (
               <div style={{
-                padding: '10px 14px', background: 'var(--bear-dim)',
-                border: '1px solid rgba(255,59,92,0.25)', borderRadius: 'var(--r-md)',
-                fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--bear)',
-              }}>{error}</div>
+                padding: '10px 14px',
+                background: 'var(--bear-dim)',
+                border: '1px solid rgba(255,59,92,0.25)',
+                borderRadius: 'var(--r-md)',
+                fontFamily: 'var(--font-ui)',
+                fontSize: 12,
+                color: 'var(--bear)',
+              }}>
+                {error}
+              </div>
             )}
 
-            <PrimaryButton onClick={handleMobileSubmit} disabled={loading || !mobile.trim()}>
-              {loading ? 'Sending…' : <>Request OTP {AuthIcons.arrowRight}</>}
+            {/* Sign in button */}
+            <PrimaryButton
+              onClick={handlePasswordSubmit}
+              disabled={loading || !mobile.trim() || !password.trim()}
+            >
+              {loading ? 'SIGNING IN…' : <>SIGN IN {AuthIcons.arrowRight}</>}
             </PrimaryButton>
+
+            {/* Divider */}
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+            }}>
+              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+              <span style={{
+                fontFamily: 'var(--font-data)',
+                fontSize: 9,
+                fontWeight: 600,
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                color: 'var(--fg3)',
+              }}>
+                OR
+              </span>
+              <div style={{ flex: 1, height: 1, background: 'var(--border)' }} />
+            </div>
+
+            {/* OTP option */}
+            <GhostButton
+              icon={AuthIcons.mail}
+              onClick={handleOtpRequest}
+              disabled={loading || !mobile.trim()}
+              wide
+            >
+              SIGN IN WITH OTP
+            </GhostButton>
           </div>
         </FormCard>
       </AuthShell>
@@ -147,28 +223,41 @@ export default function LoginPage() {
       <FormCard
         back={
           <span
-            onClick={() => { setStep('mobile'); setDigits(['','','','','','']); setOtp(''); setError(null); }}
+            onClick={() => {
+              setStep('credentials');
+              setDigits(['', '', '', '', '', '']);
+              setOtp('');
+              setError(null);
+            }}
             style={{
-              display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-              fontFamily: 'var(--font-data)', fontSize: 10, fontWeight: 600,
-              letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--fg2)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              cursor: 'pointer',
+              fontFamily: 'var(--font-data)',
+              fontSize: 10,
+              fontWeight: 600,
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+              color: 'var(--fg2)',
             }}
           >
             {AuthIcons.arrowLeft} Change number
           </span>
         }
-        title="Enter your OTP"
+        title="ENTER OTP"
         subtitle={
           <>
             We sent a 6-digit code to{' '}
-            <span style={{ color: 'var(--fg1)', fontFamily: 'var(--font-data)' }}>{mobile}</span>.
+            <span style={{ color: 'var(--fg1)', fontFamily: 'var(--font-data)' }}>{mobile}</span>
           </>
         }
       >
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+          {/* OTP input */}
           <div>
-            <FieldLabel>One-time passcode</FieldLabel>
-            <div style={{ display: 'flex', gap: 10 }} onPaste={handleDigitPaste}>
+            <FieldLabel style={{ marginBottom: 8 }}>ONE-TIME PASSCODE</FieldLabel>
+            <div style={{ display: 'flex', gap: 8 }} onPaste={handleDigitPaste}>
               {digits.map((d, i) => (
                 <input
                   key={i}
@@ -181,29 +270,41 @@ export default function LoginPage() {
                   onChange={e => handleDigit(i, e.target.value)}
                   onKeyDown={e => handleDigitKeyDown(i, e)}
                   style={{
-                    flex: 1, height: 64, borderRadius: 'var(--r-md)',
+                    flex: 1,
+                    height: 56,
+                    borderRadius: 'var(--r-md)',
                     background: d ? 'var(--bg-panel)' : 'var(--bg-elevated)',
                     border: `1px solid ${!d && i === digits.findIndex(x => !x) ? 'var(--accent)' : d ? 'var(--border-md)' : 'var(--border)'}`,
-                    boxShadow: (!d && i === digits.findIndex(x => !x)) ? '0 0 0 3px rgba(59,130,246,0.15)' : 'none',
                     textAlign: 'center',
-                    fontFamily: 'var(--font-data)', fontSize: 28, fontWeight: 600,
-                    color: 'var(--fg1)', outline: 'none',
+                    fontFamily: 'var(--font-data)',
+                    fontSize: 24,
+                    fontWeight: 600,
+                    color: 'var(--fg1)',
+                    outline: 'none',
                   }}
                 />
               ))}
             </div>
           </div>
 
+          {/* Error message */}
           {error && (
             <div style={{
-              padding: '10px 14px', background: 'var(--bear-dim)',
-              border: '1px solid rgba(255,59,92,0.25)', borderRadius: 'var(--r-md)',
-              fontFamily: 'var(--font-ui)', fontSize: 12, color: 'var(--bear)',
-            }}>{error}</div>
+              padding: '10px 14px',
+              background: 'var(--bear-dim)',
+              border: '1px solid rgba(255,59,92,0.25)',
+              borderRadius: 'var(--r-md)',
+              fontFamily: 'var(--font-ui)',
+              fontSize: 12,
+              color: 'var(--bear)',
+            }}>
+              {error}
+            </div>
           )}
 
+          {/* Verify button */}
           <PrimaryButton onClick={handleOtpSubmit} disabled={loading || otp.length < 6}>
-            {loading ? 'Verifying…' : <>Verify & access control plane {AuthIcons.arrowRight}</>}
+            {loading ? 'VERIFYING…' : <>VERIFY & ACCESS {AuthIcons.arrowRight}</>}
           </PrimaryButton>
         </div>
       </FormCard>
