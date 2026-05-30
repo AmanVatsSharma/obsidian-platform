@@ -1,29 +1,7 @@
 query GetWatchlists {
   watchlists {
-    edges {
-      node {
-        id
-        name
-        isDefault
-        items {
-          edges {
-            node {
-              id
-              instrument {
-                id
-                symbol
-                name
-                category
-                digits
-                bid
-                ask
-                change
-                changePct
-              }
-            }
-          }
-        }
-      }
-    }
+    id
+    name
+    createdAt
   }
 }

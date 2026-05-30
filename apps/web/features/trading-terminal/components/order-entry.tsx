@@ -9,8 +9,10 @@
  * Depends on:
  *   - @/features/trading-terminal/lib/types — Instrument, OrderTypeExtended, TradePayload
  *   - @/features/trading-terminal/lib/format-utils — fmt, fmtPrice
+ *   - @/gql/hooks/usePlaceOrder — enterprise codegen order placement mutation hook
  *
- * Side-effects: none (pure UI component, onTrade callback handles API submit)
+ * Side-effects:
+ *   - usePlaceOrder mutation — Apollo network I/O on submit
  *
  * Key invariants:
  *   - Bracket section always visible; bracket submit fires when sl OR tp is filled
@@ -23,15 +25,16 @@
  *   3. Submit handler — routes to onTrade with full TradePayload
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-24
+ * Last-updated: 2026-05-30
  */
 
 'use client';
 
 import { useState } from 'react';
+import { nanoid } from 'nanoid';
 import type { Instrument, OrderTypeExtended, TriggerCondition } from '../lib/types';
 import { fmt, fmtPrice } from '../lib/format-utils';
-import { submitOrderToOms, submitBracketOrderToOms } from '../lib/workstation-api';
+import { usePlaceOrder } from '@/gql/hooks/usePlaceOrder';
 
 type PriceMap = Record<string, Instrument>;
 
@@ -75,6 +78,10 @@ export function OrderEntry({
   }) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Enterprise codegen mutation hook — all order submissions route through this.
+  const { placeOrder } = usePlaceOrder();
 
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [type, setType] = useState<OrderTypeExtended>('MARKET');
@@ -106,53 +113,68 @@ export function OrderEntry({
   const digits = instrument?.digits ?? 5;
 
   const handleSubmit = async () => {
-    const payload = {
-      side,
-      type,
-      lots,
-      sl,
-      tp,
-      price,
-      instrument,
-      ...(type === 'GTT' && triggerPrice ? { triggerPrice, triggerCondition } : {}),
-      ...(type === 'TRAILING_STOP' && (trailingDistance || trailingPct)
-        ? { trailingDistance: trailingDistance || undefined, trailingPct: trailingPct || undefined }
-        : {}),
-      ...(type === 'ICEBERG' && displayQty ? { displayQty } : {}),
-      ...((type === 'TWAP' || type === 'VWAP') && slices && durationMinutes
-        ? { slices: parseInt(slices, 10), durationMinutes: parseInt(durationMinutes, 10) }
-        : {}),
+    setError(null);
+    setSubmitting(true);
+
+    const hasBracket = Boolean(sl || tp);
+    const instrumentId = instrument?.instrumentId ?? '';
+
+    const input = {
+      accountId: accountId ?? '',
+      instrumentId,
+      side: side === 'buy' ? ('BUY' as const) : ('SELL' as const),
+      type: type as string,
+      quantity: (parseFloat(lots) || 0).toFixed(2),
+      ...(price ? { price } : {}),
+      ...(sl ? { slPrice: sl } : {}),
+      ...(tp ? { tpPrice: tp } : {}),
+      timeInForce: 'DAY' as const,
+      clientOrderId: `web-${nanoid(10)}`,
+      externalRefId: '',
+      ...(type === 'GTT' && triggerPrice ? { triggerPrice } : {}),
     };
 
-    const hasBracket = Boolean(payload.sl || payload.tp);
-
-    if (!fetchJson) {
-      onTrade(payload as Parameters<typeof onTrade>[0]);
-      return;
-    }
-
     try {
-      let result;
-      if (hasBracket) {
-        result = await submitBracketOrderToOms(fetchJson, {
-          ...payload,
-          triggerCondition,
-          trailingDistance,
-          trailingPct,
-          displayQty,
-          slices: parseInt(slices, 10),
-          durationMinutes: parseInt(durationMinutes, 10),
-        });
-      } else {
-        result = await submitOrderToOms(fetchJson, payload);
-      }
-      if (result.ok === false) {
-        setError(result.message || 'Order submission failed');
+      const result = await placeOrder({ variables: { input } });
+      setSubmitting(false);
+
+      if (result.errors?.length) {
+        setError(result.errors[0].message);
         return;
       }
+
+      const orderData = result.data?.placeOrder;
+      if (!orderData) {
+        setError('Order submission returned no data.');
+        return;
+      }
+
+      if (orderData.status === 'REJECTED') {
+        setError('Order was rejected.');
+        return;
+      }
+
+      // Success — notify parent component and reset form
       setError(null);
-      onTrade(payload as Parameters<typeof onTrade>[0]);
+      onTrade({
+        side,
+        type,
+        lots,
+        sl,
+        tp,
+        price,
+        instrument,
+        ...(type === 'GTT' && triggerPrice ? { triggerPrice, triggerCondition } : {}),
+        ...(type === 'TRAILING_STOP' && (trailingDistance || trailingPct)
+          ? { trailingDistance: trailingDistance || undefined, trailingPct: trailingPct || undefined }
+          : {}),
+        ...(type === 'ICEBERG' && displayQty ? { displayQty } : {}),
+        ...((type === 'TWAP' || type === 'VWAP') && slices && durationMinutes
+          ? { slices: parseInt(slices, 10), durationMinutes: parseInt(durationMinutes, 10) }
+          : {}),
+      });
     } catch (err) {
+      setSubmitting(false);
       const msg = err instanceof Error ? err.message : String(err);
       setError(`Submission failed: ${msg}`);
     }
@@ -427,8 +449,13 @@ export function OrderEntry({
 
         {/* ── Submit ────────────────────────────────────────────────── */}
         <div className="oe-submit-row">
-          <button type="button" className={`oe-submit ${side}`} onClick={async () => { await handleSubmit(); }}>
-            {side === 'buy' ? '▲ BUY' : '▼ SELL'} {type}
+          <button
+            type="button"
+            className={`oe-submit ${side}`}
+            disabled={submitting}
+            onClick={async () => { await handleSubmit(); }}
+          >
+            {submitting ? 'Placing order...' : `${side === 'buy' ? '▲ BUY' : '▼ SELL'} ${type}`}
           </button>
         </div>
       </div>

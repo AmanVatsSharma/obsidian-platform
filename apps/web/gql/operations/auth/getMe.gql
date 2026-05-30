@@ -1,12 +1,6 @@
 query GetMe {
   me {
-    id
-    email
-    role
-    tenant {
-      id
-      code
-      name
-    }
+    userId
+    tenantId
   }
 }

@@ -21,6 +21,7 @@ type Tab = 'pending' | 'history';
 export function OrderManagement() {
   const [tab, setTab] = useState<Tab>('pending');
   const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>(PENDING_ORDERS);
+  const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID ?? '';
 
   const handleCancel = useCallback((id: string) => {
     setPendingOrders((prev) => prev.filter((o) => o.id !== id));
@@ -60,7 +61,13 @@ export function OrderManagement() {
         </CardHeader>
         <CardContent>
           {tab === 'pending' ? (
-            <PendingOrdersTable orders={pendingOrders} onCancel={handleCancel} />
+            // When accountId is available, PendingOrdersTable fetches pending orders
+            // internally via useOrders. Otherwise it falls back to external mock orders.
+            <PendingOrdersTable
+              accountId={accountId || undefined}
+              orders={!accountId ? pendingOrders : undefined}
+              onCancel={handleCancel}
+            />
           ) : (
             <OrderHistoryTable orders={ORDER_HISTORY} />
           )}

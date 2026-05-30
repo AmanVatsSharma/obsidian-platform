@@ -5,6 +5,12 @@
  *              hooks with feature-specific queries and cache policies aligned to the
  *              Obsidian NestJS GraphQL schema.
  *
+ * DEPRECATED:  Use @/gql/hooks instead for all new code. This file is kept for backward
+ *              compatibility only. New components should import from @/gql/hooks which
+ *              provides fully-typed useXxxQuery / useXxxMutation hooks generated from
+ *              the schema. The only remaining use of this file is CANCEL_BRACKET_GROUP_MUTATION
+ *              which has not yet been ported to the codegen pipeline.
+ *
  * Exports:
  *   - GET_INSTRUMENTS       — gql document for instrument listing
  *   - GET_ACCOUNT           — gql document for single account + metadata

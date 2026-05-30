@@ -10,12 +10,14 @@
  * Depends on:
  *   - @obsidian/trading-ui — TradingWorkstation (lib), OmsConfig, PlaceUiOrder
  *   - @/shared/providers/auth-provider — useAuth (web-only auth context)
- *   - ../lib/gql-service — useInstruments, useAccountBalance
+ *   - @/gql/hooks/useInstruments — instrument catalogue hook
+ *   - @/gql/hooks/useAccountBalance — account balance hook
+ *   - @/gql/hooks/usePlaceOrder — order submission mutation hook
  *   - nanoid — clientOrderId generation
  *
  * Side-effects:
- *   - Network calls via Apollo Client (useInstruments + useAccountBalance queries)
- *   - REST fetch to /api/orders for order submission
+ *   - Network calls via Apollo Client (useInstruments + useAccountBalance queries,
+ *     placeOrder mutation)
  *
  * Key invariants:
  *   - accessToken absent → auth header is omitted (unauthenticated mode)
@@ -28,7 +30,7 @@
  *   1. TradingWorkstation — Apollo hooks wiring + onTradeSubmit bridge
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-22
+ * Last-updated: 2026-05-30
  */
 
 'use client';
@@ -36,7 +38,9 @@
 import { useMemo } from 'react';
 import { TradingWorkstation as TradingWorkstationLib } from '@obsidian/trading-ui';
 import { useAuth } from '@/shared/providers/auth-provider';
-import { useInstruments, useAccountBalance } from '../lib/gql-service';
+import { useInstruments } from '@/gql/hooks/useInstruments';
+import { useAccountBalance } from '@/gql/hooks/useAccountBalance';
+import { usePlaceOrder } from '@/gql/hooks/usePlaceOrder';
 import { nanoid } from 'nanoid';
 import type { PlaceUiOrder } from '@obsidian/trading-ui';
 
@@ -51,31 +55,55 @@ export function TradingWorkstation({
   const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID ?? '';
 
   // GraphQL data hooks — instrument catalogue + account balance snapshot
-  const { data: instrumentsData } = useInstruments();
-  const { data: balanceData } = useAccountBalance(accountId);
+  const { data: instrumentsData } = useInstruments({});
+  const { balance, parsedBalance, loading: balanceLoading } = useAccountBalance({
+    accountId,
+    skip: !accountId,
+  });
 
-  // Transform backend balance strings (AccountBalancePayload uses string fields)
-  // into the numeric shape TradingWorkstation's balance prop expects.
+  // PlaceOrder mutation hook — wired into the onTradeSubmit bridge
+  const { placeOrder: placeOrderMutation, loading: placingOrder } = usePlaceOrder();
+
+  // Transform parsedBalance (numeric) into the shape TradingWorkstation's balance prop expects.
   const liveBalance = useMemo(() => {
-    if (!balanceData?.accountBalance) return undefined;
-    const b = balanceData.accountBalance;
+    if (!parsedBalance) return undefined;
     return {
-      equity: parseFloat(b.equity) || 0,
-      freeMargin: parseFloat(b.availableCash) || 0,
-      margin: parseFloat(b.lockedCash) || 0,
-      unrealizedPnl: parseFloat(b.unrealizedPnl) || 0,
+      equity: parsedBalance.numericEquity,
+      freeMargin: parsedBalance.numericBuyingPower,
+      margin: parseFloat(balance?.lockedCash ?? '0') || 0,
+      unrealizedPnl: parsedBalance.numericUnrealizedPnl,
       realizedPnlToday: 0,
-      balance: parseFloat(b.totalCash) || 0,
-      currency: b.currency ?? 'USD',
+      balance: parseFloat(balance?.totalCash ?? '0') || 0,
+      currency: balance?.currency ?? 'USD',
       accountId,
       accountType: 'Trading',
       leverage: '1:100',
     };
-  }, [balanceData, accountId]);
+  }, [parsedBalance, balance, accountId]);
 
-  // GraphQL-compatible trade-submission bridge.
-  // Today: calls REST /api/orders with fetch. When a native `placeOrder` GraphQL
-  // mutation lands in the NestJS schema, replace this with useGqlPlaceOrder().
+  // Map gql instruments (InstrumentDto) to the Instrument shape TradingWorkstation expects.
+  // InstrumentDto: { id, exchangeCode, symbol, displayName, type }
+  // TradingWorkstation Instrument: { symbol, name, bid, ask, change, changePct, ... }
+  const instrumentsForWorkstation = useMemo(() => {
+    if (!instrumentsData?.instruments) return [];
+    return instrumentsData.instruments.map((ins) => ({
+      symbol: ins.symbol,
+      name: ins.displayName,
+      bid: 0,
+      ask: 0,
+      change: 0,
+      changePct: 0,
+      high: 0,
+      low: 0,
+      spread: 0,
+      pip: 0.0001,
+      category: 'forex' as const,
+      digits: 5,
+      instrumentId: ins.id,
+    }));
+  }, [instrumentsData]);
+
+  // GraphQL-compatible trade-submission bridge — calls placeOrder mutation.
   type TradeResult = { ok: true; detail?: string } | { ok: false; message: string };
   const onTradeSubmit = useMemo<(uiOrder: PlaceUiOrder) => Promise<TradeResult>>(
     () =>
@@ -103,7 +131,7 @@ export function TradingWorkstation({
           price = n.toFixed(Math.min(8, (uiOrder.instrument?.digits ?? 5) + 2));
         }
 
-        const body = {
+        const input = {
           accountId,
           instrumentId,
           side,
@@ -112,34 +140,27 @@ export function TradingWorkstation({
           ...(price ? { price } : {}),
           timeInForce: 'DAY',
           clientOrderId: `web-${nanoid(10)}`,
+          externalRefId: '',
         };
 
         try {
-          const headers: Record<string, string> = {
-            'content-type': 'application/json',
-            'x-tenant-id': 'acme',
-          };
-          if (accessToken) {
-            headers['authorization'] = `Bearer ${accessToken}`;
+          const result = await placeOrderMutation({ variables: { input } });
+          if (result.errors?.length) {
+            return { ok: false, message: result.errors[0].message };
           }
-
-          const res = await fetch('/api/orders', {
-            method: 'POST',
-            headers,
-            credentials: 'include',
-            body: JSON.stringify(body),
-          });
-          if (!res.ok) {
-            const err = await res.json().catch(() => ({ message: `HTTP ${res.status}` }));
-            return { ok: false, message: (err as { message?: string }).message ?? `HTTP ${res.status}` };
+          if (result.data?.placeOrder) {
+            const { status } = result.data.placeOrder;
+            if (status === 'REJECTED' || status === 'CANCELLED') {
+              return { ok: false, message: `Order ${status.toLowerCase()}` };
+            }
+            return { ok: true, detail: JSON.stringify(result.data.placeOrder) };
           }
-          const data = await res.json();
-          return { ok: true, detail: JSON.stringify(data) };
+          return { ok: false, message: 'Order placement returned no data.' };
         } catch (e: unknown) {
           return { ok: false, message: e instanceof Error ? e.message : 'Order request failed.' };
         }
       },
-    [accountId, accessToken],
+    [accountId, placeOrderMutation],
   );
 
   // Provide a no-op fetchJson so the lib's mergeApiWatchlistInstruments call doesn't

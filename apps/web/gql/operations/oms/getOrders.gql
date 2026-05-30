@@ -1,27 +1,28 @@
-query GetOrders($accountId: ID!, $status: OrderStatus, $limit: Int) {
-  orders(accountId: $accountId, status: $status, limit: $limit) {
-    edges {
-      node {
-        id
-        clientOrderId
-        side
-        type
-        status
-        quantity
-        filledQty
-        price
-        avgFillPrice
-        instrument {
-          symbol
-          name
-        }
-        createdAt
-        updatedAt
-      }
+query GetOrders($accountId: ID, $status: String, $side: String, $limit: Int, $offset: Int) {
+  orders(accountId: $accountId, status: $status, side: $side, limit: $limit, offset: $offset) {
+    data {
+      id
+      clientOrderId
+      externalRefId
+      instrumentId
+      side
+      type
+      quantity
+      filledQty
+      remainingQty
+      price
+      slPrice
+      tpPrice
+      status
+      timeInForce
+      createdAt
+      updatedAt
+      triggerPrice
+      triggerCondition
+      algoType
     }
-    pageInfo {
-      hasNextPage
-      endCursor
-    }
+    total
+    limit
+    offset
   }
 }

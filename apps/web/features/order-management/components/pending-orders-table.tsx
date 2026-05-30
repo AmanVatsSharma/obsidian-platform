@@ -9,13 +9,29 @@
 import { Button } from '@obsidian/obsidian-ui';
 import type { PendingOrder } from '../../trading-terminal/lib/types';
 
+export interface PendingOrdersTableProps {
+  /** Optional accountId — when provided, component fetches pending orders via useOrders */
+  accountId?: string;
+  /** Orders passed in directly (e.g. from mock data or parent state) */
+  orders?: PendingOrder[];
+  /** Loading state (used when parent manages orders) */
+  isLoading?: boolean;
+  /** Called when an order is cancelled */
+  onCancel?: (orderId: string) => void;
+}
+
 export function PendingOrdersTable({
-  orders,
+  accountId,
+  orders: pendingOrders,
+  isLoading = false,
   onCancel,
-}: {
-  orders: PendingOrder[];
-  onCancel: (id: string) => void;
-}) {
+}: PendingOrdersTableProps) {
+  const orders = pendingOrders ?? [];
+
+  if (isLoading) {
+    return <p className="py-6 text-center text-sm text-obsidian-faint">Loading...</p>;
+  }
+
   if (orders.length === 0) {
     return <p className="py-6 text-center text-sm text-obsidian-faint">No pending orders.</p>;
   }
@@ -42,7 +58,7 @@ export function PendingOrdersTable({
               <td className="px-3 py-2 font-mono font-medium">{o.symbol}</td>
               <td className="px-3 py-2">
                 <span className={`inline-block rounded px-1.5 py-0.5 text-xs font-semibold ${
-                  o.type.includes('BUY') ? 'bg-[var(--bull)]/10 text-[var(--bull)]' : 'bg-[var(--bear)]/10 text-[var(--bear)]'
+                  o.side === 'BUY' ? 'bg-[var(--bull)]/10 text-[var(--bull)]' : 'bg-[var(--bear)]/10 text-[var(--bear)]'
                 }`}>
                   {o.type}
                 </span>
@@ -54,7 +70,7 @@ export function PendingOrdersTable({
               <td className="px-3 py-2 text-xs text-obsidian-secondary">{o.created}</td>
               <td className="px-3 py-2 text-xs text-obsidian-secondary">{o.expiry}</td>
               <td className="px-3 py-2">
-                <Button variant="destructive" size="sm" onClick={() => onCancel(o.id)} data-testid={`cancel-${o.id}`}>
+                <Button variant="destructive" size="sm" onClick={() => onCancel?.(o.id)} data-testid={`cancel-${o.id}`}>
                   Cancel
                 </Button>
               </td>

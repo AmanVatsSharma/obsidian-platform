@@ -1,0 +1,12 @@
+query GetAccountBalance($accountId: String!, $currency: String) {
+  accountBalance(accountId: $accountId, currency: $currency) {
+    totalCash
+    lockedCash
+    availableCash
+    positionsValue
+    unrealizedPnl
+    equity
+    buyingPower
+    currency
+  }
+}

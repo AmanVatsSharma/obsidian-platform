@@ -5,13 +5,18 @@
  *              operation files, generates TypeScript types + typed React hooks.
  *
  * Generated outputs (DO NOT EDIT — machine generated):
- *   - gql/generated/graphql.ts  — all schema types
- *   - gql/generated/hooks.ts    — typed useQuery/useMutation hooks
+ *   - gql/generated/graphql.ts  — all schema types + utility types (Exact, InputMaybe, Scalars, Maybe)
+ *   - gql/generated/hooks.ts    — typed useQuery/useMutation hooks + document definitions
  *
- * Run:  npm run codegen (from repo root)
+ * NOTE: hooks.ts uses Exact, InputMaybe, Scalars, and input types (e.g. PlaceOrderInput)
+ * from graphql.ts. The codegen config uses importTypes + typesImportPath to auto-generate
+ * the import, but a manual `import type { ... } from './graphql'` is appended as a fallback
+ * because the near-operation-file preset does not always emit it correctly.
+ *
+ * Run:  npm run codegen:web (from apps/web)
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-22
+ * Last-updated: 2026-05-30
  */
 
 import type { CodegenConfig } from '@graphql-codegen/cli';
@@ -39,19 +44,28 @@ const config: CodegenConfig = {
         maybeValue: 'T | undefined',
       },
     },
-    'apps/web/gql/generated/hooks.ts': {
-      preset: 'near-operation-file',
-      presetConfig: {
-        extension: '.ts',
-        importPath: '@apollo/client',
-        baseTypesPath: './graphql.ts',
-      },
+    'gql/generated/hooks.ts': {
       plugins: ['typescript-operations', 'typescript-react-apollo'],
+      documents: [
+        'gql/operations/**/*.gql',
+        'features/**/*.gql',
+      ],
       config: {
+        importTypes: true,
+        typesImportPath: './graphql.ts',
+        importTypesPrefix: 'Types',
+        noRequireImports: true,
         withHooks: true,
         withComponent: false,
         withMutationFn: true,
-        strictScalars: false,
+        scalars: {
+          DateTime: 'string',
+          UUID: 'string',
+          JSON: 'unknown',
+          Void: 'void',
+          BigInt: 'number',
+          Long: 'number',
+        },
       },
     },
   },

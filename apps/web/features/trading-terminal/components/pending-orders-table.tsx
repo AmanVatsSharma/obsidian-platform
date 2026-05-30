@@ -7,10 +7,12 @@
  *   - PendingOrdersTable — renders filterable, expandable pending orders grid
  *
  * Depends on:
- *   - @/features/trading-terminal/lib/gql-service — useOrderChildren, useCancelOrder, useCancelBracketGroup
+ *   - @/gql/hooks — useOrders, useCancelOrder (from new enterprise codegen hooks)
+ *   - ../lib/gql-service — CANCEL_BRACKET_GROUP_MUTATION (gql string for bracket cancel)
  *   - @/features/trading-terminal/lib/types — PendingOrder, OrderRole, AlgoMeta
  *
  * Side-effects:
+ *   - Apollo query (useOrders) fetches pending orders from backend
  *   - Apollo mutation network I/O on cancel actions
  *
  * Key invariants:
@@ -27,13 +29,16 @@
  *   5. PendingOrdersTable — main component
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-24
+ * Last-updated: 2026-05-30
  */
 
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useOrderChildren, useCancelOrder, useCancelBracketGroup } from '../lib/gql-service';
+import { useMutation } from '@apollo/client';
+import { useOrders } from '@/gql/hooks';
+import { useCancelOrder } from '@/gql/hooks/useCancelOrder';
+import { CANCEL_BRACKET_GROUP_MUTATION } from '../lib/gql-service';
 import type { PendingOrder, OrderRole } from '../lib/types';
 
 // ─── Filter tabs ─────────────────────────────────────────────────────────────
@@ -120,8 +125,8 @@ interface CancelCellProps {
 }
 
 function CancelCell({ order, onCancelled }: CancelCellProps) {
-  const [cancelOrder] = useCancelOrder();
-  const [cancelBracketGroup] = useCancelBracketGroup();
+  const { cancelOrder } = useCancelOrder();
+  const [cancelBracketGroup] = useMutation(CANCEL_BRACKET_GROUP_MUTATION);
 
   const handleCancel = useCallback(async () => {
     if (order.orderRole === 'PRIMARY') {
@@ -269,17 +274,58 @@ function ParentRow({ order, isExpanded, onToggle, onCancelled }: ParentRowProps)
 // ─── Main table ───────────────────────────────────────────────────────────────
 
 export interface PendingOrdersTableProps {
-  orders: PendingOrder[];
+  /** Optional accountId — when provided, component fetches pending orders via useOrders */
+  accountId?: string;
+  /** Orders passed in directly (e.g. from mock data or parent state) */
+  orders?: PendingOrder[];
   /** Children fetched per parent via useOrderChildren */
   childrenByParent?: Map<string, PendingOrder[]>;
+  /** Loading state (used when parent manages orders) */
   isLoading?: boolean;
+  /** Called when an order is cancelled */
+  onCancel?: (orderId: string) => void;
 }
 
 export function PendingOrdersTable({
-  orders,
+  accountId,
+  orders: externalOrders,
   childrenByParent = new Map(),
-  isLoading = false,
+  isLoading: externalLoading = false,
+  onCancel,
 }: PendingOrdersTableProps) {
+  // When accountId is provided, fetch orders internally via the new enterprise hooks.
+  // Falls back to externally-passed orders for backward compatibility (mock data path).
+  const { orders: gqlOrders, loading: gqlLoading, error: gqlError } = useOrders({
+    status: 'PENDING',
+    accountId,
+  });
+
+  // Map Order[] from useOrders to PendingOrder[] so the table can render them.
+  // Order fields (from codegen): id, instrumentId, side, type, quantity(number),
+  //   price(number|null), slPrice, tpPrice, status, createdAt, etc.
+  // PendingOrder fields: id, symbol, type, orderRole, parentOrderId, side, lots(string),
+  //   price(string), sl, tp, status, created(string), algoMeta, etc.
+  const fetchedOrders: PendingOrder[] = gqlOrders.map((o) => ({
+    id: o.id,
+    symbol: o.instrumentId, // no gql symbol field — use instrumentId as display label
+    type: o.type as PendingOrder['type'],
+    orderRole: undefined,
+    parentOrderId: undefined,
+    side: o.side as PendingOrder['side'],
+    lots: String(o.quantity),
+    price: o.price != null ? String(o.price) : '',
+    sl: o.slPrice != null ? String(o.slPrice) : '',
+    tp: o.tpPrice != null ? String(o.tpPrice) : '',
+    status: o.status,
+    created: o.createdAt,
+    expiry: undefined,
+    algoMeta: o.algoType ? { slices: undefined, completedSlices: undefined } : undefined,
+  }));
+
+  // Prefer externally-passed orders when provided; otherwise use hook-fetched orders.
+  const orders: PendingOrder[] = externalOrders ?? fetchedOrders;
+  const isLoading = externalLoading || gqlLoading;
+
   const [activeTab, setActiveTab] = useState<FilterTab>('All');
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set());
 

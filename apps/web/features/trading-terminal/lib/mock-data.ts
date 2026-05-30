@@ -84,10 +84,10 @@ export const OPEN_POSITIONS: OpenPosition[] = [
 ];
 
 export const PENDING_ORDERS: PendingOrder[] = [
-  { id: 'O001', symbol: 'EUR/USD', type: 'BUY LIMIT', lots: 2.0, price: 1.078, distance: -0.00652, sl: 1.072, tp: 1.09, created: '2026-03-15 08:00:00', expiry: 'GTC' },
-  { id: 'O002', symbol: 'GBP/USD', type: 'SELL STOP', lots: 1.0, price: 1.268, distance: 0.00434, sl: 1.275, tp: 1.255, created: '2026-03-14 18:30:00', expiry: 'GTC' },
-  { id: 'O003', symbol: 'XAUUSD', type: 'BUY LIMIT', lots: 0.2, price: 2310.0, distance: -35.67, sl: 2290.0, tp: 2360.0, created: '2026-03-15 07:45:00', expiry: '2026-03-16' },
-  { id: 'O004', symbol: 'NAS100', type: 'SELL LIMIT', lots: 0.5, price: 18400.0, distance: 165.5, sl: 18500.0, tp: 18100.0, created: '2026-03-15 09:15:00', expiry: 'GTC' },
+  { id: 'O001', symbol: 'EUR/USD', type: 'LIMIT', side: 'BUY', lots: '2.0', price: '1.078', sl: '1.072', tp: '1.09', status: 'PENDING', created: '2026-03-15 08:00:00', expiry: 'GTC' },
+  { id: 'O002', symbol: 'GBP/USD', type: 'STOP', side: 'SELL', lots: '1.0', price: '1.268', sl: '1.275', tp: '1.255', status: 'PENDING', created: '2026-03-14 18:30:00', expiry: 'GTC' },
+  { id: 'O003', symbol: 'XAUUSD', type: 'LIMIT', side: 'BUY', lots: '0.2', price: '2310.0', sl: '2290.0', tp: '2360.0', status: 'PENDING', created: '2026-03-15 07:45:00', expiry: '2026-03-16' },
+  { id: 'O004', symbol: 'NAS100', type: 'LIMIT', side: 'SELL', lots: '0.5', price: '18400.0', sl: '18500.0', tp: '18100.0', status: 'PENDING', created: '2026-03-15 09:15:00', expiry: 'GTC' },
 ];
 
 export const TRADE_HISTORY: TradeHistoryRow[] = [

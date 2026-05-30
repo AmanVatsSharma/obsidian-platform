@@ -113,7 +113,6 @@ function OrdersTable({ orders }: { orders: PendingOrder[] }) {
             <th>Type</th>
             <th>Lots</th>
             <th>Price</th>
-            <th>Distance</th>
             <th>SL</th>
             <th>TP</th>
             <th>Expiry</th>
@@ -123,19 +122,15 @@ function OrdersTable({ orders }: { orders: PendingOrder[] }) {
         </thead>
         <tbody>
           {orders.map((o) => {
-            const isBuy = o.type.includes('BUY');
+            const isBuy = o.side === 'BUY';
             return (
               <tr key={o.id}>
                 <td className="td-symbol">{o.symbol}</td>
                 <td>
                   <span className={`td-badge ${isBuy ? 'buy' : 'sell'}`}>{o.type}</span>
                 </td>
-                <td>{o.lots.toFixed(2)}</td>
+                <td>{Number(o.lots).toFixed(2)}</td>
                 <td style={{ color: 'var(--text-primary)' }}>{o.price}</td>
-                <td style={{ color: 'var(--text-muted)' }}>
-                  {o.distance > 0 ? '+' : ''}
-                  {o.distance}
-                </td>
                 <td style={{ color: 'var(--bear)' }}>{o.sl}</td>
                 <td style={{ color: 'var(--bull)' }}>{o.tp}</td>
                 <td style={{ color: 'var(--text-muted)' }}>{o.expiry}</td>

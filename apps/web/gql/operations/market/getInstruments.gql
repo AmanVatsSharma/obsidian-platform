@@ -1,0 +1,10 @@
+query GetInstruments($exchangeCode: String, $type: String, $q: String) {
+  instruments(exchangeCode: $exchangeCode, type: $type, q: $q) {
+    id
+    exchangeCode
+    symbol
+    displayName
+    type
+    status
+  }
+}

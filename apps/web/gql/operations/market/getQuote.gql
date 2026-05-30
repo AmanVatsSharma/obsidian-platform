@@ -1,0 +1,8 @@
+query GetQuote($exchange: String, $symbol: String, $id: String, $status: String) {
+  quote(exchange: $exchange, symbol: $symbol, id: $id, status: $status) {
+    symbol
+    exchange
+    price
+    ts
+  }
+}
