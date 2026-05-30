@@ -1,0 +1,8 @@
+mutation CancelBracketGroup($parentOrderId: ID!) {
+  cancelBracketGroup(parentOrderId: $parentOrderId) {
+    id
+    clientOrderId
+    status
+    updatedAt
+  }
+}

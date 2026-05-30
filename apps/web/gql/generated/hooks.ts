@@ -3,6 +3,12 @@ import * as Apollo from '@apollo/client';
 import type { Exact, InputMaybe, Scalars, PlaceOrderInput } from './graphql';
 
 const defaultOptions = {} as const;
+export type CancelBracketGroupMutationVariables = Exact<{
+  parentOrderId: Scalars['ID']['input'];
+}>;
+
+export type CancelBracketGroupMutation = { __typename?: 'Mutation', cancelBracketGroup?: { __typename?: 'OrderEntity', id: string, clientOrderId: string, status: string, updatedAt: string } | null };
+
 export type GetAccountBalanceQueryVariables = Exact<{
   accountId: Scalars['String']['input'];
   currency?: InputMaybe<Scalars['String']['input']>;
@@ -631,3 +637,39 @@ export function usePlaceOrderMutation(baseOptions?: Apollo.MutationHookOptions<P
 export type PlaceOrderMutationHookResult = ReturnType<typeof usePlaceOrderMutation>;
 export type PlaceOrderMutationResult = Apollo.MutationResult<PlaceOrderMutation>;
 export type PlaceOrderMutationOptions = Apollo.BaseMutationOptions<PlaceOrderMutation, PlaceOrderMutationVariables>;
+export const CancelBracketGroupDocument = gql`
+    mutation CancelBracketGroup($parentOrderId: ID!) {
+  cancelBracketGroup(parentOrderId: $parentOrderId) {
+    id
+    clientOrderId
+    status
+    updatedAt
+  }
+}
+    `;
+export type CancelBracketGroupMutationFn = Apollo.MutationFunction<CancelBracketGroupMutation, CancelBracketGroupMutationVariables>;
+
+/**
+ * __useCancelBracketGroupMutation__
+ *
+ * To run a mutation, you first call `useCancelBracketGroupMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCancelBracketGroupMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [cancelBracketGroupMutation, { data, loading, error }] = useCancelBracketGroupMutation({
+ *   variables: {
+ *      parentOrderId: // value for 'parentOrderId'
+ *   },
+ * });
+ */
+export function useCancelBracketGroupMutation(baseOptions?: Apollo.MutationHookOptions<CancelBracketGroupMutation, CancelBracketGroupMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CancelBracketGroupMutation, CancelBracketGroupMutationVariables>(CancelBracketGroupDocument, options);
+      }
+export type CancelBracketGroupMutationHookResult = ReturnType<typeof useCancelBracketGroupMutation>;
+export type CancelBracketGroupMutationResult = Apollo.MutationResult<CancelBracketGroupMutation>;
+export type CancelBracketGroupMutationOptions = Apollo.BaseMutationOptions<CancelBracketGroupMutation, CancelBracketGroupMutationVariables>;
