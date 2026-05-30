@@ -38,6 +38,7 @@ import { TenantGuard } from '../rbac/guards/tenant.guard';
 import { PermissionsGuard } from '../rbac/guards/permissions.guard';
 import { Permissions } from '../rbac/decorators/permissions.decorator';
 import { AppLoggerService } from '../../shared/logger';
+import { AppError } from '../../common/errors/app-error';
 import { getRequestContext } from '../../shared/request-context';
 import { InstrumentEntity } from './entities/instrument.entity';
 import { WatchlistEntity } from './entities/watchlist.entity';
@@ -183,7 +184,7 @@ export class MarketResolver {
   @UseGuards(JwtAuthGuard, TenantGuard)
   async createWatchlist(@Args('name') name: string): Promise<WatchlistDto> {
     const ctx = getRequestContext();
-    if (!ctx?.tenantId || !ctx?.userId) throw new Error('Unauthenticated');
+    if (!ctx?.tenantId || !ctx?.userId) throw new AppError('AUTHENTICATION_FAILED', 'Unauthenticated');
     this.logger.debug('createWatchlist:start', { requestId: ctx?.requestId, name });
     const entity = await this.watchlistsService.create(ctx.tenantId, ctx.userId, name);
     return { id: entity.id, name: entity.name, createdAt: entity.createdAt };
