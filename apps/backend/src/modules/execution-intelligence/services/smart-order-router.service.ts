@@ -35,6 +35,7 @@ import { Injectable } from '@nestjs/common';
 import { OrderEntity } from '../../oms/entities/order.entity';
 import { ExecutionGatewayService } from '../../execution-gateway/services/execution-gateway.service';
 import { AppLoggerService } from '../../../shared/logger';
+import { AppError } from '../../../common/errors/app-error';
 import { SlippageTrackerService } from './slippage-tracker.service';
 import { VenueScorerService } from './venue-scorer.service';
 import { SORResponse, Venue } from '../types/venue.type';
@@ -72,7 +73,7 @@ export class SmartOrderRouterService {
 
     const ranked = await this.scorer.rank(this.venues, order);
     if (ranked.length === 0) {
-      throw new Error('No venues registered for routing');
+      throw new AppError('ORDER_VALIDATION', 'Route selection failed: no venues registered for routing');
     }
 
     let lastResult: SORResponse | null = null;
@@ -99,7 +100,7 @@ export class SmartOrderRouterService {
 
     // Fallback: return last venue result (even if failed — caller handles)
     this.logger.debug('route:allVenuesFailed', { fallbackVenueId: lastResult?.venueId });
-    return lastResult!;
+    return lastResult;
   }
 
   /**
@@ -142,7 +143,7 @@ export class SmartOrderRouterService {
       return { venueId: venue.id, result: gatewayResult, slippageBps };
     }
 
-    throw new Error(`Venue ${venue.id} rejected order with status ${gatewayResult.status}`);
+    throw new AppError('RESOURCE_NOT_FOUND', `SOR strategy not found for venue ${venue.id}`);
   }
 
   /**
