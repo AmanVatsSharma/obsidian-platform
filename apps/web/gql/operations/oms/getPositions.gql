@@ -1,0 +1,16 @@
+query GetPositions($accountId: ID, $currency: String, $limit: Int, $offset: Int) {
+  positions(accountId: $accountId, currency: $currency, limit: $limit, offset: $offset) {
+    data {
+      instrumentId
+      netQty
+      avgPrice
+      realizedPnl
+      lastPrice
+      mtmPnl
+      value
+    }
+    total
+    limit
+    offset
+  }
+}

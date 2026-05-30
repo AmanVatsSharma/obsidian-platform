@@ -8,18 +8,19 @@
  *   - TradingWorkstation({ mobileHref?, forceMobileLayout? }) → ReactNode
  *
  * Depends on:
- *   - @obsidian/trading-ui — TradingWorkstation (lib), OmsConfig, PlaceUiOrder
+ *   - @obsidian/trading-ui — TradingWorkstation (lib), Instrument, PlaceUiOrder
  *   - @/shared/providers/auth-provider — useAuth (web-only auth context)
- *   - @/gql/hooks/useInstruments — instrument catalogue hook
+ *   - @/gql/hooks/useInstruments — instrument catalogue hook (pollInterval: 5000)
  *   - @/gql/hooks/useAccountBalance — account balance hook
  *   - @/gql/hooks/usePlaceOrder — order submission mutation hook
  *   - @/gql/hooks/useOrders — pending orders hook (PENDING status)
  *   - @/gql/hooks/usePositions — open positions hook
+ *   - @/gql/hooks/useQuotes — live price snapshot hook (pollInterval: 2000)
  *   - nanoid — clientOrderId generation
  *
  * Side-effects:
  *   - Network calls via Apollo Client (useInstruments + useAccountBalance queries,
- *     placeOrder mutation + useOrders + usePositions)
+ *     placeOrder mutation + useOrders + usePositions + useQuote)
  *
  * Key invariants:
  *   - accessToken absent → auth header is omitted (unauthenticated mode)
@@ -27,9 +28,11 @@
  *   - AccountSummaryPanel receives live balance from useAccountBalance (falls back to mock)
  *   - TradingWorkstation receives onTradeSubmit (GraphQL-compatible bridge)
  *   - ApolloProviderWrapper is already mounted in layout.tsx — no double-wrapping
+ *   - QuoteUpdater polls active instrument every 2 s; full injection into lib prices is P4
  *
  * Read order:
  *   1. TradingWorkstation — Apollo hooks wiring + onTradeSubmit bridge
+ *   2. QuoteUpdater — live price polling for the active instrument
  *
  * Author:      BharatERP
  * Last-updated: 2026-05-30
@@ -37,16 +40,16 @@
 
 'use client';
 
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TradingWorkstation as TradingWorkstationLib } from '@obsidian/trading-ui';
-import { useAuth } from '@/shared/providers/auth-provider';
 import { useInstruments } from '@/gql/hooks/useInstruments';
 import { useAccountBalance } from '@/gql/hooks/useAccountBalance';
 import { usePlaceOrder } from '@/gql/hooks/usePlaceOrder';
 import { useOrders } from '@/gql/hooks/useOrders';
 import { usePositions } from '@/gql/hooks/usePositions';
+import { useQuote } from '@/gql/hooks/useQuotes';
 import { nanoid } from 'nanoid';
-import type { PlaceUiOrder } from '@obsidian/trading-ui';
+import type { Instrument, PlaceUiOrder } from '@obsidian/trading-ui';
 import type { OpenPosition } from '@obsidian/trading-ui';
 import type { PendingOrder } from '@obsidian/trading-ui';
 
@@ -57,18 +60,18 @@ export function TradingWorkstation({
   mobileHref?: string;
   forceMobileLayout?: boolean;
 }) {
-  const { accessToken } = useAuth();
   const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID ?? '';
 
   // GraphQL data hooks — instrument catalogue + account balance snapshot
-  const { data: instrumentsData } = useInstruments({});
-  const { balance, parsedBalance, loading: balanceLoading } = useAccountBalance({
+  // pollInterval: 5000 keeps the instrument catalogue fresh every 5s (live prices via QuoteUpdater below)
+  const { data: instrumentsData } = useInstruments({}, { pollInterval: 5000 });
+  const { balance, parsedBalance } = useAccountBalance({
     accountId,
     skip: !accountId,
   });
 
   // PlaceOrder mutation hook — wired into the onTradeSubmit bridge
-  const { placeOrder: placeOrderMutation, loading: placingOrder } = usePlaceOrder();
+  const { placeOrder: placeOrderMutation } = usePlaceOrder();
 
   // Positions query — fetches real open positions from GraphQL (OMS)
   const { positions: gqlPositions } = usePositions({
@@ -159,11 +162,13 @@ export function TradingWorkstation({
   // Map gql instruments (InstrumentDto) to the Instrument shape TradingWorkstation expects.
   // InstrumentDto: { id, exchangeCode, symbol, displayName, type }
   // TradingWorkstation Instrument: { symbol, name, bid, ask, change, changePct, ... }
+  // exchangeCode is included so QuoteUpdater can look up live prices per instrument.
   const instrumentsForWorkstation = useMemo(() => {
     if (!instrumentsData?.instruments) return [];
     return instrumentsData.instruments.map((ins) => ({
       symbol: ins.symbol,
       name: ins.displayName,
+      exchangeCode: ins.exchangeCode,
       bid: 0,
       ask: 0,
       change: 0,
@@ -242,15 +247,53 @@ export function TradingWorkstation({
   // fail on mount — instruments are loaded via useInstruments, not the REST watchlist.
   const noopFetchJson = () => Promise.resolve({});
 
+  // Track the active instrument selected in the lib so QuoteUpdater can poll live prices.
+  const [activeInstrument, setActiveInstrument] = useState<Instrument | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // QuoteUpdater — polls the active instrument every 2 s via Apollo pollInterval.
+  // This is architecturally ready for live prices; once the lib accepts an
+  // onPricesUpdate callback (P4 item) we can replace the lib's tick simulation.
+  // ---------------------------------------------------------------------------
+  function QuoteUpdater({ instrument }: { instrument: Instrument | null }) {
+    const exchange = (instrument as { exchangeCode?: string })?.exchangeCode ?? 'forex';
+    const symbol = instrument?.symbol ?? '';
+
+    const { data } = useQuote(
+      { exchange, symbol },
+      // Only poll when an instrument is selected; stop when null to avoid unnecessary requests
+      { pollInterval: instrument ? 2000 : 0 },
+    );
+
+    useEffect(() => {
+      if (!data?.quote || !instrument) return;
+      // Quote snapshot available — log for observability.
+      // Full injection into lib prices state is P4 (WebSocket upgrade).
+      console.debug('[QuoteUpdater] price update', {
+        symbol: instrument.symbol,
+        price: data.quote.price,
+        ts: data.quote.ts,
+      });
+    }, [data, instrument]);
+
+    return null;
+  }
+
   return (
-    <TradingWorkstationLib
-      fetchJson={noopFetchJson}
-      mobileHref={mobileHref}
-      forceMobileLayout={forceMobileLayout}
-      balance={liveBalance}
-      onTradeSubmit={onTradeSubmit}
-      positions={openPositions}
-      pendingOrders={pendingOrders}
-    />
+    <>
+      {/* QuoteUpdater polls the active instrument every 2 s — lives outside the lib
+          so we can later inject live prices via onPricesUpdate when the lib exposes it. */}
+      <QuoteUpdater instrument={activeInstrument} />
+      <TradingWorkstationLib
+        fetchJson={noopFetchJson}
+        mobileHref={mobileHref}
+        forceMobileLayout={forceMobileLayout}
+        balance={liveBalance}
+        onTradeSubmit={onTradeSubmit}
+        positions={openPositions}
+        pendingOrders={pendingOrders}
+        onInstrumentChange={setActiveInstrument}
+      />
+    </>
   );
 }

@@ -1,0 +1,12 @@
+mutation ModifyOrder($orderId: ID!, $price: Float, $quantity: Float) {
+  modifyOrder(orderId: $orderId, price: $price, quantity: $quantity) {
+    id
+    clientOrderId
+    status
+    price
+    quantity
+    filledQty
+    remainingQty
+    updatedAt
+  }
+}

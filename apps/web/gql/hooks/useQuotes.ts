@@ -64,15 +64,23 @@ export interface UseQuoteResult {
 /**
  * Fetch a real-time price snapshot for a given instrument.
  *
+ * @param params - { exchange, symbol, id?, status? }
+ * @param options - Apollo useQuery options (pollInterval, fetchPolicy, etc.)
+ *
  * Usage:
  *   const { data, loading, error } = useQuote({ exchange: 'NSE', symbol: 'RELIANCE' });
+ *   // Poll every 2 s for near-real-time updates:
+ *   const { data } = useQuote({ exchange, symbol }, { pollInterval: 2000 });
  *
  *   if (loading) return <Skeleton />;
  *   if (!data) return null;
  *
  *   return <PriceDisplay price={data.price} timestamp={data.ts} />;
  */
-export function useQuote(params: UseQuoteParams) {
+export function useQuote(
+  params: UseQuoteParams,
+  options?: Omit<Parameters<typeof useQuery<GetQuoteQuery, GetQuoteQueryVariables>>[1], 'variables'>,
+) {
   const { exchange, symbol, id, status } = params;
 
   return useQuery<GetQuoteQuery, GetQuoteQueryVariables>(GetQuoteDocument, {
@@ -82,5 +90,6 @@ export function useQuote(params: UseQuoteParams) {
       id: id ?? undefined,
       status: status ?? undefined,
     },
+    ...options,
   });
 }

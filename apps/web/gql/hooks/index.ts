@@ -69,3 +69,17 @@ export {
   type UseCancelOrderResult,
   CancelOrderDocument,
 } from './useCancelOrder';
+
+export {
+  useCancelBracketGroup,
+  type CancelBracketGroupResult,
+  type UseCancelBracketGroupResult,
+  CancelBracketGroupDocument,
+} from './useCancelBracketGroup';
+
+export {
+  useModifyOrder,
+  type ModifyOrderResult,
+  type UseModifyOrderResult,
+  ModifyOrderDocument,
+} from './useModifyOrder';

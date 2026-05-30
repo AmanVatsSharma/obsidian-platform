@@ -7,8 +7,7 @@
  *   - PendingOrdersTable — renders filterable, expandable pending orders grid
  *
  * Depends on:
- *   - @/gql/hooks — useOrders, useCancelOrder (from new enterprise codegen hooks)
- *   - ../lib/gql-service — CANCEL_BRACKET_GROUP_MUTATION (gql string for bracket cancel)
+ *   - @/gql/hooks — useOrders, useCancelOrder, useCancelBracketGroup (from enterprise codegen hooks)
  *   - @/features/trading-terminal/lib/types — PendingOrder, OrderRole, AlgoMeta
  *
  * Side-effects:
@@ -35,10 +34,9 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useMutation } from '@apollo/client';
 import { useOrders } from '@/gql/hooks';
 import { useCancelOrder } from '@/gql/hooks/useCancelOrder';
-import { CANCEL_BRACKET_GROUP_MUTATION } from '../lib/gql-service';
+import { useCancelBracketGroup } from '@/gql/hooks/useCancelBracketGroup';
 import type { PendingOrder, OrderRole } from '../lib/types';
 
 // ─── Filter tabs ─────────────────────────────────────────────────────────────
@@ -122,11 +120,25 @@ function statusChip(status: string): React.ReactNode {
 interface CancelCellProps {
   order: PendingOrder;
   onCancelled: () => void;
+  onEdit?: (order: PendingOrder) => void;
 }
 
-function CancelCell({ order, onCancelled }: CancelCellProps) {
+function EditButton({ order, onEdit }: { order: PendingOrder; onEdit?: (order: PendingOrder) => void }) {
+  if (!onEdit) return null;
+  return (
+    <button
+      onClick={() => onEdit(order)}
+      aria-label="Edit order"
+      className="text-[11px] font-mono uppercase tracking-wider px-2 py-1 rounded border transition-colors duration-150 hover:border-obsidian-primary/50 hover:text-obsidian-primary border-obsidian-border text-obsidian-muted"
+    >
+      Edit
+    </button>
+  );
+}
+
+function CancelCell({ order, onCancelled, onEdit }: CancelCellProps) {
   const { cancelOrder } = useCancelOrder();
-  const [cancelBracketGroup] = useMutation(CANCEL_BRACKET_GROUP_MUTATION);
+  const { cancelBracketGroup } = useCancelBracketGroup();
 
   const handleCancel = useCallback(async () => {
     if (order.orderRole === 'PRIMARY') {
@@ -142,12 +154,15 @@ function CancelCell({ order, onCancelled }: CancelCellProps) {
   const isPrimary = order.orderRole === 'PRIMARY';
 
   return (
-    <button
-      onClick={handleCancel}
-      className="text-[11px] font-mono uppercase tracking-wider px-2 py-1 rounded border transition-colors duration-150 hover:border-bear/50 hover:text-bear border-obsidian-border text-obsidian-muted"
-    >
-      {isPrimary ? 'Cancel All' : 'Cancel'}
-    </button>
+    <>
+      <EditButton order={order} onEdit={onEdit} />
+      <button
+        onClick={handleCancel}
+        className="text-[11px] font-mono uppercase tracking-wider px-2 py-1 rounded border transition-colors duration-150 hover:border-bear/50 hover:text-bear border-obsidian-border text-obsidian-muted"
+      >
+        {isPrimary ? 'Cancel All' : 'Cancel'}
+      </button>
+    </>
   );
 }
 
@@ -156,9 +171,10 @@ function CancelCell({ order, onCancelled }: CancelCellProps) {
 interface ChildRowProps {
   child: PendingOrder;
   onCancelled: () => void;
+  onEdit?: (order: PendingOrder) => void;
 }
 
-function ChildRow({ child, onCancelled }: ChildRowProps) {
+function ChildRow({ child, onCancelled, onEdit }: ChildRowProps) {
   return (
     <tr className="border-b border-obsidian-border/50 bg-obsidian-panel/50 pl-6">
       <td className="pl-10 py-2">
@@ -195,7 +211,7 @@ function ChildRow({ child, onCancelled }: ChildRowProps) {
         {new Date(child.created).toLocaleTimeString()}
       </td>
       <td className="py-2">
-        <CancelCell order={child} onCancelled={onCancelled} />
+        <CancelCell order={child} onCancelled={onCancelled} onEdit={onEdit} />
       </td>
     </tr>
   );
@@ -208,9 +224,10 @@ interface ParentRowProps {
   isExpanded: boolean;
   onToggle: (id: string) => void;
   onCancelled: () => void;
+  onEdit?: (order: PendingOrder) => void;
 }
 
-function ParentRow({ order, isExpanded, onToggle, onCancelled }: ParentRowProps) {
+function ParentRow({ order, isExpanded, onToggle, onCancelled, onEdit }: ParentRowProps) {
   return (
     <>
       <tr className="border-b border-obsidian-border hover:bg-obsidian-elevated/30 transition-colors duration-100">
@@ -255,7 +272,7 @@ function ParentRow({ order, isExpanded, onToggle, onCancelled }: ParentRowProps)
           {new Date(order.created).toLocaleTimeString()}
         </td>
         <td className="py-2">
-          <CancelCell order={order} onCancelled={onCancelled} />
+          <CancelCell order={order} onCancelled={onCancelled} onEdit={onEdit} />
         </td>
       </tr>
       {isExpanded && (
@@ -284,6 +301,8 @@ export interface PendingOrdersTableProps {
   isLoading?: boolean;
   /** Called when an order is cancelled */
   onCancel?: (orderId: string) => void;
+  /** Called when the user clicks Edit on an order */
+  onEdit?: (order: PendingOrder) => void;
 }
 
 export function PendingOrdersTable({
@@ -292,6 +311,7 @@ export function PendingOrdersTable({
   childrenByParent = new Map(),
   isLoading: externalLoading = false,
   onCancel,
+  onEdit,
 }: PendingOrdersTableProps) {
   // When accountId is provided, fetch orders internally via the new enterprise hooks.
   // Falls back to externally-passed orders for backward compatibility (mock data path).
@@ -455,10 +475,11 @@ export function PendingOrdersTable({
                     isExpanded={isExpanded}
                     onToggle={handleToggle}
                     onCancelled={handleCancelled}
+                    onEdit={onEdit}
                   />
                   {isExpanded &&
                     children.map((child) => (
-                      <ChildRow key={child.id} child={child} onCancelled={handleCancelled} />
+                      <ChildRow key={child.id} child={child} onCancelled={handleCancelled} onEdit={onEdit} />
                     ))}
                 </React.Fragment>
               );

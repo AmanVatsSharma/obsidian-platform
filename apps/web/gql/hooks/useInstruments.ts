@@ -79,6 +79,7 @@ export interface UseInstrumentParams {
  * Search instruments with optional exchange and type filters.
  *
  * @param params - { q, exchangeCode, type } — all optional
+ * @param options - Apollo useQuery options (pollInterval, fetchPolicy, etc.)
  *
  * Usage:
  *   const [query, setQuery] = useState('');
@@ -89,7 +90,10 @@ export interface UseInstrumentParams {
  * library or React state). This hook accepts the already-debounced string to avoid
  * internal timer management.
  */
-export function useInstruments(params: UseInstrumentsParams = {}) {
+export function useInstruments(
+  params: UseInstrumentsParams = {},
+  options?: Omit<Parameters<typeof useQuery<GetInstrumentsQuery, GetInstrumentsQueryVariables>>[1], 'variables'>,
+) {
   const { q, exchangeCode, type } = params;
 
   return useQuery<GetInstrumentsQuery, GetInstrumentsQueryVariables>(
@@ -102,6 +106,7 @@ export function useInstruments(params: UseInstrumentsParams = {}) {
       },
       // No fetchPolicy override — rely on apollo-client default (cache-and-network for watchQuery)
       // This allows the caller to control refetch timing via the component tree.
+      ...options,
     },
   );
 }
