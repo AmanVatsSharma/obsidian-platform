@@ -91,6 +91,22 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         return HttpStatus.CONFLICT;
       case 'DEMO_ACCOUNT_OPERATION':
         return HttpStatus.FORBIDDEN;
+      case 'RISK_LIMIT_BREACH':
+        return HttpStatus.FORBIDDEN;
+      case 'COMPLIANCE_BREACH':
+        return HttpStatus.FORBIDDEN;
+      case 'EXCHANGE_NOT_ENABLED':
+        return HttpStatus.BAD_REQUEST;
+      case 'INVALID_BRACKET_PRICES':
+        return HttpStatus.BAD_REQUEST;
+      case 'INVALID_BRACKET_CONFIG':
+        return HttpStatus.BAD_REQUEST;
+      case 'BRACKET_INCOMPLETE':
+        return HttpStatus.BAD_REQUEST;
+      case 'BRACKET_INVALID_PRICE':
+        return HttpStatus.BAD_REQUEST;
+      case 'EXCHANGE_REJECTED':
+        return HttpStatus.BAD_GATEWAY;
       default:
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }
