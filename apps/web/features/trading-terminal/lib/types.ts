@@ -266,10 +266,11 @@ export interface PendingOrder {
   orderRole?: OrderRole | null;
   parentOrderId?: string | null;
   side: 'BUY' | 'SELL';
-  lots: string;
-  price: string;
-  sl?: string;
-  tp?: string;
+  lots: number;
+  price: number;
+  distance: number;
+  sl: number;
+  tp: number;
   status: string;
   created: string;
   expiry?: string;

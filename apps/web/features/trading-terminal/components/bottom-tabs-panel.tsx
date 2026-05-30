@@ -12,7 +12,7 @@ import { useState } from 'react';
 import { BookOpen, Calendar, Clock, Edit, Layers, Newspaper } from 'lucide-react';
 import type { OpenPosition, PendingOrder } from '../lib/types';
 import { fmt, pnlClass, pnlSign } from '../lib/format-utils';
-import { ECONOMIC_CALENDAR, NEWS, PENDING_ORDERS, TRADE_HISTORY } from '../lib/mock-data';
+import { ECONOMIC_CALENDAR, NEWS, TRADE_HISTORY } from '../lib/mock-data';
 
 function PositionsTable({ positions, onClose }: { positions: OpenPosition[]; onClose: (id: string) => void }) {
   const totalPnl = positions.reduce((s, p) => s + p.pnl, 0);
@@ -332,7 +332,7 @@ export function BottomTabsPanel({
   pendingOrders?: PendingOrder[];
 }) {
   const [tab, setTab] = useState<string>('positions');
-  const orders = pendingOrders ?? PENDING_ORDERS;
+  const orders = pendingOrders ?? [];
 
   const tabs = [
     { id: 'positions', label: 'Positions', icon: <Layers size={12} />, badge: positions.length },

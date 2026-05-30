@@ -4,7 +4,7 @@
  * Purpose:     Full trading workstation shell — platform-agnostic orchestrator for all trading panels.
  *
  * Exports:
- *   - TradingWorkstation({ fetchJson, mobileHref?, forceMobileLayout?, omsConfig?, onTradeSubmit?, balance? }) → ReactNode
+ *   - TradingWorkstation({ fetchJson, mobileHref?, forceMobileLayout?, omsConfig?, onTradeSubmit?, balance?, positions?, pendingOrders? }) → ReactNode
  *
  * Depends on:
  *   - ../lib/workstation-api — FetchJsonFn, OmsConfig, PlaceUiOrder, mergeApiWatchlistInstruments, submitOrderToOms
@@ -36,7 +36,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Instrument, OpenPosition, ToastItem } from '../types/instrument';
+import type { Instrument, OpenPosition, PendingOrder, ToastItem } from '../types/instrument';
 import { fmt, fmtPrice, pnlSign } from '../lib/format-utils';
 import { ACCOUNT, INSTRUMENTS, OPEN_POSITIONS } from '../lib/mock-data';
 import {
@@ -65,6 +65,9 @@ export function TradingWorkstation({
   onInstrumentChange,
   onTradeSubmit,
   balance,
+  /** Seed positions from GraphQL instead of the mock OPEN_POSITIONS. */
+  positions: seededPositions,
+  pendingOrders,
 }: {
   fetchJson: FetchJsonFn;
   mobileHref?: string;
@@ -76,6 +79,10 @@ export function TradingWorkstation({
   onInstrumentChange?: (instrument: Instrument | null) => void;
   /** Inject a custom trade-submission handler (web wrapper uses Apollo; Electron can inject IPC). */
   onTradeSubmit?: (payload: PlaceUiOrder) => Promise<{ ok: true; detail?: string } | { ok: false; message: string }>;
+  /** Seed positions from GraphQL instead of the mock OPEN_POSITIONS. */
+  positions?: OpenPosition[];
+  /** Seed pending orders from GraphQL instead of the mock PENDING_ORDERS. */
+  pendingOrders?: PendingOrder[];
   /** Live account balance snapshot — passed to AccountSummaryPanel; absent = ACCOUNT mock. */
   balance?: {
     equity: number;
@@ -97,7 +104,7 @@ export function TradingWorkstation({
   const [prices, setPrices] = useState<Record<string, Instrument>>(() =>
     Object.fromEntries(INSTRUMENTS.map((i) => [i.symbol, { ...i }])),
   );
-  const [positions, setPositions] = useState<OpenPosition[]>(OPEN_POSITIONS);
+  const [positions, setPositions] = useState<OpenPosition[]>(seededPositions ?? OPEN_POSITIONS);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [ping, setPing] = useState(12);
 
@@ -126,6 +133,13 @@ export function TradingWorkstation({
   useEffect(() => {
     onInstrumentChange?.(activeInstrument);
   }, [activeInstrument, onInstrumentChange]);
+
+  // Sync seeded positions from GraphQL when they arrive (e.g., account switch)
+  useEffect(() => {
+    if (seededPositions && seededPositions.length > 0) {
+      setPositions(seededPositions);
+    }
+  }, [seededPositions]);
 
   useEffect(() => {
     const iv = setInterval(() => {
@@ -248,7 +262,7 @@ export function TradingWorkstation({
               />
             </div>
 
-            <BottomTabsPanel positions={positions} onClosePosition={handleClosePosition} />
+            <BottomTabsPanel positions={positions} onClosePosition={handleClosePosition} pendingOrders={pendingOrders} />
           </div>
 
           <div className="right-sidebar">

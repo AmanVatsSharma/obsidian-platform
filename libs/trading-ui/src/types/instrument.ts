@@ -86,7 +86,7 @@ export type PendingOrder = {
   sl: number;
   tp: number;
   created: string;
-  expiry: string;
+  expiry?: string;
 };
 
 export type TradeHistoryRow = {

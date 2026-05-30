@@ -13,11 +13,13 @@
  *   - @/gql/hooks/useInstruments — instrument catalogue hook
  *   - @/gql/hooks/useAccountBalance — account balance hook
  *   - @/gql/hooks/usePlaceOrder — order submission mutation hook
+ *   - @/gql/hooks/useOrders — pending orders hook (PENDING status)
+ *   - @/gql/hooks/usePositions — open positions hook
  *   - nanoid — clientOrderId generation
  *
  * Side-effects:
  *   - Network calls via Apollo Client (useInstruments + useAccountBalance queries,
- *     placeOrder mutation)
+ *     placeOrder mutation + useOrders + usePositions)
  *
  * Key invariants:
  *   - accessToken absent → auth header is omitted (unauthenticated mode)
@@ -41,8 +43,12 @@ import { useAuth } from '@/shared/providers/auth-provider';
 import { useInstruments } from '@/gql/hooks/useInstruments';
 import { useAccountBalance } from '@/gql/hooks/useAccountBalance';
 import { usePlaceOrder } from '@/gql/hooks/usePlaceOrder';
+import { useOrders } from '@/gql/hooks/useOrders';
+import { usePositions } from '@/gql/hooks/usePositions';
 import { nanoid } from 'nanoid';
 import type { PlaceUiOrder } from '@obsidian/trading-ui';
+import type { OpenPosition } from '@obsidian/trading-ui';
+import type { PendingOrder } from '@obsidian/trading-ui';
 
 export function TradingWorkstation({
   mobileHref = '/m/workstation',
@@ -63,6 +69,75 @@ export function TradingWorkstation({
 
   // PlaceOrder mutation hook — wired into the onTradeSubmit bridge
   const { placeOrder: placeOrderMutation, loading: placingOrder } = usePlaceOrder();
+
+  // Positions query — fetches real open positions from GraphQL (OMS)
+  const { positions: gqlPositions } = usePositions({
+    accountId: accountId || undefined,
+    limit: 100,
+  });
+
+  // Pending orders query — fetches PENDING orders only for the orders tab
+  const { orders: gqlOrders } = useOrders({
+    accountId,
+    status: 'PENDING',
+    limit: 100,
+  });
+
+  // Map GraphQL Position[] (from usePositions) to the OpenPosition[] shape
+  // that BottomTabsPanel's PositionsTable expects.
+  // The lib's TradingWorkstation manages its own positions state, but we seed it
+  // from real data and let tick simulation keep currentPrice/pnl live.
+  const openPositions: OpenPosition[] = useMemo(() => {
+    if (!gqlPositions?.length) return [];
+    return gqlPositions.map((p) => {
+      // Look up the instrument in the catalogue to get the symbol for display
+      const inst = instrumentsData?.instruments?.find((i) => i.id === p.instrumentId);
+      return {
+        id: p.instrumentId,
+        symbol: inst?.symbol ?? p.instrumentId,
+        type: p.netQty >= 0 ? 'BUY' : 'SELL',
+        lots: Math.abs(p.netQty),
+        openPrice: p.avgPrice,
+        currentPrice: p.lastPrice,
+        sl: '',
+        tp: '',
+        pnl: p.mtmPnl,
+        pnlPct: 0,
+        swap: 0,
+        commission: 0,
+        openTime: '',
+        margin: 0,
+      } satisfies OpenPosition;
+    });
+  }, [gqlPositions, instrumentsData]);
+
+  // Map GraphQL Order[] (from useOrders) to the PendingOrder[] shape that BottomTabsPanel's
+  // OrdersTable expects. GQL Order uses `quantity` (number) and `price` (number | null);
+  // PendingOrder (from @obsidian/trading-ui) uses `lots` (number), `price` (number), `distance`,
+  // `sl`, `tp` (all numbers). We look up the instrument symbol from the catalogue for display.
+  const pendingOrders: PendingOrder[] = useMemo(() => {
+    if (!gqlOrders?.length) return [];
+    return gqlOrders.map((o) => {
+      const inst = instrumentsData?.instruments?.find((i) => i.id === o.instrumentId);
+      return {
+        id: o.id,
+        symbol: inst?.symbol ?? o.instrumentId,
+        type: o.type as PendingOrder['type'],
+        orderRole: null,
+        parentOrderId: null,
+        side: o.side as 'BUY' | 'SELL',
+        lots: o.quantity,
+        price: o.price ?? 0,
+        sl: o.slPrice ?? 0,
+        tp: o.tpPrice ?? 0,
+        distance: 0,
+        status: o.status,
+        created: o.createdAt,
+        expiry: undefined,
+        algoMeta: undefined,
+      };
+    });
+  }, [gqlOrders, instrumentsData]);
 
   // Transform parsedBalance (numeric) into the shape TradingWorkstation's balance prop expects.
   const liveBalance = useMemo(() => {
@@ -174,6 +249,8 @@ export function TradingWorkstation({
       forceMobileLayout={forceMobileLayout}
       balance={liveBalance}
       onTradeSubmit={onTradeSubmit}
+      positions={openPositions}
+      pendingOrders={pendingOrders}
     />
   );
 }

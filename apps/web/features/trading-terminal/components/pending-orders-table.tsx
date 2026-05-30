@@ -99,8 +99,8 @@ function algoSlicesLabel(o: PendingOrder): React.ReactNode {
   );
 }
 
-function priceDisplay(price: string | undefined): string {
-  return price ?? '—';
+function priceDisplay(price: string | number | undefined): string {
+  return price != null ? String(price) : '—';
 }
 
 function statusChip(status: string): React.ReactNode {
@@ -303,19 +303,20 @@ export function PendingOrdersTable({
   // Map Order[] from useOrders to PendingOrder[] so the table can render them.
   // Order fields (from codegen): id, instrumentId, side, type, quantity(number),
   //   price(number|null), slPrice, tpPrice, status, createdAt, etc.
-  // PendingOrder fields: id, symbol, type, orderRole, parentOrderId, side, lots(string),
-  //   price(string), sl, tp, status, created(string), algoMeta, etc.
+  // PendingOrder fields: id, symbol, type, orderRole, parentOrderId, side, lots(number),
+  //   price(number), distance, sl, tp, status, created(string), algoMeta, etc.
   const fetchedOrders: PendingOrder[] = gqlOrders.map((o) => ({
     id: o.id,
-    symbol: o.instrumentId, // no gql symbol field — use instrumentId as display label
+    symbol: o.instrumentId,
     type: o.type as PendingOrder['type'],
     orderRole: undefined,
     parentOrderId: undefined,
     side: o.side as PendingOrder['side'],
-    lots: String(o.quantity),
-    price: o.price != null ? String(o.price) : '',
-    sl: o.slPrice != null ? String(o.slPrice) : '',
-    tp: o.tpPrice != null ? String(o.tpPrice) : '',
+    lots: o.quantity,
+    price: o.price ?? 0,
+    sl: o.slPrice ?? 0,
+    tp: o.tpPrice ?? 0,
+    distance: 0,
     status: o.status,
     created: o.createdAt,
     expiry: undefined,
