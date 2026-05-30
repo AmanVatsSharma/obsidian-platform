@@ -11,6 +11,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { DailyStatementEntity } from '../entities/daily-statement.entity';
 import { AppLoggerService } from '../../../shared/logger';
+import { AppError } from '../../../common/errors/app-error';
 import { getRequestContext } from '../../../shared/request-context';
 import { CashLedgerEntryEntity } from '../entities/cash-ledger-entry.entity';
 import { PositionLedgerEntryEntity } from '../entities/position-ledger-entry.entity';
@@ -46,13 +47,13 @@ export class StatementsService {
   ): Promise<{ filename: string; mime: string; buffer: Buffer }> {
     const ctx = getRequestContext();
     if (!ctx?.tenantId) {
-      throw new Error('Tenant context missing');
+      throw new AppError('UNAUTHORIZED', 'Tenant context missing');
     }
     const stmt = await this.daily.findOne({
       where: { tenantId: ctx.tenantId, accountId, date },
     });
     if (!stmt) {
-      throw new Error('Statement not found');
+      throw new AppError('RESOURCE_NOT_FOUND', 'Statement not found');
     }
     // Async notification stub for statement readiness (email dispatch to be added via NotificationService integration)
     await this.notifications.send({
@@ -148,7 +149,7 @@ export class StatementsService {
     const buyingPower = (Number(equity) * multiplier).toFixed(8);
 
     const existing = await this.daily.findOne({
-      where: { tenantId: ctx.tenantId, accountId, date } as any,
+      where: { tenantId: ctx.tenantId, accountId, date },
     });
     const stmt = existing ?? this.daily.create({ tenantId: ctx.tenantId, accountId, date });
     stmt.openingCash = openingCash;
