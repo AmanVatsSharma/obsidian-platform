@@ -22,6 +22,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../../../shared/logger';
+import { AppError } from '../../../../common/errors/app-error';
 import { BaseExecutionConnector } from '../base/base-execution.connector';
 import {
   BalanceSnapshot,
@@ -97,7 +98,7 @@ export class IbkrConnector extends BaseExecutionConnector {
       if (!response.ok) {
         const errorBody = await response.text().catch(() => 'Unknown error');
         this.logger.error(`ibkrRequest:httpError status=${response.status} body=${errorBody}`);
-        throw new Error(`IBKR API error ${response.status}: ${errorBody}`);
+        throw new AppError('EXCHANGE_DOWN', `IBKR API error ${response.status}: ${errorBody}`);
       }
 
       return response.json() as Promise<T>;
@@ -175,7 +176,7 @@ export class IbkrConnector extends BaseExecutionConnector {
       const ibkrResp = await this.ibkrRequest<IbkrOrderResponse>(
         'POST',
         `/v1/orders/${request.providerOrderId}`,
-        payload as Record<string, unknown>,
+        payload,
       );
 
       if (ibkrResp.error) {

@@ -23,6 +23,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { AppLoggerService } from '../../../../shared/logger';
+import { AppError } from '../../../../common/errors/app-error';
 import { BaseExecutionConnector } from '../base/base-execution.connector';
 import {
   BalanceSnapshot,
@@ -126,7 +127,7 @@ export class BinanceConnector extends BaseExecutionConnector {
       if (!response.ok) {
         const errorBody = await response.text().catch(() => 'Unknown error');
         this.logger.error(`binance.signedRequest:httpError status=${response.status} body=${errorBody}`);
-        throw new Error(`Binance API error ${response.status}: ${errorBody}`);
+        throw new AppError('EXCHANGE_DOWN', `Binance API error ${response.status}: ${errorBody}`);
       }
 
       return response.json() as Promise<T>;
