@@ -4,16 +4,64 @@
  * Purpose:     Barrel export for all GraphQL hooks.
  *
  * Exports:
- *   - usePositions          — positions hook
- *   - useAccountBalance     — account balance hook
- *   - useInstruments        — instrument search hook
- *   - useInstrument         — single instrument lookup hook
- *   - useWatchlists         — user watchlists hook
- *   - useQuote              — price quote snapshot hook
+ *   - Codegen hooks (from ../generated/hooks)
+ *   - Custom wrapper hooks with enriched types (from local files)
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-30
+ * Last-updated: 2026-05-31
  */
+
+// ---------------------------------------------------------------------------
+// Codegen hooks — typed hooks produced by the enterprise codegen pipeline
+// ---------------------------------------------------------------------------
+
+// Query & lazy-query hooks
+export {
+  useGetMeQuery,
+  useGetMeLazyQuery,
+  useGetAccountBalanceQuery,
+  useGetAccountBalanceLazyQuery,
+  useGetInstrumentsQuery,
+  useGetInstrumentsLazyQuery,
+  useGetInstrumentQuery,
+  useGetInstrumentLazyQuery,
+  useGetQuoteQuery,
+  useGetQuoteLazyQuery,
+  useGetWatchlistsQuery,
+  useGetWatchlistsLazyQuery,
+  useGetOrdersQuery,
+  useGetOrdersLazyQuery,
+  useGetPositionsQuery,
+  useGetPositionsLazyQuery,
+} from '../generated/hooks';
+
+// Mutation hooks
+export {
+  usePlaceOrderMutation,
+  useCancelOrderMutation,
+  useModifyOrderMutation,
+  useCancelBracketGroupMutation,
+} from '../generated/hooks';
+
+// Type re-exports from codegen (isolatedModules requires explicit `export type`)
+export type {
+  PlaceOrderMutationHookResult,
+  PlaceOrderMutationResult,
+  PlaceOrderMutationOptions,
+  CancelOrderMutationHookResult,
+  CancelOrderMutationResult,
+  CancelOrderMutationOptions,
+  ModifyOrderMutationHookResult,
+  ModifyOrderMutationResult,
+  ModifyOrderMutationOptions,
+  CancelBracketGroupMutationHookResult,
+  CancelBracketGroupMutationResult,
+  CancelBracketGroupMutationOptions,
+} from '../generated/hooks';
+
+// ---------------------------------------------------------------------------
+// Custom wrapper hooks — preserve these as they have enriched types / logic
+// ---------------------------------------------------------------------------
 
 // Positions hook
 export {
