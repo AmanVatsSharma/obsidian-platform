@@ -34,7 +34,7 @@ import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import type { Instrument, OrderTypeExtended, TriggerCondition } from '../lib/types';
 import { fmt, fmtPrice } from '../lib/format-utils';
-import { usePlaceOrder } from '@/gql/hooks/usePlaceOrder';
+import { usePlaceOrderMutation } from '@/gql/hooks';
 
 type PriceMap = Record<string, Instrument>;
 
@@ -81,7 +81,7 @@ export function OrderEntry({
   const [submitting, setSubmitting] = useState(false);
 
   // Enterprise codegen mutation hook — all order submissions route through this.
-  const { placeOrder } = usePlaceOrder();
+  const [placeOrder] = usePlaceOrderMutation();
 
   const [side, setSide] = useState<'buy' | 'sell'>('buy');
   const [type, setType] = useState<OrderTypeExtended>('MARKET');

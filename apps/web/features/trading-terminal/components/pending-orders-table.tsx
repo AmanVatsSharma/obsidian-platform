@@ -7,11 +7,11 @@
  *   - PendingOrdersTable — renders filterable, expandable pending orders grid
  *
  * Depends on:
- *   - @/gql/hooks — useOrders, useCancelOrder, useCancelBracketGroup (from enterprise codegen hooks)
+ *   - @/gql/hooks — useGetOrdersQuery, useCancelOrderMutation, useCancelBracketGroupMutation (from enterprise codegen hooks)
  *   - @/features/trading-terminal/lib/types — PendingOrder, OrderRole, AlgoMeta
  *
  * Side-effects:
- *   - Apollo query (useOrders) fetches pending orders from backend
+ *   - Apollo query (useGetOrdersQuery) fetches pending orders from backend
  *   - Apollo mutation network I/O on cancel actions
  *
  * Key invariants:
@@ -34,9 +34,9 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
-import { useOrders } from '@/gql/hooks';
-import { useCancelOrder } from '@/gql/hooks/useCancelOrder';
-import { useCancelBracketGroup } from '@/gql/hooks/useCancelBracketGroup';
+import { useGetOrdersQuery } from '@/gql/hooks';
+import { useCancelOrderMutation } from '@/gql/hooks';
+import { useCancelBracketGroupMutation } from '@/gql/hooks';
 import type { PendingOrder, OrderRole } from '../lib/types';
 
 // ─── Filter tabs ─────────────────────────────────────────────────────────────
@@ -137,8 +137,8 @@ function EditButton({ order, onEdit }: { order: PendingOrder; onEdit?: (order: P
 }
 
 function CancelCell({ order, onCancelled, onEdit }: CancelCellProps) {
-  const { cancelOrder } = useCancelOrder();
-  const { cancelBracketGroup } = useCancelBracketGroup();
+  const [cancelOrder] = useCancelOrderMutation();
+  const [cancelBracketGroup] = useCancelBracketGroupMutation();
 
   const handleCancel = useCallback(async () => {
     if (order.orderRole === 'PRIMARY') {
@@ -291,7 +291,7 @@ function ParentRow({ order, isExpanded, onToggle, onCancelled, onEdit }: ParentR
 // ─── Main table ───────────────────────────────────────────────────────────────
 
 export interface PendingOrdersTableProps {
-  /** Optional accountId — when provided, component fetches pending orders via useOrders */
+  /** Optional accountId — when provided, component fetches pending orders via useGetOrdersQuery */
   accountId?: string;
   /** Orders passed in directly (e.g. from mock data or parent state) */
   orders?: PendingOrder[];
@@ -315,17 +315,16 @@ export function PendingOrdersTable({
 }: PendingOrdersTableProps) {
   // When accountId is provided, fetch orders internally via the new enterprise hooks.
   // Falls back to externally-passed orders for backward compatibility (mock data path).
-  const { orders: gqlOrders, loading: gqlLoading, error: gqlError } = useOrders({
-    status: 'PENDING',
-    accountId,
+  const { data: gqlData, loading: gqlLoading, error: gqlError } = useGetOrdersQuery({
+    variables: { accountId, status: 'PENDING' },
   });
 
-  // Map Order[] from useOrders to PendingOrder[] so the table can render them.
+  // Map Order[] from useGetOrdersQuery to PendingOrder[] so the table can render them.
   // Order fields (from codegen): id, instrumentId, side, type, quantity(number),
   //   price(number|null), slPrice, tpPrice, status, createdAt, etc.
   // PendingOrder fields: id, symbol, type, orderRole, parentOrderId, side, lots(number),
   //   price(number), distance, sl, tp, status, created(string), algoMeta, etc.
-  const fetchedOrders: PendingOrder[] = gqlOrders.map((o) => ({
+  const fetchedOrders: PendingOrder[] = (gqlData?.orders?.data ?? []).map((o) => ({
     id: o.id,
     symbol: o.instrumentId,
     type: o.type as PendingOrder['type'],

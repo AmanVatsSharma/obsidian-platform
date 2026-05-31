@@ -42,12 +42,12 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { TradingWorkstation as TradingWorkstationLib } from '@obsidian/trading-ui';
-import { useInstruments } from '@/gql/hooks/useInstruments';
-import { useAccountBalance } from '@/gql/hooks/useAccountBalance';
-import { usePlaceOrder } from '@/gql/hooks/usePlaceOrder';
-import { useOrders } from '@/gql/hooks/useOrders';
-import { usePositions } from '@/gql/hooks/usePositions';
-import { useQuote } from '@/gql/hooks/useQuotes';
+import { useGetInstrumentsQuery } from '@/gql/hooks';
+import { useGetAccountBalanceQuery } from '@/gql/hooks';
+import { usePlaceOrderMutation } from '@/gql/hooks';
+import { useGetOrdersQuery } from '@/gql/hooks';
+import { useGetPositionsQuery } from '@/gql/hooks';
+import { useGetQuoteQuery } from '@/gql/hooks';
 import { nanoid } from 'nanoid';
 import type { Instrument, PlaceUiOrder } from '@obsidian/trading-ui';
 import type { OpenPosition } from '@obsidian/trading-ui';
@@ -64,34 +64,48 @@ export function TradingWorkstation({
 
   // GraphQL data hooks — instrument catalogue + account balance snapshot
   // pollInterval: 5000 keeps the instrument catalogue fresh every 5s (live prices via QuoteUpdater below)
-  const { data: instrumentsData } = useInstruments({}, { pollInterval: 5000 });
-  const { balance, parsedBalance } = useAccountBalance({
-    accountId,
+  const { data: instrumentsData } = useGetInstrumentsQuery({
+    variables: {},
+    pollInterval: 5000,
+  });
+
+  const { data: balanceData } = useGetAccountBalanceQuery({
+    variables: { accountId },
     skip: !accountId,
   });
 
+  // Parse balance strings into numeric values for TradingWorkstation's balance prop.
+  const parsedBalance = useMemo(() => {
+    if (!balanceData?.accountBalance) return null;
+    const b = balanceData.accountBalance;
+    const parseNum = (v: string) => parseFloat(v) ?? 0;
+    return {
+      numericEquity: parseNum(b.equity),
+      numericBuyingPower: parseNum(b.buyingPower),
+      numericUnrealizedPnl: parseNum(b.unrealizedPnl),
+    };
+  }, [balanceData]);
+
   // PlaceOrder mutation hook — wired into the onTradeSubmit bridge
-  const { placeOrder: placeOrderMutation } = usePlaceOrder();
+  const [placeOrderMutation] = usePlaceOrderMutation();
 
   // Positions query — fetches real open positions from GraphQL (OMS)
-  const { positions: gqlPositions } = usePositions({
-    accountId: accountId || undefined,
-    limit: 100,
+  const { data: positionsData } = useGetPositionsQuery({
+    variables: { accountId: accountId || undefined, limit: 100 },
   });
 
   // Pending orders query — fetches PENDING orders only for the orders tab
-  const { orders: gqlOrders } = useOrders({
-    accountId,
-    status: 'PENDING',
-    limit: 100,
+  const { data: ordersData } = useGetOrdersQuery({
+    variables: { accountId, status: 'PENDING', limit: 100 },
   });
 
-  // Map GraphQL Position[] (from usePositions) to the OpenPosition[] shape
+  // Map GraphQL Position[] (from useGetPositionsQuery) to the OpenPosition[] shape
   // that BottomTabsPanel's PositionsTable expects.
   // The lib's TradingWorkstation manages its own positions state, but we seed it
   // from real data and let tick simulation keep currentPrice/pnl live.
   const openPositions: OpenPosition[] = useMemo(() => {
-    if (!gqlPositions?.length) return [];
+    const gqlPositions = positionsData?.positions?.data ?? [];
+    if (!gqlPositions.length) return [];
     return gqlPositions.map((p) => {
       // Look up the instrument in the catalogue to get the symbol for display
       const inst = instrumentsData?.instruments?.find((i) => i.id === p.instrumentId);
@@ -112,14 +126,15 @@ export function TradingWorkstation({
         margin: 0,
       } satisfies OpenPosition;
     });
-  }, [gqlPositions, instrumentsData]);
+  }, [positionsData, instrumentsData]);
 
-  // Map GraphQL Order[] (from useOrders) to the PendingOrder[] shape that BottomTabsPanel's
+  // Map GraphQL Order[] (from useGetOrdersQuery) to the PendingOrder[] shape that BottomTabsPanel's
   // OrdersTable expects. GQL Order uses `quantity` (number) and `price` (number | null);
   // PendingOrder (from @obsidian/trading-ui) uses `lots` (number), `price` (number), `distance`,
   // `sl`, `tp` (all numbers). We look up the instrument symbol from the catalogue for display.
   const pendingOrders: PendingOrder[] = useMemo(() => {
-    if (!gqlOrders?.length) return [];
+    const gqlOrders = ordersData?.orders?.data ?? [];
+    if (!gqlOrders.length) return [];
     return gqlOrders.map((o) => {
       const inst = instrumentsData?.instruments?.find((i) => i.id === o.instrumentId);
       return {
@@ -140,24 +155,25 @@ export function TradingWorkstation({
         algoMeta: undefined,
       };
     });
-  }, [gqlOrders, instrumentsData]);
+  }, [ordersData, instrumentsData]);
 
   // Transform parsedBalance (numeric) into the shape TradingWorkstation's balance prop expects.
   const liveBalance = useMemo(() => {
     if (!parsedBalance) return undefined;
+    const b = balanceData?.accountBalance;
     return {
       equity: parsedBalance.numericEquity,
       freeMargin: parsedBalance.numericBuyingPower,
-      margin: parseFloat(balance?.lockedCash ?? '0') || 0,
+      margin: parseFloat(b?.lockedCash ?? '0') || 0,
       unrealizedPnl: parsedBalance.numericUnrealizedPnl,
       realizedPnlToday: 0,
-      balance: parseFloat(balance?.totalCash ?? '0') || 0,
-      currency: balance?.currency ?? 'USD',
+      balance: parseFloat(b?.totalCash ?? '0') || 0,
+      currency: b?.currency ?? 'USD',
       accountId,
       accountType: 'Trading',
       leverage: '1:100',
     };
-  }, [parsedBalance, balance, accountId]);
+  }, [parsedBalance, balanceData, accountId]);
 
   // Map gql instruments (InstrumentDto) to the Instrument shape TradingWorkstation expects.
   // InstrumentDto: { id, exchangeCode, symbol, displayName, type }
@@ -259,11 +275,11 @@ export function TradingWorkstation({
     const exchange = (instrument as { exchangeCode?: string })?.exchangeCode ?? 'forex';
     const symbol = instrument?.symbol ?? '';
 
-    const { data } = useQuote(
-      { exchange, symbol },
+    const { data } = useGetQuoteQuery({
+      variables: { exchange, symbol },
       // Only poll when an instrument is selected; stop when null to avoid unnecessary requests
-      { pollInterval: instrument ? 2000 : 0 },
-    );
+      pollInterval: instrument ? 2000 : 0,
+    });
 
     useEffect(() => {
       if (!data?.quote || !instrument) return;
