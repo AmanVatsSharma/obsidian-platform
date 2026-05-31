@@ -79,6 +79,9 @@ describe('OMS flow', () => {
 
     const placed = await orderSvc.place({ accountId: 'a1', instrumentId: 'i1', side: 'BUY', type: 'LIMIT', quantity: '10', price: '10', externalRefId: 'ext-flow-1', timeInForce: 'DAY' } as any);
     expect(placed).toBeDefined();
+    if (!placed || !('id' in placed)) {
+      throw new Error('Order placement did not return an order');
+    }
 
     const exec = await orderSvc.addExecution({ orderId: placed.id, accountId: 'a1', instrumentId: 'i1', quantity: '5', price: '10', fees: '1', externalRefId: 'exec-1' } as any);
     expect(exec).toBeDefined();

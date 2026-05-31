@@ -89,8 +89,8 @@ export class RbacService {
   async deleteRole(tenantId: string, name: string): Promise<void> {
     const role = await this.roles.findOne({ where: { tenantId, name } });
     if (!role) return;
-    await this.userRoles.delete({ tenantId, roleId: role.id } as any);
-    await this.rolePerms.delete({ tenantId, roleId: role.id } as any);
+    await this.userRoles.delete({ tenantId, roleId: role.id });
+    await this.rolePerms.delete({ tenantId, roleId: role.id });
     await this.roles.delete({ id: role.id });
   }
 
@@ -122,7 +122,7 @@ export class RbacService {
   async deletePermission(tenantId: string, name: string): Promise<void> {
     const perm = await this.perms.findOne({ where: { tenantId, name } });
     if (!perm) return;
-    await this.rolePerms.delete({ tenantId, permissionId: perm.id } as any);
+    await this.rolePerms.delete({ tenantId, permissionId: perm.id });
     await this.perms.delete({ id: perm.id });
   }
 
@@ -164,7 +164,7 @@ export class RbacService {
   ): Promise<boolean> {
     if (roleNames.length === 0) return true;
     const roles = await this.roles.find({
-      where: roleNames.map((n) => ({ tenantId, name: n })) as any,
+      where: roleNames.map((n) => ({ tenantId, name: n })),
     });
     if (roles.length === 0) return false;
     const roleIds = roles.map((r) => r.id);
@@ -188,7 +188,7 @@ export class RbacService {
     const roleIds = userRoleRows.map((ur) => ur.roleId);
     // Find permission ids for given names
     const perms = await this.perms.find({
-      where: permissionNames.map((n) => ({ tenantId, name: n })) as any,
+      where: permissionNames.map((n) => ({ tenantId, name: n })),
     });
     if (perms.length < permissionNames.length) return false;
     const permIds = perms.map((p) => p.id);

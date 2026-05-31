@@ -65,7 +65,7 @@ describe('StrategyPositionEntity', () => {
     it('unrealizedPnl defaults to 0', () => {
       const entity = StrategyPositionEntity.prototype;
       const inst = Object.create(StrategyPositionEntity.prototype);
-      expect((inst as any).unrealizedPnl ?? '0').toBe('0');
+      expect((inst).unrealizedPnl ?? '0').toBe('0');
     });
 
     it('delta defaults to 0', () => {

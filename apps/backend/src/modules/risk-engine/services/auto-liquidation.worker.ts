@@ -108,7 +108,7 @@ export class AutoLiquidationWorker implements OnModuleInit, OnModuleDestroy {
       const accountId = account.id as string;
       let accountPositions: Position[] = [];
       try {
-        accountPositions = (await this.positions.getPositionsByAccount(accountId)) as Position[];
+        accountPositions = (await this.positions.getPositionsByAccount(accountId));
       } catch {
         this.logger.debug('handleCron: no positions', { accountId });
         continue;

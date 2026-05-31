@@ -225,7 +225,7 @@ export class BrokerHierarchyResolver {
     @Args('brokerCode') brokerCode: string,
     @Args('displayName') displayName: string,
   ): Promise<BrokerObjectType> {
-    const broker = await this.brokerHierarchyService.createBroker({ tenantId, brokerCode, displayName } as any);
+    const broker = await this.brokerHierarchyService.createBroker({ tenantId, brokerCode, displayName });
     return this.mapBroker(broker);
   }
 

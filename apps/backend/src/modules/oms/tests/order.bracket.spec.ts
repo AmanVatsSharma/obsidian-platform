@@ -310,11 +310,11 @@ describe('OrderService — bracket order lifecycle', () => {
     it('activates only NEW-status children', async () => {
       const primaryId = 'primary-1';
       const existingChildren: Partial<OrderEntity>[] = [
-        { id: 'child-tp-1', parentOrderId: primaryId, orderRole: 'TAKE_PROFIT', status: 'NEW', accountId: 'a1', instrumentId: 'NSE:INFY', side: 'SELL', type: 'LIMIT', quantity: '100', price: '1860.00', clientOrderId: 'cli-tp', remainingQty: '100', filledQty: '0', timeInForce: 'DAY' as any },
-        { id: 'child-sl-1', parentOrderId: primaryId, orderRole: 'STOP_LOSS', status: 'PLACED', accountId: 'a1', instrumentId: 'NSE:INFY', side: 'SELL', type: 'STOP', quantity: '100', price: '1840.00', clientOrderId: 'cli-sl', remainingQty: '100', filledQty: '0', timeInForce: 'DAY' as any },
+        { id: 'child-tp-1', parentOrderId: primaryId, orderRole: 'TAKE_PROFIT', status: 'NEW', accountId: 'a1', instrumentId: 'NSE:INFY', side: 'SELL', type: 'LIMIT', quantity: '100', price: '1860.00', clientOrderId: 'cli-tp', remainingQty: '100', filledQty: '0', timeInForce: 'DAY' },
+        { id: 'child-sl-1', parentOrderId: primaryId, orderRole: 'STOP_LOSS', status: 'PLACED', accountId: 'a1', instrumentId: 'NSE:INFY', side: 'SELL', type: 'STOP', quantity: '100', price: '1840.00', clientOrderId: 'cli-sl', remainingQty: '100', filledQty: '0', timeInForce: 'DAY' },
       ];
 
-      const localDataSource = buildMockDataSource(existingChildren as any);
+      const localDataSource = buildMockDataSource(existingChildren);
       (service as any).dataSource = localDataSource;
       (service as any).orders = {
         find: jest.fn().mockResolvedValue(existingChildren),
@@ -427,7 +427,7 @@ describe('OrderService — bracket order lifecycle', () => {
         externalRefId: execId,
       };
 
-      const exec = await service.addExecution(dto as any);
+      const exec = await service.addExecution(dto);
 
       expect(exec).toBeDefined();
       expect(exec.externalRefId).toBe(execId);
@@ -474,7 +474,7 @@ describe('OrderService — bracket order lifecycle', () => {
         externalRefId: execId,
       };
 
-      await service.addExecution(dto as any);
+      await service.addExecution(dto);
 
       const orderSaveCall = localOrders.save.mock.calls.find((c: any[]) =>
         c[0]?.status !== undefined,

@@ -1,0 +1,954 @@
+# ------------------------------------------------------
+# THIS FILE WAS AUTOMATICALLY GENERATED (DO NOT MODIFY)
+# ------------------------------------------------------
+
+type AccountBalanceSnapshot {
+  accountId: String!
+  availableCash: Float!
+  lockedCash: Float!
+  totalCash: Float!
+}
+
+type AlertsResult {
+  data: [SurveillanceAlert!]!
+  total: Int!
+}
+
+type ApiKey {
+  createdAt: String!
+  id: ID!
+  keyPrefix: String!
+  name: String!
+  status: String!
+  tenantId: String!
+}
+
+type ApiKeyStatus {
+  id: ID!
+  status: String!
+}
+
+input AssignRiskPolicyDto {
+  riskPolicyId: String!
+  scopeType: String!
+  scopeValue: String!
+  tenantId: String!
+}
+
+type Branch {
+  brokerId: String!
+  createdAt: String!
+  id: ID!
+  name: String!
+  region: String
+  status: String!
+  tenantId: String!
+}
+
+type Broker {
+  brokerCode: String!
+  createdAt: String!
+  displayName: String!
+  id: ID!
+  status: String!
+  tenantId: String!
+}
+
+type BrokerHierarchyResult {
+  branchCount: Int!
+  branches: [Branch!]!
+  brokerCount: Int!
+  brokers: [Broker!]!
+  dealerCount: Int!
+  dealers: [Dealer!]!
+  deskCount: Int!
+  desks: [Desk!]!
+}
+
+type BrokerListResult {
+  brokers: [Broker!]!
+  total: Int!
+}
+
+type ChurnRiskScore {
+  riskScore: Float!
+  userId: String!
+}
+
+type CompliancePolicy {
+  amlRiskLevel: String!
+  auditRetentionDays: Int!
+  createdAt: String!
+  id: ID!
+  jurisdictionCode: String!
+  kycTier: String!
+  sanctionsProvider: String!
+  suitabilityRules: String
+  tenantId: String!
+  updatedAt: String!
+}
+
+enum ConnectorFamily {
+  COMMODITIES
+  CRYPTO_CEX
+  EQUITIES_FNO
+  FX_CFD
+  US_EQUITIES_OPTIONS
+}
+
+type ConnectorStatusDto {
+  active: Boolean!
+  family: ConnectorFamily!
+  session: String!
+}
+
+type CopyPositionDto {
+  copyPct: String!
+  createdAt: DateTime!
+  id: ID!
+  masterUserId: ID!
+  slaveUserId: ID!
+  status: String!
+}
+
+type CopyStatsDto {
+  activeSubscriptions: Int!
+  totalSignals: Int!
+}
+
+type CopyStrategyDto {
+  createdAt: DateTime!
+  direction: String!
+  id: ID!
+  lots: String!
+  masterUserId: ID!
+  status: String!
+  symbol: String!
+}
+
+type CorporateActionEntity {
+  actionType: String!
+  createdAt: DateTime!
+  effectiveDate: String!
+  id: ID!
+  instrumentId: ID!
+  status: String!
+  tenantId: ID!
+  updatedAt: DateTime!
+}
+
+input CorporateActionInput {
+  actionType: String!
+  effectiveDate: String!
+  instrumentId: String!
+  payload: String
+}
+
+input CreateExposureLimitDto {
+  alertThreshold: Float!
+  enabled: Boolean
+  hardLimit: Float!
+  instrumentId: String!
+  maxNetExposure: Float!
+  tenantId: String!
+}
+
+input CreateLimitControlDto {
+  controlType: String!
+  enabled: Boolean!
+  scopeType: String!
+  scopeValue: String!
+  tenantId: String!
+  threshold: String!
+}
+
+input CreateLimitExceptionDto {
+  limitControlId: String!
+  metadata: String
+  reason: String!
+  tenantId: String!
+}
+
+input CreatePartnerDto {
+  code: String!
+  contactEmail: String
+  metadata: String
+  name: String!
+  tenantId: String!
+}
+
+input CreateRiskPolicyDto {
+  jurisdictionCode: String!
+  maxLeverage: String!
+  maxOrderNotional: String!
+  policyName: String!
+  restrictedProducts: [String!]!
+  sanctionsCheckRequired: Boolean!
+  tenantId: String!
+}
+
+input CreateRuleDto {
+  actions: [RuleActionDto!]!
+  conditions: [RuleConditionDto!]!
+  description: String
+  name: String!
+  priority: Float
+  triggerEvent: String!
+}
+
+type CrmOutreach {
+  id: ID!
+  message: String
+  sentAt: String!
+  status: String!
+  tenantId: String!
+  type: String!
+  userId: String!
+}
+
+type CurrentUserDto {
+  tenantId: String!
+  userId: ID!
+}
+
+type DashboardExposure {
+  grossNotional: Float!
+  instrumentId: String!
+  netNotional: Float!
+  netQty: Float!
+}
+
+type DashboardResult {
+  instruments: [DashboardExposure!]!
+  totalGrossNotional: Float!
+  totalNetNotional: Float!
+}
+
+"""
+A date-time string at UTC, such as 2019-12-03T09:54:33Z, compliant with the date-time format.
+"""
+scalar DateTime
+
+type Deal {
+  createdAt: String!
+  id: ID!
+  instrumentId: String!
+  metadata: String
+  price: Float!
+  quantity: Float!
+  side: String!
+  status: String!
+  tenantId: String!
+  updatedAt: String!
+}
+
+type DealOverrideResult {
+  audit: String!
+  id: ID!
+  status: String!
+}
+
+type DealStatus {
+  id: ID!
+  status: String!
+}
+
+type Dealer {
+  createdAt: String!
+  deskId: String!
+  displayName: String
+  id: ID!
+  tenantId: String!
+  userId: String!
+}
+
+type DemoAccount {
+  accountType: String!
+  baseCurrency: String!
+  createdAt: String!
+  id: String!
+  status: String!
+  userId: String!
+}
+
+type Desk {
+  branchId: String!
+  createdAt: String!
+  id: ID!
+  name: String!
+  tenantId: String!
+}
+
+type EntitlementPlan {
+  createdAt: String!
+  features: String
+  id: ID!
+  maxAccounts: String!
+  maxUsers: String!
+  planName: String!
+}
+
+type ExposureCheckResult {
+  allowed: Boolean!
+  message: String
+}
+
+type ExposureLimit {
+  alertThreshold: String!
+  createdAt: String!
+  currentNetExposure: String!
+  enabled: Boolean!
+  hardLimit: String!
+  id: ID!
+  instrumentId: String!
+  maxNetExposure: String!
+  tenantId: String!
+  updatedAt: String!
+}
+
+type InstrumentDto {
+  displayName: String!
+  exchangeCode: String!
+  id: ID!
+  status: String
+  symbol: String!
+  type: String!
+}
+
+type LimitControl {
+  controlType: String!
+  createdAt: String!
+  enabled: Boolean!
+  id: ID!
+  scopeType: String!
+  scopeValue: String!
+  tenantId: String!
+  threshold: String!
+}
+
+type LimitException {
+  createdAt: String!
+  id: ID!
+  limitControlId: String!
+  metadata: String
+  reason: String!
+  tenantId: String!
+}
+
+type LpProvider {
+  apiKey: String
+  createdAt: String!
+  endpoint: String!
+  id: ID!
+  lpType: String!
+  name: String!
+  priority: Int!
+  status: String!
+  tenantId: String!
+  updatedAt: String
+}
+
+type LpQuoteTestResult {
+  provider: String!
+  quote: Float!
+  testedAt: String!
+  validFor: Int!
+}
+
+type Mutation {
+  activateRule(id: ID!): RuleEntity!
+  addToWatchlist(instrumentId: String!, watchlistId: String!): WatchlistItemDto!
+  announceCorporateAction(input: CorporateActionInput!): CorporateActionEntity!
+  announcePromotion(id: String!): Boolean!
+  assignRiskPolicy(input: AssignRiskPolicyDto!): TenantRiskPolicy!
+  assignRoleToUser(roleName: String!, userId: String!): Role!
+  cancelOrder(connectorFamily: ConnectorFamily!, providerOrderId: String!): OrderResponseDto!
+  createApiKey(description: String, name: String!): ApiKey!
+  createBranch(brokerId: String!, name: String!, region: String): Branch!
+  createBroker(brokerCode: String!, displayName: String!): Broker!
+  createDeal(instrumentId: String!, metadata: String, price: Float!, quantity: Float!, side: String!): Deal!
+  createDealer(deskId: String!, userId: String!): Dealer!
+  createDemoAccount(baseCurrency: String, seedAmount: Float, seedBalanceCcy: String): DemoAccount!
+  createDesk(branchId: String!, name: String!): Desk!
+  createLimitControl(input: CreateLimitControlDto!): LimitControl!
+  createLimitException(input: CreateLimitExceptionDto!): LimitException!
+  createLpProvider(apiKey: String, endpoint: String!, lpType: String!, name: String!, priority: Int!): LpProvider!
+  createOrUpdatePammAllocation(allocationPct: Float!, masterId: String!, userId: String!): PammSlave!
+  createPammMaster(minAllocation: Float!, name: String!, performanceFee: Float!, strategyDescription: String): PammMaster!
+  createPermission(description: String, name: String!): Permission!
+  createPromotion(budget: Float!, endDate: String!, name: String!, startDate: String!, type: String!): Promotion!
+  createReport(columns: [String!]!, createdBy: String!, filters: String, name: String!, type: String!): ReportDefinition!
+  createRetentionOffer(offerType: String!, userId: String!, value: String): RetentionOffer!
+  createRiskPolicy(input: CreateRiskPolicyDto!): RiskPolicy!
+  createRole(description: String, name: String!): Role!
+  createRule(input: CreateRuleDto!): RuleEntity!
+  createSupportTicket(priority: String, subject: String!, userId: String!): SupportTicket!
+  createTenant(code: String!, displayName: String!): Tenant!
+  createWatchlist(name: String!): WatchlistDto!
+  deactivateRule(id: ID!): RuleEntity!
+  deletePermission(name: String!): Permission!
+  deleteRole(name: String!): Role!
+  dismissRiskAlert(id: String!, reason: String): SurveillanceAlert!
+  executeReport(id: String!): ReportExecutionResult!
+  followStrategy(copyPct: Float, masterUserId: String!, slaveUserId: String!): Boolean!
+  grantPermissionToRole(permissionName: String!, roleName: String!): Role!
+  invitePartner(input: CreatePartnerDto!): PartnerEntity!
+  markAllAsRead: Boolean!
+  markAsRead(id: String!): Boolean!
+  modifyOrder(orderId: ID!, price: Float, quantity: Float): OrderEntity
+  placeOrder(input: PlaceOrderDto!): PlaceOrderResult!
+  provisionTenant(code: String!, displayName: String!, planName: String!): ProvisioningRequest!
+  registerWebhookEndpoint(eventTypes: [String!]!, secret: String, url: String!): WebhookRegistrationResult!
+  requestManualOverride(action: String!, dealId: String!, reason: String!): DealOverrideResult!
+  resolveReconciliationBreak(id: String!): ReconciliationBreak!
+  routeOrder(accountId: String!, clientOrderId: String!, connectorFamily: ConnectorFamily!, instrumentId: String!, price: String, quantity: String!, side: ConnectorFamily!, tenantId: String!, timeInForce: ConnectorFamily!, type: ConnectorFamily!): OrderResponseDto!
+  runReconciliation(statementDate: String!): ReconciliationResult!
+  sendOutreach(message: String, type: String!, userId: String!): CrmOutreach!
+  suspendTenant(reason: String!, tenantId: String!): String!
+  testLpQuote(lpProviderId: String!, side: String!, symbol: String!): LpQuoteTestResult!
+  unfollowStrategy(masterUserId: String!, slaveUserId: String!): Boolean!
+  updateExposureLimit(id: String!, input: UpdateExposureLimitDto!): ExposureLimit!
+  updateLpProvider(endpoint: String, id: String!, lpType: String, name: String, priority: Int, status: String): LpProvider!
+  updatePartner(amount: Float!, currency: String!, partnerId: ID!, reason: String): PartnerPayoutResult!
+  updatePermission(description: String, name: String!, newName: String): Permission!
+  updatePromotion(budget: Float, endDate: String, id: String!, name: String, startDate: String, status: String, type: String): Promotion!
+  updateRole(description: String, name: String!, newName: String): Role!
+  updateRule(id: ID!, input: UpdateRuleDto!): RuleEntity!
+  upsertCompliancePolicy(amlRiskLevel: String!, auditRetentionDays: Int!, jurisdictionCode: String!, kycTier: String!, sanctionsProvider: String!, suitabilityRules: String, tenantId: String!): CompliancePolicy!
+  upsertEntitlements(features: String, maxAccounts: String!, maxUsers: String!, planName: String!): EntitlementPlan!
+  upsertExposureLimit(input: CreateExposureLimitDto!): ExposureLimit!
+  upsertInstrument(id: String!, status: String): InstrumentDto!
+}
+
+type NotificationDto {
+  body: String!
+  channel: String!
+  createdAt: DateTime!
+  id: ID!
+  status: String!
+  title: String!
+  type: String!
+}
+
+type OnboardingProfileDto {
+  annualIncome: String
+  createdAt: DateTime!
+  id: ID!
+  investmentObjective: String
+  occupation: String
+  riskAppetite: String
+  sourceOfFunds: String
+  step: String
+  tenantId: String!
+  tradingExperience: String
+  updatedAt: DateTime!
+  userId: String!
+}
+
+type OrderConnection {
+  data: [OrderEntity!]!
+  limit: Int!
+  offset: Int!
+  total: Int!
+}
+
+type OrderEntity {
+  accountId: ID!
+  algoType: String
+  clientOrderId: String!
+  createdAt: DateTime!
+  externalRefId: String!
+  filledQty: Float!
+  holdRef: String
+  id: ID!
+  instrumentId: ID!
+  orderRole: String
+  parentOrderId: String
+  price: Float
+  quantity: Float!
+  remainingQty: Float!
+  side: String!
+  slPrice: Float
+  status: String!
+  tenantId: String!
+  timeInForce: String!
+  tpPrice: Float
+  trailingDistance: Float
+  trailingPct: Float
+  triggerCondition: String
+  triggerPrice: Float
+  type: String!
+  updatedAt: DateTime!
+}
+
+enum OrderRejectionCode {
+  EXCHANGE_NOT_ENABLED
+  EXCHANGE_REJECTED
+  INSUFFICIENT_BUYING_POWER
+  INVALID_INSTRUMENT
+  POSITION_LIMIT_EXCEEDED
+  RISK_CHECK_FAILED
+  UNKNOWN
+}
+
+type OrderRejectionError {
+  code: OrderRejectionCode!
+  externalRefId: String
+  message: String!
+}
+
+type OrderResponseDto {
+  filledQty: String
+  message: String
+  price: String
+  providerOrderId: String!
+  status: String!
+}
+
+type OrderSnapshot {
+  accountId: String!
+  createdAt: String!
+  id: ID!
+  instrumentId: String!
+  price: Float
+  quantity: Float!
+  side: String!
+  status: String!
+  type: String!
+}
+
+type PammMaster {
+  createdAt: String!
+  id: ID!
+  minAllocation: Float!
+  name: String!
+  performanceFee: Float!
+  status: String!
+  strategyDescription: String
+  tenantId: String!
+}
+
+type PammSlave {
+  allocationPct: Float!
+  createdAt: String!
+  id: ID!
+  masterId: String!
+  status: String!
+  tenantId: String!
+  userId: String!
+}
+
+type PartnerEntity {
+  code: String!
+  contactEmail: String
+  createdAt: DateTime!
+  id: ID!
+  name: String!
+  status: String!
+  tenantId: ID!
+  updatedAt: DateTime!
+}
+
+type PartnerPayoutResult {
+  audit: String
+  partnerId: String!
+  status: String!
+}
+
+type PartnerStatusPayload {
+  id: ID!
+  status: String!
+}
+
+type Permission {
+  createdAt: String!
+  description: String
+  id: ID!
+  name: String!
+  tenantId: String!
+  updatedAt: String!
+}
+
+input PlaceOrderDto {
+  accountId: String!
+  clientOrderId: String
+  externalRefId: String!
+  instrumentId: String!
+  price: String
+  quantity: String!
+  side: String!
+  slPrice: String
+  timeInForce: String!
+  tpPrice: String
+  type: String!
+}
+
+union PlaceOrderResult = OrderEntity | OrderRejectionError
+
+type PositionConnection {
+  data: [PositionRow!]!
+  limit: Int!
+  offset: Int!
+  total: Int!
+}
+
+type PositionRow {
+  avgPrice: Float!
+  instrumentId: ID!
+  lastPrice: Float!
+  mtmPnl: Float!
+  netQty: Float!
+  realizedPnl: Float!
+  value: Float!
+}
+
+type PositionSnapshot {
+  accountId: String!
+  instrumentId: String!
+  netQty: Float!
+}
+
+type Promotion {
+  budget: Float!
+  createdAt: String!
+  endDate: String!
+  id: ID!
+  name: String!
+  spent: Float!
+  startDate: String!
+  status: String!
+  tenantId: String!
+  type: String!
+  updatedAt: String
+}
+
+type ProvisioningRequest {
+  createdAt: String!
+  errorMessage: String
+  id: ID!
+  status: String!
+  tenantId: String!
+}
+
+type Query {
+  apiKeyStatus(id: String!): ApiKeyStatus
+  apiKeys: [ApiKey!]!
+  bracketChildren(parentOrderId: ID!): [OrderEntity!]!
+  brandConfig(slugOrDomain: String!): TenantBrandConfig
+  brokerHierarchy: BrokerHierarchyResult!
+  brokers(limit: Int, offset: Int): BrokerListResult!
+  checkExposureLimit(instrumentId: String!, proposedDelta: Float!): ExposureCheckResult!
+  churnRiskScores: [ChurnRiskScore!]!
+  compliancePolicies: [CompliancePolicy!]!
+  connectorStatus(family: ConnectorFamily!): ConnectorStatusDto
+  connectors: [ConnectorStatusDto!]!
+  copyPositions: [CopyPositionDto!]!
+  copyStats: CopyStatsDto!
+  copyStrategies: [CopyStrategyDto!]!
+  corporateAction(id: ID!): CorporateActionEntity
+  corporateActions: [CorporateActionEntity!]!
+  crmOutreachList: [CrmOutreach!]!
+  dealStatus(id: String!): DealStatus
+  deals: [Deal!]!
+  demoAccounts: [DemoAccount!]!
+  entitlementPlans: [EntitlementPlan!]!
+  exposureLimits: [ExposureLimit!]!
+  instrument(id: String!): InstrumentDto
+  instruments(exchangeCode: String, q: String, type: String): [InstrumentDto!]!
+  limitControls: [LimitControl!]!
+  limitExceptions: [LimitException!]!
+  lpProviders: [LpProvider!]!
+  me(tenantId: String!, userId: String!): CurrentUserDto!
+  notifications(limit: Float): [NotificationDto!]!
+  onboardingProfiles(tenantId: String!): [OnboardingProfileDto!]!
+  order(id: ID!): OrderEntity
+  orders(accountId: ID, from: String, limit: Int, offset: Int, side: String, status: String, symbol: String, to: String): OrderConnection!
+  pammMaster(id: String!): PammMaster
+  pammMasters: [PammMaster!]!
+  pammSlaves: [PammSlave!]!
+  partnerStats(id: ID!): PartnerStatusPayload
+  partners: [PartnerEntity!]!
+  permission(name: String!): Permission
+  permissions: [Permission!]!
+  position(accountId: ID!, currency: String): [PositionRow!]!
+  positions(accountId: ID, currency: String, limit: Int, offset: Int): PositionConnection!
+  promotions: [Promotion!]!
+  provisioningRequests: [ProvisioningRequest!]!
+  quote(exchange: String!, symbol: String!): QuoteDto
+  realtimeSnapshots: RealtimeSnapshotsResult!
+  realtimeWatchedSymbols: SubscriptionRegistry!
+  reconciliationBreaks(status: String): [ReconciliationBreak!]!
+  report(id: String!): ReportDefinition
+  reports: [ReportDefinition!]!
+  riskAlerts(limit: Int, offset: Int, severity: String): AlertsResult!
+  riskDashboard: DashboardResult!
+  riskPolicies: [RiskPolicy!]!
+  role(name: String!): Role
+  roles: [Role!]!
+  ruleEvaluations: [RuleEvaluationSummary!]!
+  rules: [RuleEntity!]!
+  sessions(userId: String!): [SessionDto!]!
+  supportTickets: [SupportTicket!]!
+  tenants: [Tenant!]!
+  unreadCount: Int!
+  user(id: String!): UserDto
+  users(limit: Float, page: Float, search: String, tenantId: String!): UserListDto!
+  watchlists: [WatchlistDto!]!
+}
+
+type QuoteDto {
+  exchange: String!
+  price: Float!
+  symbol: String!
+  ts: String!
+}
+
+type RealtimeSnapshotsResult {
+  accounts: [AccountBalanceSnapshot!]
+  orders: [OrderSnapshot!]
+  positions: [PositionSnapshot!]
+  watchlist: [WatchlistTick!]
+}
+
+type ReconciliationBreak {
+  breakType: String!
+  createdAt: DateTime!
+  description: String!
+  externalRef: String
+  id: ID!
+  internalRef: String
+  isAging: Boolean!
+  resolvedAt: DateTime
+  statementDate: String
+  status: String!
+  tenantId: String!
+  updatedAt: DateTime!
+}
+
+type ReconciliationResult {
+  breaksFound: Int!
+  ranAt: String!
+  tradesMatched: Int!
+}
+
+type ReportDefinition {
+  columns: [String!]!
+  createdAt: String!
+  createdBy: String!
+  filters: String
+  id: ID!
+  lastRunAt: String
+  name: String!
+  tenantId: String!
+  type: String!
+  updatedAt: String!
+}
+
+type ReportExecutionResult {
+  executedAt: String!
+  reportId: ID!
+  rowCount: Int!
+}
+
+type RetentionOffer {
+  createdAt: String!
+  id: ID!
+  offerType: String!
+  status: String!
+  tenantId: String!
+  userId: String!
+  value: String!
+}
+
+type RiskPolicy {
+  createdAt: String!
+  id: ID!
+  jurisdictionCode: String!
+  maxLeverage: String!
+  maxOrderNotional: String!
+  policyName: String!
+  restrictedProducts: [String!]!
+  sanctionsCheckRequired: String!
+  tenantId: String!
+  updatedAt: String!
+}
+
+type Role {
+  createdAt: String!
+  description: String
+  id: ID!
+  name: String!
+  tenantId: String!
+  updatedAt: String!
+}
+
+input RuleActionDto {
+  params: String
+  type: String!
+}
+
+input RuleConditionDto {
+  field: String!
+  op: String!
+  value: String!
+}
+
+type RuleEntity {
+  createdAt: DateTime!
+  description: String
+  executionCount: Int!
+  id: ID!
+  lastTriggeredAt: DateTime
+  name: String!
+  priority: Int!
+  status: String!
+  tenantId: ID!
+  triggerEvent: String!
+  updatedAt: DateTime!
+}
+
+type RuleEvaluationSummary {
+  executionCount: Int!
+  lastTriggeredAt: DateTime
+  ruleId: ID!
+  ruleName: String!
+  status: String!
+  triggerEvent: String!
+}
+
+type SessionDto {
+  createdAt: DateTime!
+  deviceInfo: String
+  expiresAt: DateTime!
+  ipAddress: String
+  lastUsedAt: DateTime
+  revokedAt: DateTime
+  tokenId: String!
+  userAgent: String
+}
+
+type SubscriptionRegistry {
+  watchedSymbols: [WatchedSymbol!]!
+}
+
+type SupportTicket {
+  createdAt: String!
+  id: ID!
+  priority: String
+  status: String!
+  subject: String!
+  tenantId: String!
+  userId: String!
+}
+
+type SurveillanceAlert {
+  createdAt: String!
+  dismissedReason: String
+  id: ID!
+  instrumentId: String!
+  message: String
+  severity: String!
+  status: String!
+  tenantId: String!
+}
+
+type Tenant {
+  code: String!
+  createdAt: String!
+  displayName: String!
+  id: ID!
+  status: String!
+}
+
+type TenantBrandConfig {
+  customDomain: String
+  id: ID!
+  logoUrl: String
+  primaryColor: String
+  tenantId: String!
+  updatedAt: String!
+}
+
+type TenantRiskPolicy {
+  createdAt: String!
+  id: ID!
+  riskPolicyId: String!
+  scopeType: String!
+  scopeValue: String!
+  tenantId: String!
+}
+
+input UpdateExposureLimitDto {
+  alertThreshold: Float
+  enabled: Boolean
+  hardLimit: Float
+  maxNetExposure: Float
+}
+
+input UpdateRuleDto {
+  actions: [RuleActionDto!]
+  conditions: [RuleConditionDto!]
+  description: String
+  enabled: Boolean
+  name: String
+  priority: Float
+  triggerEvent: String
+}
+
+type UserDto {
+  countryCode: String
+  createdAt: DateTime!
+  email: String
+  id: ID!
+  isActive: Boolean!
+  isEmailVerified: Boolean!
+  isMobileVerified: Boolean!
+  mobileE164: String!
+  name: String
+  tenantId: String!
+}
+
+type UserListDto {
+  data: [UserDto!]!
+  limit: Int!
+  page: Int!
+  total: Int!
+}
+
+type WatchedSymbol {
+  exchange: String!
+  symbol: String!
+}
+
+type WatchlistDto {
+  createdAt: DateTime!
+  id: ID!
+  name: String!
+}
+
+type WatchlistItemDto {
+  addedAt: DateTime!
+  id: ID!
+  instrumentId: ID!
+}
+
+type WatchlistTick {
+  ask: Float
+  bid: Float
+  exchange: String!
+  price: Float!
+  symbol: String!
+  ts: String!
+}
+
+type WebhookEndpoint {
+  eventTypes: String!
+  id: ID!
+  status: String!
+  url: String!
+}
+
+type WebhookRegistrationResult {
+  status: String!
+  webhook: WebhookEndpoint!
+}

@@ -11,27 +11,7 @@ import { TypeOrmModuleOptions } from '@nestjs/typeorm';
 export function buildTypeOrmConfig(): TypeOrmModuleOptions {
   const url = process.env.DATABASE_URL;
   const isDev = (process.env.NODE_ENV || 'development') !== 'production';
-  const isSchemaGen = process.env.SCHEMA_GEN === 'true';
 
-  // Schema generation mode: skip DB entirely by returning a config for a
-  // non-existent DB with a 1-second timeout and zero retries — TypeORM fails
-  // fast without blocking the schema generation.
-  if (isSchemaGen) {
-    return {
-      type: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'skip',
-      password: 'skip',
-      database: 'skip',
-      autoLoadEntities: true,
-      synchronize: false,
-      logging: false,
-      connectTimeoutMS: 1000,
-      retryAttempts: 0,
-      retryDelay: 0,
-    };
-  }
   if (url) {
     return {
       type: 'postgres',

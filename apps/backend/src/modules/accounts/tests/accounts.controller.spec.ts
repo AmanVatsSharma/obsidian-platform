@@ -22,7 +22,7 @@ describe('AccountsController', () => {
     service = {
       disableAccount: jest.fn(),
       enableAccount: jest.fn(),
-    } as any;
+    };
 
     const moduleBuilder = Test.createTestingModule({
       controllers: [AccountsController],

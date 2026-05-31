@@ -16,7 +16,8 @@
  *
  * Depends on:
  *   - @apollo/client              — ApolloError, FetchResult
- *   - ../operations/oms/cancelOrder  — useCancelOrderMutation (for parent + child cancellations)
+ *   - @/gql/generated/graphql      — generated GQL types
+ *   - @/gql/generated/hooks        — useCancelOrderMutation, CancelBracketGroupDocument
  *
  * Side-effects:
  *   - Network I/O: up to 1 + N cancelOrder mutations (parent + children)
@@ -31,19 +32,18 @@
  * Last-updated: 2026-05-30
  */
 
-import { gql } from '@apollo/client';
 import { useCallback } from 'react';
-import { useCancelOrderMutation } from '../operations/oms/cancelOrder';
-import type { CancelOrderMutation } from '../operations/oms/cancelOrder';
+import { useCancelOrderMutation } from '../generated/hooks';
+import type { CancelOrderMutation } from '../generated/hooks';
 import type { FetchResult } from '@apollo/client';
+import { gql } from '@apollo/client';
 
 /**
  * CancelBracketGroupDocument
  * GraphQL document for the cancelBracketGroup mutation.
- * Note: This mutation does not exist in the backend schema yet.
- * The document is defined here for forward-compatibility — once the backend
- * adds the mutation, codegen will regenerate the types and this inline document
- * can be replaced with the generated one.
+ * Forward-compatibility: when the backend adds the native cancelBracketGroup
+ * mutation to the schema, codegen will regenerate this document and this
+ * inline definition can be removed.
  */
 export const CancelBracketGroupDocument = gql`
   mutation CancelBracketGroup($parentOrderId: ID!) {

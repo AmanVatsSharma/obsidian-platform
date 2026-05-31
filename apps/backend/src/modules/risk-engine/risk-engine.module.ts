@@ -17,7 +17,6 @@
  *   - SharedModule (global — AppLoggerService, OutboxModule, etc.)
  *   - AccountsModule (AccountsService, BalancesService, StrategyPositionService)
  *   - MarketModule (PriceFeedService, InstrumentsService)
- *   - OmsModule (OrderService, OrderEventsService)
  *   - NotificationsModule (NotificationService)
  *   - RiskPolicyModule (RiskPolicyService) — for pre-trade composition
  *
@@ -27,26 +26,27 @@
  *
  * Key invariants:
  *   - All external service calls go through injected services (no raw HTTP/DB in services)
- *   - Module does NOT import ForwardRef around OmsModule — RiskEngineService is the consumer
+ *   - RiskEngineService uses OrderEventsService (in-memory pub/sub) for LIQUIDATE_ALL/LIQUIDATE_BIGGEST
+ *     instead of direct OrderService — breaking the circular dep that previously required forwardRef
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-24
+ * Last-updated: 2026-05-31
  */
 
-import { Module, forwardRef } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../shared/shared.module';
 import { AccountsModule } from '../accounts/accounts.module';
 import { MarketModule } from '../market/market.module';
 import { NotificationsModule } from '../notifications/notifications.module';
 import { RiskPolicyModule } from '../risk-policy/risk-policy.module';
-import { OmsModule } from '../oms/oms.module';
 import { RiskThresholdEntity } from './entities/risk-threshold.entity';
 import { RiskEngineService } from './services/risk-engine.service';
 import { RealTimeExposureService } from './services/real-time-exposure.service';
 import { GreeksCalculatorService } from './services/greeks-calculator.service';
 import { CircuitBreakerService } from './services/circuit-breaker.service';
 import { AutoLiquidationWorker } from './services/auto-liquidation.worker';
+import { OrderEventsService } from '../oms/services/order-events.service';
 
 @Module({
   imports: [
@@ -56,7 +56,6 @@ import { AutoLiquidationWorker } from './services/auto-liquidation.worker';
     MarketModule,
     NotificationsModule,
     RiskPolicyModule,
-    forwardRef(() => OmsModule),
   ],
   providers: [
     RiskEngineService,

@@ -64,8 +64,8 @@ export class WatchlistsService {
   }
 
   async remove(tenantId: string, userId: string, id: string): Promise<void> {
-    await this.items.delete({ watchlistId: id } as any);
-    await this.watchlists.delete({ tenantId, userId, id } as any);
+    await this.items.delete({ watchlistId: id });
+    await this.watchlists.delete({ tenantId, userId, id });
   }
 
   async addItem(
@@ -77,7 +77,7 @@ export class WatchlistsService {
   }
 
   async removeItem(watchlistId: string, itemId: string): Promise<void> {
-    await this.items.delete({ id: itemId, watchlistId } as any);
+    await this.items.delete({ id: itemId, watchlistId });
   }
 
   async listItems(watchlistId: string): Promise<WatchlistItemEntity[]> {

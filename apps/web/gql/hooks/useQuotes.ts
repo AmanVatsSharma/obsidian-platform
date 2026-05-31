@@ -10,7 +10,7 @@
  * Depends on:
  *   - @apollo/client                          — useQuery (generated hook base)
  *   - @/gql/generated/graphql                 — QuoteDto type
- *   - @/gql/operations/market/getQuote.gql     — quote query
+ *   - @/gql/generated/hooks                   — useGetQuoteQuery
  *
  * Side-effects:
  *   - none (read-only query)
@@ -27,12 +27,9 @@
  * Last-updated: 2026-05-30
  */
 
-import { useQuery } from '@apollo/client';
-import {
-  GetQuoteQuery,
-  GetQuoteQueryVariables,
-} from '../operations/market/getQuote';
-import { GetQuoteDocument } from '../operations/market/getQuote';
+import type { QueryHookOptions } from '@apollo/client';
+import { useGetQuoteQuery } from '../generated/hooks';
+import type { GetQuoteQuery, GetQuoteQueryVariables } from '../generated/hooks';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -79,11 +76,11 @@ export interface UseQuoteResult {
  */
 export function useQuote(
   params: UseQuoteParams,
-  options?: Omit<Parameters<typeof useQuery<GetQuoteQuery, GetQuoteQueryVariables>>[1], 'variables'>,
+  options?: QueryHookOptions<GetQuoteQuery, GetQuoteQueryVariables>,
 ) {
   const { exchange, symbol, id, status } = params;
 
-  return useQuery<GetQuoteQuery, GetQuoteQueryVariables>(GetQuoteDocument, {
+  return useGetQuoteQuery({
     variables: {
       exchange,
       symbol,

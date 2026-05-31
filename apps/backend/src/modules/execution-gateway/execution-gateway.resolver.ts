@@ -140,7 +140,7 @@ export class ExecutionGatewayResolver {
       quantity,
       clientOrderId,
       timeInForce: timeInForce as any,
-      connectorFamily: connectorFamily as unknown as ConnectorFamily,
+      connectorFamily: connectorFamily,
       price,
     });
     return {
@@ -163,7 +163,7 @@ export class ExecutionGatewayResolver {
     this.logger.debug('cancelOrder:start', { requestId: ctx?.requestId, providerOrderId, connectorFamily });
     const response = await this.gatewayService.routeCancelOrder({
       providerOrderId,
-      connectorFamily: connectorFamily as unknown as ConnectorFamily,
+      connectorFamily: connectorFamily,
     });
     return {
       providerOrderId: response.providerOrderId ?? providerOrderId,

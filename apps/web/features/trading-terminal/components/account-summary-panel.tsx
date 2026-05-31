@@ -1,29 +1,31 @@
 /**
  * File:        apps/web/features/trading-terminal/components/account-summary-panel.tsx
  * Module:      web-trading · trading-terminal
- * Purpose:     Account stats, margin meter, and live balance via useAccountBalance.
- *              Replaces mock data with GraphQL hook. Sparkline removed — no P&L
+ * Purpose:     Account stats, margin meter, and live balance via codegen
+ *              useGetAccountBalanceQuery hook. Sparkline removed — no P&L
  *              history field exists in the hook response.
  *
  * Exports:
  *   - AccountSummaryPanel — live account stats panel
  *
  * Depends on:
- *   - @/gql/hooks/useAccountBalance  — live balance data
- *   - ../lib/types                   — AccountSnapshot interface
- *   - ../lib/format-utils            — fmt, pnlClass, pnlSign
+ *   - @/gql/hooks               — useGetAccountBalanceQuery (codegen)
+ *   - @/gql/generated/graphql   — AccountBalancePayload type
+ *   - ../lib/types               — AccountSnapshot interface
+ *   - ../lib/format-utils        — fmt, pnlClass, pnlSign
  *
  * Side-effects: none (read-only query)
  *
  * Key invariants:
  *   - Shows snapshot prop when available, falls back to hook data
- *   - Sparkline removed — useAccountBalance has no P&L history field
+ *   - Sparkline removed — useGetAccountBalanceQuery has no P&L history field
  *   - Loading skeleton while balance loads
  *   - Error state shown without crashing
  *
  * Read order:
  *   1. AccountSummaryPanel  — entry, data wiring
- *   2. pnlStat              — helper for P&L stat grid
+ *   2. parseBalance         — string→numeric conversion
+ *   3. SkeletonStat         — loading placeholder
  *
  * Author:      BharatERP
  * Last-updated: 2026-05-30
@@ -33,7 +35,51 @@
 
 import type { AccountSnapshot } from '../lib/types';
 import { fmt, pnlClass, pnlSign } from '../lib/format-utils';
-import { useAccountBalance } from '@/gql/hooks/useAccountBalance';
+import { useGetAccountBalanceQuery } from '@/gql/hooks';
+import type { AccountBalancePayload } from '@/gql/generated/graphql';
+
+// ─── Local types (mirrored from codegen GetAccountBalanceQuery shape) ──────────
+
+interface AccountBalance {
+  totalCash: string;
+  lockedCash: string;
+  availableCash: string;
+  positionsValue: string;
+  unrealizedPnl: string;
+  equity: string;
+  buyingPower: string;
+  currency: string;
+}
+
+interface ParsedBalance extends AccountBalance {
+  numericEquity: number;
+  numericBuyingPower: number;
+  numericUnrealizedPnl: number;
+  numericAvailableCash: number;
+}
+
+// ─── Parsing helper ───────────────────────────────────────────────────────────
+
+function parseBalance(raw: AccountBalancePayload): ParsedBalance {
+  const parseNum = (val: string): number => {
+    const n = parseFloat(val);
+    return isNaN(n) ? 0 : n;
+  };
+  return {
+    totalCash: raw.totalCash,
+    lockedCash: raw.lockedCash,
+    availableCash: raw.availableCash,
+    positionsValue: raw.positionsValue,
+    unrealizedPnl: raw.unrealizedPnl,
+    equity: raw.equity,
+    buyingPower: raw.buyingPower,
+    currency: raw.currency,
+    numericEquity: parseNum(raw.equity),
+    numericBuyingPower: parseNum(raw.buyingPower),
+    numericUnrealizedPnl: parseNum(raw.unrealizedPnl),
+    numericAvailableCash: parseNum(raw.availableCash),
+  };
+}
 
 // ─── Sub-component ────────────────────────────────────────────────────────────
 
@@ -51,10 +97,15 @@ function SkeletonStat() {
 export function AccountSummaryPanel({ snapshot }: { snapshot?: AccountSnapshot }) {
   const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID ?? '';
 
-  const { balance, parsedBalance, loading } = useAccountBalance({
-    accountId,
+  const { data, loading } = useGetAccountBalanceQuery({
+    variables: { accountId },
     skip: !accountId,
+    fetchPolicy: 'cache-and-network',
+    errorPolicy: 'all',
   });
+
+  const balance: AccountBalance | null = data?.accountBalance ?? null;
+  const parsedBalance: ParsedBalance | null = data?.accountBalance ? parseBalance(data.accountBalance) : null;
 
   // Derive display values — prefer snapshot prop when available, else hook data.
   const accountIdDisplay  = snapshot?.accountId   ?? balance?.currency   ?? '—';

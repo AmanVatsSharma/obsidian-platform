@@ -170,7 +170,7 @@ export class ConditionalOrderWorker implements OnModuleInit, OnModuleDestroy {
    * Evaluates the trigger condition and expiry time for a GTT order.
    */
   evaluateCondition(order: OrderEntity, lastPrice: number | undefined): ConditionResult {
-    const meta = order.meta as Record<string, unknown> | null;
+    const meta = order.meta;
     const expireTime = meta?.expireTime as string | undefined;
 
     // Expiry check — if expireTime is set and in the past, expire the order

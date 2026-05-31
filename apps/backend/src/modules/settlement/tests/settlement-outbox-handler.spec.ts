@@ -128,7 +128,7 @@ describe('SettlementOutboxHandler', () => {
         lastError: null,
         createdAt: new Date(),
         ...overrides,
-      } as OutboxEntity;
+      };
     }
 
     it('creates a settlement job with correct amount (qty * price + fees)', async () => {
@@ -158,7 +158,7 @@ describe('SettlementOutboxHandler', () => {
           quantity: '1',
           price: '100',
           fees: '0',
-          segment: 'FOREX' as unknown as string,
+          segment: 'FOREX',
         },
       });
       await handler.handle(msg);
@@ -194,19 +194,19 @@ describe('SettlementOutboxHandler', () => {
     });
 
     it('throws and does not call createJob when executionId is missing', async () => {
-      const msg = makeMsg({ payload: { accountId: 'acc-1', instrumentId: 'NSE:INFY', quantity: '1', price: '100' } as unknown as Record<string, unknown> });
+      const msg = makeMsg({ payload: { accountId: 'acc-1', instrumentId: 'NSE:INFY', quantity: '1', price: '100' } });
       await expect(handler.handle(msg)).rejects.toThrow('Missing required fields');
       expect(mockSettlementService.createJob).not.toHaveBeenCalled();
     });
 
     it('throws and does not call createJob when accountId is missing', async () => {
-      const msg = makeMsg({ payload: { executionId: 'exec-1', instrumentId: 'NSE:INFY', quantity: '1', price: '100' } as unknown as Record<string, unknown> });
+      const msg = makeMsg({ payload: { executionId: 'exec-1', instrumentId: 'NSE:INFY', quantity: '1', price: '100' } });
       await expect(handler.handle(msg)).rejects.toThrow('Missing required fields');
       expect(mockSettlementService.createJob).not.toHaveBeenCalled();
     });
 
     it('throws and does not call createJob when instrumentId is missing', async () => {
-      const msg = makeMsg({ payload: { executionId: 'exec-1', accountId: 'acc-1', quantity: '1', price: '100' } as unknown as Record<string, unknown> });
+      const msg = makeMsg({ payload: { executionId: 'exec-1', accountId: 'acc-1', quantity: '1', price: '100' } });
       await expect(handler.handle(msg)).rejects.toThrow('Missing required fields');
       expect(mockSettlementService.createJob).not.toHaveBeenCalled();
     });

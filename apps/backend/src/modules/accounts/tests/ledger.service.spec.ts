@@ -35,7 +35,7 @@ describe('LedgerService idempotency', () => {
         create: jest.fn((x) => x),
         save: jest.fn((x) => ({ id: 'id-1', ...x })),
       }),
-    })) } as any;
+    })) };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

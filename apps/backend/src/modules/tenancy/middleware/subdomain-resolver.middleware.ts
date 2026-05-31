@@ -57,7 +57,7 @@ export class SubdomainResolverMiddleware implements NestMiddleware {
       return;
     }
 
-    const host = (req.headers['host'] ?? '') as string;
+    const host = (req.headers['host'] ?? '');
 
     // 1. Subdomain resolution: {slug}.obsidian.io → tenant code
     const apexDomain = process.env.APEX_DOMAIN || 'obsidian.io';

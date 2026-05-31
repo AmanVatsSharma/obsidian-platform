@@ -115,14 +115,14 @@ export class AdminResolver {
     @Args('period', { nullable: true }) period?: 'daily' | 'weekly' | 'mtd',
   ): Promise<RevenueBucket[]> {
     this.logger.debug('AdminResolver.getRevenueStats()', { period });
-    return this.dashboardService.getRevenueStats(period ?? 'mtd') as Promise<RevenueBucket[]>;
+    return this.dashboardService.getRevenueStats(period ?? 'mtd');
   }
 
   @Query(() => [ServiceStatus], { name: 'adminSystemStatus' })
   @Permissions('oms:admin')
   async getSystemStatus(): Promise<ServiceStatus[]> {
     this.logger.debug('AdminResolver.getSystemStatus()');
-    return this.dashboardService.getSystemStatus() as unknown as Promise<ServiceStatus[]>;
+    return this.dashboardService.getSystemStatus();
   }
 
   @Query(() => [Object], { name: 'adminOrderAudits' })
@@ -154,6 +154,6 @@ export class AdminResolver {
       to,
       limit: limit ?? 50,
       offset: offset ?? 0,
-    }) as Promise<{ data: unknown[]; total: number; limit: number; offset: number }>;
+    });
   }
 }

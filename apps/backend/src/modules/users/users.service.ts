@@ -91,7 +91,7 @@ export class UsersService {
 
   async update(id: string, dto: UpdateUserDto): Promise<UserEntity> {
     this.logger.debug('update() called');
-    const toUpdate: QueryDeepPartialEntity<UserEntity> = {} as any;
+    const toUpdate: QueryDeepPartialEntity<UserEntity> = {};
     if (dto.email !== undefined) (toUpdate as any).email = dto.email ?? null;
     if (dto.isMobileVerified !== undefined)
       (toUpdate as any).isMobileVerified = dto.isMobileVerified;
@@ -112,7 +112,7 @@ export class UsersService {
       throw new AppError('VALIDATION_ERROR', 'Tenant context missing');
     }
     this.logger.debug('updateProfileSelf() called', { userId, tenantId: ctx.tenantId });
-    const partial: QueryDeepPartialEntity<UserEntity> = {} as any;
+    const partial: QueryDeepPartialEntity<UserEntity> = {};
     if (dto.name !== undefined) (partial as any).name = dto.name ?? null;
     if (dto.address !== undefined) (partial as any).address = dto.address as any;
     if (dto.preferences !== undefined) (partial as any).preferences = dto.preferences as any;

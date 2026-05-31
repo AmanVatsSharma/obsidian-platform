@@ -79,9 +79,7 @@ import { ReportsModule } from './modules/reports/reports.module';
       serveRoot: '/docs/ws',
     }),
     ConfigModule.forRoot(buildConfigModuleOptions()),
-    ...(process.env.SCHEMA_GEN !== 'true'
-      ? [TypeOrmModule.forRoot(buildTypeOrmConfig())]
-      : []),
+    TypeOrmModule.forRoot(buildTypeOrmConfig()),
     ThrottlerModule.forRoot([{ ttl: 60_000, limit: 100 }]),
     UsersModule,
     AuthModule,

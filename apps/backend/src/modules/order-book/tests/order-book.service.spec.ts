@@ -79,7 +79,7 @@ describe('OrderBookService', () => {
       const asks = makeLevels(['101.0', '101.5']);
       service.updateBook('nse', 'infy', bids, asks);
       expect(service.getBook('NSE:INFY')).not.toBeNull();
-      expect(service.getBook('NSE:INFY')!.bids).toHaveLength(2);
+      expect(service.getBook('NSE:INFY').bids).toHaveLength(2);
     });
 
     it('sets ts = Date.now()', () => {
@@ -87,7 +87,7 @@ describe('OrderBookService', () => {
       const bids = makeLevels(['100']);
       const asks = makeLevels(['101']);
       service.updateBook('BSE', 'RELIANCE', bids, asks);
-      const book = service.getBook('BSE:RELIANCE')!;
+      const book = service.getBook('BSE:RELIANCE');
       expect(book.ts).toBeGreaterThanOrEqual(before);
     });
 
@@ -114,7 +114,7 @@ describe('OrderBookService', () => {
       const asks2 = makeLevels(['101.2'], '200');
       service.updateBook('NSE', 'INFY', bids2, asks2);
 
-      const book = service.getBook('NSE:INFY')!;
+      const book = service.getBook('NSE:INFY');
       expect(book.bids).toHaveLength(1);
       expect(book.bids[0].qty).toBe('200');
     });
@@ -135,8 +135,8 @@ describe('OrderBookService', () => {
       service.updateBook('NSE', 'TCS', bids, asks);
       const book = service.getBook('NSE:TCS');
       expect(book).not.toBeNull();
-      expect(book!.exchange).toBe('NSE');
-      expect(book!.symbol).toBe('TCS');
+      expect(book.exchange).toBe('NSE');
+      expect(book.symbol).toBe('TCS');
     });
 
     it('is case-insensitive', () => {
@@ -157,7 +157,7 @@ describe('OrderBookService', () => {
       const bids = makeLevels(['100.0']);
       const asks = makeLevels(['100.10']);
       service.updateBook('NSE', 'INFY', bids, asks);
-      const result = service.getSpread('NSE:INFY')!;
+      const result = service.getSpread('NSE:INFY');
       expect(result.spread).toBeCloseTo(0.1);
       expect(result.midPrice).toBeCloseTo(100.05);
       // spreadBps = spread / midPrice * 10000
@@ -183,7 +183,7 @@ describe('OrderBookService', () => {
       const bids = [{ price: '0', qty: '0', orders: 0 }];
       const asks = [{ price: '0', qty: '0', orders: 0 }];
       service.updateBook('NSE', 'INFY', bids, asks);
-      const result = service.getSpread('NSE:INFY')!;
+      const result = service.getSpread('NSE:INFY');
       expect(result.spreadBps).toBe(0);
     });
   });

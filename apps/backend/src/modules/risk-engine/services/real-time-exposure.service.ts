@@ -102,8 +102,8 @@ export class RealTimeExposureService implements OnModuleDestroy {
 
     this.logger.debug('onExecutionAdded:cache', {
       key,
-      netNotional: this.cache.get(key)!.netNotional,
-      netQuantity: this.cache.get(key)!.netQuantity,
+      netNotional: this.cache.get(key).netNotional,
+      netQuantity: this.cache.get(key).netQuantity,
     });
   }
 

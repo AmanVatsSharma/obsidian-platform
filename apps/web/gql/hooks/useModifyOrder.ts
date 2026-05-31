@@ -9,8 +9,9 @@
  *   - UseModifyOrderResult  — hook return type
  *
  * Depends on:
- *   - @apollo/client                 — useMutation
- *   - ../operations/oms/modifyOrder — generated useModifyOrderMutation hook
+ *   - @apollo/client              — useMutation
+ *   - @/gql/generated/graphql      — generated GQL types
+ *   - @/gql/generated/hooks        — useModifyOrderMutation
  *
  * Side-effects:
  *   - Network I/O via Apollo Client
@@ -23,12 +24,12 @@
  * Last-updated: 2026-05-30
  */
 
-import { useModifyOrderMutation } from '../operations/oms/modifyOrder';
-import type { ModifyOrderMutation, ModifyOrderMutationVariables } from '../operations/oms/modifyOrder';
+import { useModifyOrderMutation } from '../generated/hooks';
+import type { ModifyOrderMutation, ModifyOrderMutationVariables } from '../generated/hooks';
 import type { FetchResult } from '@apollo/client';
 
 // Re-export document for external use
-export { ModifyOrderDocument } from '../operations/oms/modifyOrder';
+export { ModifyOrderDocument } from '../generated/hooks';
 
 /**
  * ModifyOrderResult

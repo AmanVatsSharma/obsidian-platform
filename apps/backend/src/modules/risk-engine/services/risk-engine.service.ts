@@ -130,7 +130,7 @@ export class RiskEngineService {
     // Fetch all enabled thresholds for this tenant + account-level
     const allThresholds = await this.thresholds.find({
       where: [
-        { tenantId: order.tenantId, enabled: true, accountId: null as any },
+        { tenantId: order.tenantId, enabled: true, accountId: null },
         { tenantId: order.tenantId, accountId: order.accountId, enabled: true },
       ],
     });
@@ -249,7 +249,7 @@ export class RiskEngineService {
     accountId: string,
     threshold: RiskThresholdEntity,
   ): Promise<void> {
-    const meta = threshold.meta as Record<string, unknown> | undefined;
+    const meta = threshold.meta;
     const tenantId = threshold.tenantId;
 
     switch (action) {

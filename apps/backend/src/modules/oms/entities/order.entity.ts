@@ -169,7 +169,7 @@ export class OrderEntity {
   // Keeping @Column for DB persistence; @Field is omitted so schema generation succeeds.
   // To expose: implement a GraphQL JSON scalar, add @Field(() => GraphQLJSON), re-add @Field.
   @Column({ name: 'algo_meta', type: 'jsonb', nullable: true })
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   
   algoMeta?: Record<string, any> | null;
 
   @Column({ name: 'status', type: 'varchar', length: 24, default: 'NEW' })

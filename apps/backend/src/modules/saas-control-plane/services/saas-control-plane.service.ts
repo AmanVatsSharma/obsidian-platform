@@ -149,7 +149,7 @@ export class SaasControlPlaneService {
 
     // Revoke all un-revoked refresh tokens for this tenant
     const activeTokens = await this.tokens.find({
-      where: { tenantId: tenant.code, revokedAt: undefined as any },
+      where: { tenantId: tenant.code, revokedAt: undefined },
     });
     const now = new Date();
     await Promise.all(

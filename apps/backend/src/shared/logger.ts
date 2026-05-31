@@ -26,7 +26,7 @@ function buildOptions(env: string): LoggerOptions {
           },
         }
       : undefined,
-  } as LoggerOptions;
+  };
 }
 
 export function createRootLogger(): PinoLogger {

@@ -135,7 +135,7 @@ export class ReportsResolver {
       columns,
       filters: filtersArg ? (JSON.parse(filtersArg) as Record<string, unknown>) : {},
       createdBy,
-    } as any);
+    });
     return this.mapReport(saved);
   }
 

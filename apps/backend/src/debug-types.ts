@@ -1,6 +1,23 @@
 /**
  * File:        apps/backend/src/debug-types.ts
+ * Module:      (debug script)
  * Purpose:     Debug script to list all registered GraphQL ObjectTypes
+ *
+ * Exports:
+ *   - (standalone script — no exports)
+ *
+ * Depends on:
+ *   - @nestjs/graphql (TypeMetadataStorage)
+ *   - path-register (tsconfig path aliases)
+ *
+ * Side-effects:
+ *   - Reads NestJS GraphQL type metadata
+ *
+ * Key invariants:
+ *   - Run manually against a live backend process
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-05-31
  */
 require('../../../path-register');
 import 'reflect-metadata';

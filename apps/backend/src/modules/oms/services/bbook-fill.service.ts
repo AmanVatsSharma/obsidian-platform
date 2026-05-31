@@ -201,7 +201,7 @@ export class BBookFillService {
    * Extracts spreadPct from order.meta, falling back to DEFAULT_SPREAD_BPS.
    */
   private getSpreadPct(order: OrderEntity): number {
-    const meta = order.meta as Record<string, unknown> | null;
+    const meta = order.meta;
     if (meta && typeof meta.spreadPct === 'number') {
       return meta.spreadPct;
     }

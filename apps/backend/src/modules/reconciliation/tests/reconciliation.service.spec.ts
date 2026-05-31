@@ -48,7 +48,7 @@ function makeExecution(overrides: Partial<ExecutionEntity> = {}): ExecutionEntit
     meta: null,
     createdAt: new Date(`${DATE}T10:00:00Z`),
     ...overrides,
-  } as ExecutionEntity;
+  };
 }
 
 function makeLpLine(overrides: Partial<LpStatementLineEntity> = {}): LpStatementLineEntity {
@@ -64,7 +64,7 @@ function makeLpLine(overrides: Partial<LpStatementLineEntity> = {}): LpStatement
     side: 'BUY',
     importedAt: new Date(),
     ...overrides,
-  } as LpStatementLineEntity;
+  };
 }
 
 describe('ReconciliationService', () => {

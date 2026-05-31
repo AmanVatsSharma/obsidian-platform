@@ -36,7 +36,7 @@ export class AdminBrokerageRulesController {
   @ApiOperation({ summary: 'List brokerage rules' })
   list() {
     const ctx = getRequestContext();
-    return this.repo.find({ where: { tenantId: ctx?.tenantId } as any });
+    return this.repo.find({ where: { tenantId: ctx?.tenantId } });
   }
 
   @Post()

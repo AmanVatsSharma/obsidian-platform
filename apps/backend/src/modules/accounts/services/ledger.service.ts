@@ -435,7 +435,7 @@ export class LedgerService {
     this.logger.debug('approveWithdrawalById()', { wid, ctx });
 
     const wr = await this.withdrawals.findOne({
-      where: { id: wid, tenantId: ctx.tenantId } as any,
+      where: { id: wid, tenantId: ctx.tenantId },
     });
     if (!wr) throw new AppError('RESOURCE_NOT_FOUND', 'Withdrawal request not found');
     if (wr.state !== 'PENDING') return wr;
@@ -445,7 +445,7 @@ export class LedgerService {
         lockKey(ctx.tenantId, wr.accountId),
       ]);
       const repo = manager.getRepository(WithdrawalRequestEntity);
-      const fresh = await repo.findOne({ where: { id: wid, tenantId: ctx.tenantId } as any });
+      const fresh = await repo.findOne({ where: { id: wid, tenantId: ctx.tenantId } });
       if (!fresh) throw new AppError('RESOURCE_NOT_FOUND', 'Withdrawal request not found');
       if (fresh.state !== 'PENDING') return fresh;
       fresh.state = 'APPROVED';
@@ -461,7 +461,7 @@ export class LedgerService {
     this.logger.debug('rejectWithdrawalById()', { wid, reason, ctx });
 
     const wr = await this.withdrawals.findOne({
-      where: { id: wid, tenantId: ctx.tenantId } as any,
+      where: { id: wid, tenantId: ctx.tenantId },
     });
     if (!wr) throw new AppError('RESOURCE_NOT_FOUND', 'Withdrawal request not found');
     if (wr.state !== 'PENDING') return wr;
@@ -471,7 +471,7 @@ export class LedgerService {
         lockKey(ctx.tenantId, wr.accountId),
       ]);
       const repo = manager.getRepository(WithdrawalRequestEntity);
-      const fresh = await repo.findOne({ where: { id: wid, tenantId: ctx.tenantId } as any });
+      const fresh = await repo.findOne({ where: { id: wid, tenantId: ctx.tenantId } });
       if (!fresh) throw new AppError('RESOURCE_NOT_FOUND', 'Withdrawal request not found');
       if (fresh.state !== 'PENDING') return fresh;
       fresh.state = 'REJECTED';

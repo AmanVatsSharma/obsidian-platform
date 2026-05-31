@@ -113,14 +113,14 @@ export class KycDocumentService {
     if (!doc) throw new AppError('RESOURCE_NOT_FOUND', `KYC document ${id} not found`);
 
     const allowed = ALLOWED_TRANSITIONS[doc.status];
-    if (!allowed.includes(dto.decision as KycDocumentStatus)) {
+    if (!allowed.includes(dto.decision)) {
       throw new AppError(
         'VALIDATION_ERROR',
         `Cannot transition from ${doc.status} to ${dto.decision}`,
       );
     }
 
-    doc.status = dto.decision as KycDocumentStatus;
+    doc.status = dto.decision;
     doc.reviewerId = reviewerId;
     doc.reviewedAt = new Date();
     doc.rejectionReason = dto.decision === 'REJECTED' ? (dto.rejectionReason ?? null) : null;

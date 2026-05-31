@@ -11,8 +11,7 @@
  * Depends on:
  *   - @apollo/client                              — useQuery (generated hook base)
  *   - @/gql/generated/graphql                     — InstrumentDto type
- *   - @/gql/operations/market/getInstruments.gql  — search query
- *   - @/gql/operations/market/getInstrument.gql   — single instrument query
+ *   - @/gql/generated/hooks                       — useGetInstrumentsQuery, useGetInstrumentQuery
  *
  * Side-effects:
  *   - none (read-only queries)
@@ -30,17 +29,16 @@
  * Last-updated: 2026-05-30
  */
 
-import { useQuery, useSuspenseQuery } from '@apollo/client';
-import {
+import { useQuery } from '@apollo/client';
+import type { ApolloQueryResult } from '@apollo/client';
+import type { QueryHookOptions } from '@apollo/client';
+import { useGetInstrumentsQuery, useGetInstrumentQuery } from '../generated/hooks';
+import type {
   GetInstrumentsQuery,
   GetInstrumentsQueryVariables,
-} from '../operations/market/getInstruments';
-import {
   GetInstrumentQuery,
   GetInstrumentQueryVariables,
-} from '../operations/market/getInstrument';
-import { GetInstrumentsDocument } from '../operations/market/getInstruments';
-import { GetInstrumentDocument } from '../operations/market/getInstrument';
+} from '../generated/hooks';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -92,23 +90,20 @@ export interface UseInstrumentParams {
  */
 export function useInstruments(
   params: UseInstrumentsParams = {},
-  options?: Omit<Parameters<typeof useQuery<GetInstrumentsQuery, GetInstrumentsQueryVariables>>[1], 'variables'>,
+  options?: QueryHookOptions<GetInstrumentsQuery, GetInstrumentsQueryVariables>,
 ) {
   const { q, exchangeCode, type } = params;
 
-  return useQuery<GetInstrumentsQuery, GetInstrumentsQueryVariables>(
-    GetInstrumentsDocument,
-    {
-      variables: {
-        q: q ?? undefined,
-        exchangeCode: exchangeCode ?? undefined,
-        type: type ?? undefined,
-      },
-      // No fetchPolicy override — rely on apollo-client default (cache-and-network for watchQuery)
-      // This allows the caller to control refetch timing via the component tree.
-      ...options,
+  return useGetInstrumentsQuery({
+    variables: {
+      q: q ?? undefined,
+      exchangeCode: exchangeCode ?? undefined,
+      type: type ?? undefined,
     },
-  );
+    // No fetchPolicy override — rely on apollo-client default (cache-and-network for watchQuery)
+    // This allows the caller to control refetch timing via the component tree.
+    ...options,
+  });
 }
 
 /**
@@ -122,13 +117,10 @@ export function useInstruments(
  *   const { data, loading, error } = useInstrument('NSE', 'RELIANCE');
  */
 export function useInstrument(exchange: string, symbol: string) {
-  return useQuery<GetInstrumentQuery, GetInstrumentQueryVariables>(
-    GetInstrumentDocument,
-    {
-      variables: {
-        exchange,
-        symbol,
-      },
+  return useGetInstrumentQuery({
+    variables: {
+      exchange,
+      symbol,
     },
-  );
+  });
 }

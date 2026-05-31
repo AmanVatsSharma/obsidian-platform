@@ -16,7 +16,7 @@ describe('AuthController sessions', () => {
   let service: { listSessions: jest.Mock };
 
   beforeEach(async () => {
-    service = { listSessions: jest.fn() } as any;
+    service = { listSessions: jest.fn() };
     const moduleBuilder = Test.createTestingModule({
       controllers: [AuthController],
       providers: [{ provide: AuthService, useValue: service }],
@@ -29,7 +29,7 @@ describe('AuthController sessions', () => {
   it('returns history with default limit', async () => {
     const rows = Array.from({ length: 20 }).map((_, i) => ({ tokenId: `jti-${i}` }));
     service.listSessions.mockResolvedValue(rows);
-    const result = await controller.history({ user: { userId: 'u1' } } as any, {} as any);
+    const result = await controller.history({ user: { userId: 'u1' } } as any, {});
     expect(service.listSessions).toHaveBeenCalledWith('u1');
     expect(result).toHaveLength(10);
   });

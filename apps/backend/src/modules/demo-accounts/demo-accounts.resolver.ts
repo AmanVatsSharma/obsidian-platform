@@ -96,7 +96,7 @@ export class DemoAccountsResolver {
       baseCurrency,
       seedAmount: seedAmount ?? undefined,
       seedBalanceCcy,
-    } as any);
+    });
     return this.mapAccount(account);
   }
 

@@ -11,8 +11,8 @@
  *
  * Depends on:
  *   - @apollo/client              — useQuery
- *   - ../generated/graphql        — generated GQL types
- *   - ../generated/hooks          — generated hooks (extended below)
+ *   - @/gql/generated/graphql      — generated GQL types
+ *   - @/gql/generated/hooks       — useGetPositionsQuery
  *
  * Side-effects:
  *   - none (read-only query)
@@ -25,16 +25,11 @@
  * Last-updated: 2026-05-30
  */
 
-import { useQuery } from '@apollo/client';
-import type { TypedDocumentNode } from '@apollo/client';
-import {
-  GetPositionsDocument,
-  GetPositionsQuery,
-  GetPositionsQueryVariables,
-} from '../operations/oms/getPositions';
+import { useGetPositionsQuery } from '../generated/hooks';
+import type { GetPositionsQuery, GetPositionsQueryVariables } from '../generated/hooks';
 
-// Re-export the generated hook for extension
-export { GetPositionsDocument } from '../operations/oms/getPositions';
+// Re-export the generated document for external use
+export { GetPositionsDocument } from '../generated/hooks';
 
 /**
  * PositionFilters
@@ -102,10 +97,7 @@ import type { ApolloQueryResult } from '@apollo/client';
  * ```
  */
 export function usePositions(filters?: PositionFilters) {
-  const { data, loading, error, refetch } = useQuery<
-    GetPositionsQuery,
-    GetPositionsQueryVariables
-  >(GetPositionsDocument as TypedDocumentNode<GetPositionsQuery, GetPositionsQueryVariables>, {
+  const { data, loading, error, refetch } = useGetPositionsQuery({
     variables: {
       accountId: filters?.accountId ? (filters.accountId as any) : undefined,
       currency: filters?.currency ?? undefined,

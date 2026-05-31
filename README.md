@@ -40,16 +40,19 @@ npm run dev:backend
 
 ```bash
 npm run dev:web
-# or: nx run web:dev
+# or: nx run web:dev (port 4200)
 ```
 
 ### Other apps
 
-- `npm run dev:dealer` — Dealer workstation
+- `npm run dev:dealer` — Dealer workstation (port 4500)
 - `npm run dev:support-ops` — Support ops
 - `npm run dev:ib-portal` — IB portal
 - `npm run dev:developer-portal` — Developer portal
 - `npm run dev:public-site` — Public site
+- `npm run dev:platform-owner` — Platform owner dashboard
+- `npm run dev:broker-admin` — Broker admin panel
+- `npm run dev:desktop` — Desktop (Electron)
 
 ### Quality checks
 

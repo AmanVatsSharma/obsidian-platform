@@ -55,7 +55,7 @@ export class InstrumentsService {
   listByIds(ids: string[]): Promise<InstrumentEntity[]> {
     this.logger.debug('listByIds() called', { count: ids.length });
     if (ids.length === 0) return Promise.resolve([]);
-    return this.instruments.find({ where: ids.map((id) => ({ id })) as any });
+    return this.instruments.find({ where: ids.map((id) => ({ id })) });
   }
 
   /**

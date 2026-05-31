@@ -44,7 +44,7 @@ export class AdminRiskController {
   @ApiOperation({ summary: 'List buying power rules' })
   list() {
     const ctx = getRequestContext();
-    return this.rules.find({ where: { tenantId: ctx?.tenantId } as any });
+    return this.rules.find({ where: { tenantId: ctx?.tenantId } });
   }
 
   @Post('rules')

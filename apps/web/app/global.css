@@ -24,6 +24,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer components {
+  @keyframes obs-spin {
+    to { transform: rotate(360deg); }
+  }
+}
+
 @layer base {
   *, *::before, *::after { box-sizing: border-box; }
 

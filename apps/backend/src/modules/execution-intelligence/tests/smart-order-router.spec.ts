@@ -51,11 +51,11 @@ const makeOrder = (overrides: Partial<OrderEntity> = {}): OrderEntity =>
     createdAt: new Date(),
     updatedAt: new Date(),
     ...overrides,
-  } as OrderEntity);
+  });
 
 const makeVenue = (id: string, overrides: Partial<Venue> = {}): Venue => ({
   id,
-  connectorFamily: 'EQUITIES_FNO' as ConnectorFamily,
+  connectorFamily: 'EQUITIES_FNO',
   depthAtPrice: 1000,
   spreadBps: 5,
   latencyMs: 50,

@@ -10,7 +10,7 @@
  * Depends on:
  *   - @apollo/client                              — useQuery, useMutation (generated hook base)
  *   - @/gql/generated/graphql                     — WatchlistDto, WatchlistItemDto types
- *   - @/gql/operations/market/getWatchlists.gql   — watchlists query
+ *   - @/gql/generated/hooks                       — useGetWatchlistsQuery
  *
  * Side-effects:
  *   - none (read-only query — mutations are exported separately if needed)
@@ -26,11 +26,8 @@
  * Last-updated: 2026-05-30
  */
 
-import { useQuery } from '@apollo/client';
-import {
-  GetWatchlistsQuery,
-} from '../operations/market/getWatchlists';
-import { GetWatchlistsDocument } from '../operations/market/getWatchlists';
+import { useGetWatchlistsQuery } from '../generated/hooks';
+import type { GetWatchlistsQuery } from '../generated/hooks';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -66,13 +63,7 @@ export interface UseWatchlistsResult {
  *   );
  */
 export function useWatchlists(): UseWatchlistsResult {
-  const { data, loading, error, refetch } = useQuery<GetWatchlistsQuery>(
-    GetWatchlistsDocument,
-    {
-      // Default fetchPolicy is cache-and-network — good for watchlists that update
-      // when user adds/removes instruments from other parts of the app.
-    },
-  );
+  const { data, loading, error, refetch } = useGetWatchlistsQuery();
 
   return {
     data: data?.watchlists ?? null,

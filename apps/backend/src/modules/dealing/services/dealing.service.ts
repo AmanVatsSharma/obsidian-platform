@@ -30,7 +30,7 @@ export class DealingService {
     const entity = this.deals.create(dto as any) as unknown as DealEntity;
     // Entity metadata is jsonb; DTO metadata is string — convert before persisting
     if (typeof entity.metadata === 'string') {
-      entity.metadata = JSON.parse(entity.metadata) as any;
+      entity.metadata = JSON.parse(entity.metadata);
     }
     const saved = await this.deals.save(entity);
     this.logger.debug('createDeal:end', { dealId: saved.id });

@@ -153,7 +153,7 @@ export class PammResolver {
       minAllocation,
       performanceFee,
       strategyDescription,
-    } as any);
+    });
     return this.mapMaster(master);
   }
 
@@ -170,7 +170,7 @@ export class PammResolver {
       masterId,
       userId,
       allocationPct,
-    } as any);
+    });
     return this.mapSlave(slave);
   }
 

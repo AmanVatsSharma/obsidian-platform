@@ -9,7 +9,8 @@
  *
  * Depends on:
  *   - @apollo/client              — Apollo client types
- *   - ../operations/accounts/getAccountBalance — generated useGetAccountBalanceQuery hook
+ *   - @/gql/generated/graphql      — generated GQL types
+ *   - @/gql/generated/hooks        — useGetAccountBalanceQuery
  *
  * Side-effects:
  *   - none (read-only query)
@@ -22,12 +23,12 @@
  * Last-updated: 2026-05-30
  */
 
-import { useGetAccountBalanceQuery } from '../operations/accounts/getAccountBalance';
-import type { GetAccountBalanceQuery, GetAccountBalanceQueryVariables } from '../operations/accounts/getAccountBalance';
+import { useGetAccountBalanceQuery } from '../generated/hooks';
+import type { GetAccountBalanceQuery, GetAccountBalanceQueryVariables } from '../generated/hooks';
 import type { ApolloQueryResult } from '@apollo/client';
 
 // Re-export for use in other hooks
-export { GetAccountBalanceDocument } from '../operations/accounts/getAccountBalance';
+export { GetAccountBalanceDocument } from '../generated/hooks';
 
 /**
  * AccountBalance

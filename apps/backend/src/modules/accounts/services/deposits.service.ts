@@ -203,9 +203,9 @@ export class DepositsService {
     // We attach account info for reference
     return rows.map(r => ({
       ...r,
-      userName: null as string | null,
+      userName: null,
       accountDisplayId: accountMap.get(r.accountId)?.id.slice(0, 8) ?? r.accountId.slice(0, 8),
-    })) as any;
+    }));
   }
 }
 

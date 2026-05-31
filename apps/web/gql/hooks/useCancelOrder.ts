@@ -10,7 +10,8 @@
  *
  * Depends on:
  *   - @apollo/client              — useMutation
- *   - ../operations/oms/cancelOrder — generated useCancelOrderMutation hook
+ *   - @/gql/generated/graphql      — generated GQL types
+ *   - @/gql/generated/hooks        — useCancelOrderMutation
  *
  * Side-effects:
  *   - Network I/O via Apollo Client
@@ -22,12 +23,12 @@
  * Last-updated: 2026-05-30
  */
 
-import { useCancelOrderMutation } from '../operations/oms/cancelOrder';
-import type { CancelOrderMutation, CancelOrderMutationVariables } from '../operations/oms/cancelOrder';
+import { useCancelOrderMutation } from '../generated/hooks';
+import type { CancelOrderMutation, CancelOrderMutationVariables } from '../generated/hooks';
 import type { FetchResult } from '@apollo/client';
 
 // Re-export document for external use
-export { CancelOrderDocument } from '../operations/oms/cancelOrder';
+export { CancelOrderDocument } from '../generated/hooks';
 
 /**
  * CancelOrderResult

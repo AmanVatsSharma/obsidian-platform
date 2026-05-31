@@ -117,7 +117,7 @@ export class OrderService {
     // RiskEngineModule cannot import OmsModule, so this is the pull side of the event.
     this.orderEvents.onEvents$().subscribe(async (event) => {
       if (event.type === 'liquidation.dispatch') {
-        const { accountId, instrumentId, side, quantity, externalRefId } = event.payload as any;
+        const { accountId, instrumentId, side, quantity, externalRefId } = event.payload;
         try {
           await this.place({
             accountId,
@@ -241,7 +241,7 @@ export class OrderService {
         accountId: dto.accountId,
         instrumentId: dto.instrumentId,
         side: dto.side,
-        type: dto.type as 'MARKET' | 'LIMIT',
+        type: dto.type,
         quantity: dto.quantity,
         price: dto.price ?? null,
         positionType: 'INTRADAY',
@@ -547,7 +547,7 @@ export class OrderService {
     const adapter = account?.accountType === 'DEMO' ? this.demoExchange : this.exchange;
     const providerOrderId =
       (order.meta as any)?.providerOrderId || order.clientOrderId || order.id;
-    await adapter.cancelOrder({ providerOrderId } as CancelOrderRequest);
+    await adapter.cancelOrder({ providerOrderId });
     order.status = 'CANCELLED';
     await this.orders.save(order);
     if (order.holdRef) {
@@ -688,7 +688,7 @@ export class OrderService {
 
         // If this is a child order (algo sub-order), update parent fill tracking
         if (order.parentOrderId) {
-          setTimeout(() => this.algoOrderWorker.recordChildFill(order.parentOrderId!, String(execQty)), 0);
+          setTimeout(() => this.algoOrderWorker.recordChildFill(order.parentOrderId, String(execQty)), 0);
         }
       }
       this.orderEvents.publish({ type: 'execution.added', payload: { execution: saved, orderId: dto.orderId } });
@@ -746,12 +746,12 @@ export class OrderService {
         tenantId: ctx.tenantId,
         accountId: child.accountId,
         instrumentId: child.instrumentId,
-        side: child.side as 'BUY' | 'SELL',
+        side: child.side,
         type: child.type as any,
         quantity: child.remainingQty,
         price: child.price ?? null,
         clientOrderId: child.clientOrderId,
-        timeInForce: child.timeInForce as any,
+        timeInForce: child.timeInForce,
       };
 
       // For STOP orders, pass triggerPrice via meta so the adapter formats it correctly

@@ -11,7 +11,8 @@
  *
  * Depends on:
  *   - @apollo/client              — Apollo client types
- *   - ../operations/oms/getOrders — generated useGetOrdersQuery hook + types
+ *   - @/gql/generated/graphql      — generated GQL types
+ *   - @/gql/generated/hooks        — useGetOrdersQuery
  *
  * Side-effects:
  *   - none (read-only query)
@@ -24,12 +25,12 @@
  * Last-updated: 2026-05-30
  */
 
-import { useGetOrdersQuery } from '../operations/oms/getOrders';
-import type { GetOrdersQuery, GetOrdersQueryVariables } from '../operations/oms/getOrders';
+import { useGetOrdersQuery } from '../generated/hooks';
+import type { GetOrdersQuery, GetOrdersQueryVariables } from '../generated/hooks';
 import type { ApolloQueryResult } from '@apollo/client';
 
 // Re-export document for external use (e.g., refetch)
-export { GetOrdersDocument } from '../operations/oms/getOrders';
+export { GetOrdersDocument } from '../generated/hooks';
 
 /**
  * OrderFilters

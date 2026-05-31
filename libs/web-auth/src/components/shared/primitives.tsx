@@ -116,22 +116,24 @@ interface GhostButtonProps {
   onClick?: () => void;
   icon?: ReactNode;
   wide?: boolean;
+  disabled?: boolean;
 }
 
-export function GhostButton({ children, onClick, icon, wide }: GhostButtonProps) {
+export function GhostButton({ children, onClick, icon, wide, disabled }: GhostButtonProps) {
   return (
     <button
       type="button"
       onClick={onClick}
+      disabled={disabled}
       style={{
         height: 42, width: wide ? '100%' : 'auto',
         padding: wide ? '0' : '0 16px',
         background: 'var(--bg-elevated)',
         border: '1px solid var(--border)',
         borderRadius: 'var(--r-md)',
-        color: 'var(--fg1)',
+        color: disabled ? 'var(--fg3)' : 'var(--fg1)',
         fontFamily: 'var(--font-ui)', fontSize: 12, fontWeight: 500,
-        cursor: 'pointer',
+        cursor: disabled ? 'not-allowed' : 'pointer',
         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
         transition: 'all 150ms var(--ease)',
       }}

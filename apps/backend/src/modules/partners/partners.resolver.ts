@@ -117,7 +117,7 @@ export class PartnersResolver {
     this.logger.debug('PartnersResolver.updatePartner()', { partnerId, amount, currency });
     const result = await this.partnersService.approvePayout(
       partnerId,
-      { amount: String(amount), currency, reason } as PartnerPayoutApprovalDto,
+      { amount: String(amount), currency, reason },
     );
     return {
       partnerId: result.partnerId,

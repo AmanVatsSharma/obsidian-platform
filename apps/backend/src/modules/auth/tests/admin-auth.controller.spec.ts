@@ -45,7 +45,7 @@ describe('AdminAuthController', () => {
 
   it('lists user sessions', async () => {
     service.listSessions.mockResolvedValue([{ tokenId: 'jti-1' }]);
-    const result = await controller.listUserSessions('user-1', {} as any);
+    const result = await controller.listUserSessions('user-1', {});
     expect(service.listSessions).toHaveBeenCalledWith('user-1', {} as any);
     expect(result).toEqual([{ tokenId: 'jti-1' }]);
   });

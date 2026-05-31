@@ -12,7 +12,8 @@
  *
  * Depends on:
  *   - @apollo/client              — useMutation
- *   - ../generated/graphql        — generated GQL types
+ *   - @/gql/generated/graphql      — generated GQL types
+ *   - @/gql/generated/hooks        — usePlaceOrderMutation
  *
  * Side-effects:
  *   - Network I/O via Apollo Client (mutation submission)
@@ -31,16 +32,14 @@
  * Last-updated: 2026-05-30
  */
 
-import { useMutation } from '@apollo/client';
-import type { TypedDocumentNode } from '@apollo/client';
-import {
-  PlaceOrderDocument,
+import { usePlaceOrderMutation } from '../generated/hooks';
+import type {
   PlaceOrderMutation,
   PlaceOrderMutationVariables,
-} from '../operations/oms/placeOrder';
+} from '../generated/hooks';
 
 // Re-export document for external use
-export { PlaceOrderDocument } from '../operations/oms/placeOrder';
+export { PlaceOrderDocument } from '../generated/hooks';
 
 /**
  * PlaceOrderInput
@@ -135,10 +134,7 @@ export interface UsePlaceOrderResult {
  * ```
  */
 export function usePlaceOrder(): UsePlaceOrderResult {
-  const [placeOrderMutation, { loading, error, data, reset }] = useMutation<
-    PlaceOrderMutation,
-    PlaceOrderMutationVariables
-  >(PlaceOrderDocument as TypedDocumentNode<PlaceOrderMutation, PlaceOrderMutationVariables>, {
+  const [placeOrderMutation, { loading, error, data, reset }] = usePlaceOrderMutation({
     refetchQueries: ['GetOrders', 'GetAccountBalance', 'GetPositions'],
     awaitRefetchQueries: true,
   });

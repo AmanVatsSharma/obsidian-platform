@@ -51,7 +51,13 @@ export class CompositeMarketDataAdapter implements MarketDataProvider {
   async disconnect(): Promise<void> {
     try {
       await this.current.disconnect();
-    } catch (_) {}
+    } catch (err) {
+      this.logger.warn('CompositeMarketDataAdapter: upstream adapter error', {
+        error: err instanceof Error ? err.message : String(err),
+        adapter: this.current.name,
+      });
+      throw err;
+    }
   }
 
   async subscribeTicks(

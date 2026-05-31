@@ -99,7 +99,7 @@ export class ReconciliationResolver {
     @Args('status', { nullable: true }) status?: string,
   ): Promise<ReconciliationBreakEntity[]> {
     this.logger.debug('ReconciliationResolver.listBreaks()', { tenantId, status });
-    return this.svc.listBreaks(tenantId, { status: status as any });
+    return this.svc.listBreaks(tenantId, { status: status });
   }
 
   @Mutation(() => ReconciliationResultObjectType)

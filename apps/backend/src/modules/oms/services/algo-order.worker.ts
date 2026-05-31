@@ -345,12 +345,12 @@ export class AlgoOrderWorker implements OnModuleInit, OnModuleDestroy {
       tenantId: parent.tenantId,
       accountId: parent.accountId,
       instrumentId: parent.instrumentId,
-      side: parent.side as 'BUY' | 'SELL',
-      type: childType as any,
+      side: parent.side,
+      type: childType,
       quantity: sliceQty,
       price: childPrice,
       clientOrderId: childOrder.clientOrderId,
-      timeInForce: childOrder.timeInForce as any,
+      timeInForce: childOrder.timeInForce,
     };
 
     const resp = await adapter.placeOrder(placePayload);

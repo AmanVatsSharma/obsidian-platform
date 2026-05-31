@@ -208,7 +208,7 @@ export class OmsResolver {
           });
           return rejection;
         }
-        return (result as { ok: true; order: OrderEntity }).order;
+        return (result).order;
       }
       return result as OrderEntity;
     } catch (error) {
@@ -240,7 +240,7 @@ export class OmsResolver {
   @Permissions('oms:write')
   async cancelOrder(@Args('orderId', { type: () => ID }) orderId: string): Promise<OrderEntity | null> {
     this.logger.debug('OmsResolver.cancelOrder()', { orderId });
-    return this.orderService.cancel({ orderId } as CancelOrderDto);
+    return this.orderService.cancel({ orderId });
   }
 
   @Mutation(() => OrderEntity, { nullable: true })
