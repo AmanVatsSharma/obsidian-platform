@@ -27,7 +27,8 @@ export type ErrorCode =
   | 'EXCHANGE_REJECTED'
   | 'BRACKET_INVALID_PRICE'
   | 'FORBIDDEN'
-  | 'UNAUTHORIZED';
+  | 'UNAUTHORIZED'
+  | 'RESOURCE_UNAVAILABLE';
 
 export class AppError extends Error {
   readonly code: ErrorCode;

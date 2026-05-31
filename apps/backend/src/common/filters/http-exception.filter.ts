@@ -107,6 +107,8 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
         return HttpStatus.BAD_REQUEST;
       case 'EXCHANGE_REJECTED':
         return HttpStatus.BAD_GATEWAY;
+      case 'RESOURCE_UNAVAILABLE':
+        return HttpStatus.SERVICE_UNAVAILABLE;
       default:
         return HttpStatus.INTERNAL_SERVER_ERROR;
     }

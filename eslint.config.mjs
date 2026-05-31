@@ -4,6 +4,19 @@ import nxPlugin from '@nx/eslint-plugin';
 import eslintPluginPrettierRecommended from 'eslint-plugin-prettier/recommended';
 import globals from 'globals';
 import tseslint from 'typescript-eslint';
+import { createRequire } from 'module';
+
+const require = createRequire(import.meta.url);
+
+// Load custom ESLint rules as an @obsidian plugin
+const customRules = require('./tools/scripts/eslint-rules');
+const obsidianPlugin = {
+  rules: {
+    'no-raw-throw': customRules.noRawThrow,
+    'no-direct-event-emitter': customRules.noDirectEventEmitter,
+    'no-console-log': customRules.noConsoleLog,
+  },
+};
 
 export default tseslint.config(
   {
@@ -97,6 +110,19 @@ export default tseslint.config(
           ],
         },
       ],
+    },
+  },
+  {
+    // Backend source files — enforce load-bearing patterns via custom ESLint rules
+    files: ['apps/backend/src/**/*.ts'],
+    ignores: ['**/*.spec.ts', '**/*.test.ts', '**/__tests__/**', '**/tests/**'],
+    plugins: {
+      '@obsidian': obsidianPlugin,
+    },
+    rules: {
+      '@obsidian/no-raw-throw': 'error',
+      '@obsidian/no-direct-event-emitter': 'error',
+      '@obsidian/no-console-log': 'error',
     },
   },
 );

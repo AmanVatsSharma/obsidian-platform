@@ -8,3 +8,5 @@
 
 export * from './cache-key.builder';
 export * from './cache-service.contract';
+export * from './redis-cache.service';
+export * from './cache.module';

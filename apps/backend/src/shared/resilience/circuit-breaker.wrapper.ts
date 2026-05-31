@@ -4,7 +4,24 @@
  * @description Circuit breaker wrapper for fault isolation
  * @author BharatERP
  * @created 2026-02-19
+ *
+ * Exports:
+ *   - CircuitState           — 'CLOSED' | 'OPEN' | 'HALF_OPEN' type alias
+ *   - CircuitBreakerOptions   — interface for configuring the breaker
+ *   - CircuitBreaker          — class: new CircuitBreaker(key, options).execute(fn)
+ *
+ * Depends on:
+ *   - AppError               — from @/common/errors/app-error (thrown on OPEN state)
+ *
+ * Side-effects:
+ *   - In-memory state (not persistent — circuit resets on app restart)
+ *
+ * Key invariants:
+ *   - execute() re-throws original error after recording failure
+ *   - Circuit state is per-key (one breaker per external dependency)
  */
+
+import { AppError } from '../../common/errors/app-error';
 
 export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
 
@@ -37,11 +54,8 @@ export class CircuitBreaker {
   }
 
   private maybeTransition(): void {
-    const {
-      failureThreshold = 5,
-      resetTimeoutMs = 30000,
-      successThreshold = 1,
-    } = this.options;
+    const { failureThreshold = 5, resetTimeoutMs = 30000, successThreshold = 1 } =
+      this.options;
 
     if (this.state === 'OPEN' && this.lastOpenAt) {
       if (Date.now() - this.lastOpenAt >= resetTimeoutMs) {
@@ -65,9 +79,10 @@ export class CircuitBreaker {
 
   recordFailure(): void {
     this.maybeTransition();
+    const threshold = this.options.failureThreshold ?? 5;
     if (this.state === 'CLOSED') {
       this.failures++;
-      if (this.failures >= (this.options.failureThreshold ?? 5)) {
+      if (this.failures >= threshold) {
         this.state = 'OPEN';
         this.lastOpenAt = Date.now();
       }
@@ -80,7 +95,7 @@ export class CircuitBreaker {
   async execute<T>(fn: () => Promise<T>): Promise<T> {
     this.maybeTransition();
     if (this.state === 'OPEN') {
-      throw new Error(`Circuit breaker OPEN for ${this.key}`);
+      throw new AppError('RESOURCE_UNAVAILABLE', `Circuit breaker OPEN for ${this.key}`);
     }
     try {
       const result = await fn();
