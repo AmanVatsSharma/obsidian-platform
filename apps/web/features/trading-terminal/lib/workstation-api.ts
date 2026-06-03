@@ -161,6 +161,90 @@ export async function submitOrderToOms(
 }
 
 /**
+ * POST /api/orders/algo with PlaceAlgoOrderDto for TWAP / VWAP / ICEBERG.
+ * Backend persists the parent and AlgoOrderWorker dispatches slices on its 10s tick.
+ *
+ * Returns the same TradeResult envelope as submitOrderToOms / submitBracketOrderToOms.
+ */
+export async function submitAlgoOrderToOms(
+  fetchJson: FetchJsonFn,
+  ui: PlaceUiOrder & {
+    slices?: number;
+    durationMinutes?: number;
+    displayQty?: number;
+    priceLimit?: string;
+  },
+): Promise<{ ok: true; detail?: string } | { ok: false; message: string }> {
+  const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID;
+  const demoInstrumentId = process.env.NEXT_PUBLIC_DEMO_INSTRUMENT_ID;
+  const instrumentId = ui.instrument?.instrumentId ?? demoInstrumentId;
+
+  if (!accountId) {
+    return { ok: false, message: 'Set NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID for live OMS submit.' };
+  }
+  if (!instrumentId) {
+    return { ok: false, message: 'Pick a watchlist-backed instrument or set NEXT_PUBLIC_DEMO_INSTRUMENT_ID.' };
+  }
+
+  const algoType = resolveApiType(ui.type);
+  if (algoType !== 'TWAP' && algoType !== 'VWAP' && algoType !== 'ICEBERG') {
+    return { ok: false, message: `submitAlgoOrderToOms called with non-algo type: ${algoType}` };
+  }
+
+  const qty = parseFloat(ui.lots || '0');
+  if (isNaN(qty) || qty <= 0) {
+    return { ok: false, message: 'Total quantity must be greater than 0' };
+  }
+  const qtyStr = qty.toFixed(2);
+  if (!/^\d{1,20}(\.\d{1,8})?$/.test(qtyStr)) {
+    return { ok: false, message: 'Invalid lot size for OMS quantity string.' };
+  }
+
+  // Slice count: TWAP/VWAP use ui.slices; ICEBERG uses ui.displayQty (visible qty per slice).
+  let sliceCount: number;
+  if (algoType === 'ICEBERG') {
+    sliceCount = ui.displayQty ?? ui.slices ?? 0;
+    if (sliceCount < 1) return { ok: false, message: 'Iceberg displayQty must be >= 1' };
+  } else {
+    sliceCount = ui.slices ?? 0;
+    if (sliceCount < 2) return { ok: false, message: `${algoType} requires slices >= 2` };
+  }
+
+  const body: Record<string, unknown> = {
+    accountId,
+    instrumentId,
+    side: ui.side === 'buy' ? 'BUY' : 'SELL',
+    algoType,
+    totalQuantity: qtyStr,
+    sliceCount,
+    clientOrderId: `web-algo-${nanoid(10)}`,
+    externalRefId: `ext-algo-${nanoid(12)}`,
+  };
+
+  if (ui.durationMinutes != null) body.durationMinutes = ui.durationMinutes;
+  if (ui.priceLimit) body.priceLimit = ui.priceLimit;
+  else if (algoType === 'ICEBERG' || algoType === 'VWAP') {
+    // ICEBERG / VWAP need a priceLimit — fall back to ask/bid.
+    const fb = ui.instrument
+      ? String(ui.side === 'buy' ? ui.instrument.ask : ui.instrument.bid)
+      : '';
+    if (fb) body.priceLimit = fb;
+    else return { ok: false, message: `${algoType} requires priceLimit` };
+  }
+
+  try {
+    const res = await fetchJson('/api/orders/algo', {
+      method: 'POST',
+      body: JSON.stringify(body),
+    });
+    return { ok: true, detail: JSON.stringify(res) };
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : 'Algo order request failed';
+    return { ok: false, message: msg };
+  }
+}
+
+/**
  * POST /api/orders/bracket with full bracket order payload.
  * Called when takeProfitPrice or stopLossPrice is present on the order ticket.
  */

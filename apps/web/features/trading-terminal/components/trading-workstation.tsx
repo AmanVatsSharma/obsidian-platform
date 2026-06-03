@@ -10,6 +10,7 @@
  * Depends on:
  *   - @obsidian/trading-ui — TradingWorkstation (lib), Instrument, PlaceUiOrder
  *   - @/shared/providers/auth-provider — useAuth (web-only auth context)
+ *   - @/shared/fetch-with-auth — fetchWithAuth (auth-aware REST helper, signed FetchJsonFn)
  *   - @/gql/hooks/useInstruments — instrument catalogue hook (pollInterval: 5000)
  *   - @/gql/hooks/useAccountBalance — account balance hook
  *   - @/gql/hooks/usePlaceOrder — order submission mutation hook
@@ -21,12 +22,14 @@
  * Side-effects:
  *   - Network calls via Apollo Client (useInstruments + useAccountBalance queries,
  *     placeOrder mutation + useOrders + usePositions + useQuote)
+ *   - REST calls via fetchWithAuth (fetchJson prop) for /market/watchlists and /api/orders
  *
  * Key invariants:
  *   - accessToken absent → auth header is omitted (unauthenticated mode)
  *   - NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID injected via Apollo variable
  *   - AccountSummaryPanel receives live balance from useAccountBalance (falls back to mock)
  *   - TradingWorkstation receives onTradeSubmit (GraphQL-compatible bridge)
+ *   - TradingWorkstation receives fetchJson = fetchWithAuth (real REST, NOT a noop stub)
  *   - ApolloProviderWrapper is already mounted in layout.tsx — no double-wrapping
  *   - QuoteUpdater polls active instrument every 2 s; full injection into lib prices is P4
  *
@@ -35,13 +38,14 @@
  *   2. QuoteUpdater — live price polling for the active instrument
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-30
+ * Last-updated: 2026-06-03
  */
 
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { TradingWorkstation as TradingWorkstationLib } from '@obsidian/trading-ui';
+import { fetchWithAuth } from '@/shared/fetch-with-auth';
 import { useGetInstrumentsQuery } from '@/gql/hooks';
 import { useGetAccountBalanceQuery } from '@/gql/hooks';
 import { usePlaceOrderMutation } from '@/gql/hooks';
@@ -140,7 +144,7 @@ export function TradingWorkstation({
       return {
         id: o.id,
         symbol: inst?.symbol ?? o.instrumentId,
-        type: o.type as PendingOrder['type'],
+        type: o.type,
         orderRole: null,
         parentOrderId: null,
         side: o.side as 'BUY' | 'SELL',
@@ -174,30 +178,6 @@ export function TradingWorkstation({
       leverage: '1:100',
     };
   }, [parsedBalance, balanceData, accountId]);
-
-  // Map gql instruments (InstrumentDto) to the Instrument shape TradingWorkstation expects.
-  // InstrumentDto: { id, exchangeCode, symbol, displayName, type }
-  // TradingWorkstation Instrument: { symbol, name, bid, ask, change, changePct, ... }
-  // exchangeCode is included so QuoteUpdater can look up live prices per instrument.
-  const instrumentsForWorkstation = useMemo(() => {
-    if (!instrumentsData?.instruments) return [];
-    return instrumentsData.instruments.map((ins) => ({
-      symbol: ins.symbol,
-      name: ins.displayName,
-      exchangeCode: ins.exchangeCode,
-      bid: 0,
-      ask: 0,
-      change: 0,
-      changePct: 0,
-      high: 0,
-      low: 0,
-      spread: 0,
-      pip: 0.0001,
-      category: 'forex' as const,
-      digits: 5,
-      instrumentId: ins.id,
-    }));
-  }, [instrumentsData]);
 
   // GraphQL-compatible trade-submission bridge — calls placeOrder mutation.
   type TradeResult = { ok: true; detail?: string } | { ok: false; message: string };
@@ -259,9 +239,9 @@ export function TradingWorkstation({
     [accountId, placeOrderMutation],
   );
 
-  // Provide a no-op fetchJson so the lib's mergeApiWatchlistInstruments call doesn't
-  // fail on mount — instruments are loaded via useInstruments, not the REST watchlist.
-  const noopFetchJson = () => Promise.resolve({});
+  // fetchWithAuth is structurally a FetchJsonFn — same (path, init?) → Promise<unknown>
+  // signature, no adapter wrapper needed. Powers the lib's mergeApiWatchlistInstruments
+  // (/market/watchlists) and submitOrderToOms (/api/orders) REST paths.
 
   // Track the active instrument selected in the lib so QuoteUpdater can poll live prices.
   const [activeInstrument, setActiveInstrument] = useState<Instrument | null>(null);
@@ -275,22 +255,11 @@ export function TradingWorkstation({
     const exchange = (instrument as { exchangeCode?: string })?.exchangeCode ?? 'forex';
     const symbol = instrument?.symbol ?? '';
 
-    const { data } = useGetQuoteQuery({
+    useGetQuoteQuery({
       variables: { exchange, symbol },
       // Only poll when an instrument is selected; stop when null to avoid unnecessary requests
       pollInterval: instrument ? 2000 : 0,
     });
-
-    useEffect(() => {
-      if (!data?.quote || !instrument) return;
-      // Quote snapshot available — log for observability.
-      // Full injection into lib prices state is P4 (WebSocket upgrade).
-      console.debug('[QuoteUpdater] price update', {
-        symbol: instrument.symbol,
-        price: data.quote.price,
-        ts: data.quote.ts,
-      });
-    }, [data, instrument]);
 
     return null;
   }
@@ -301,7 +270,7 @@ export function TradingWorkstation({
           so we can later inject live prices via onPricesUpdate when the lib exposes it. */}
       <QuoteUpdater instrument={activeInstrument} />
       <TradingWorkstationLib
-        fetchJson={noopFetchJson}
+        fetchJson={fetchWithAuth}
         mobileHref={mobileHref}
         forceMobileLayout={forceMobileLayout}
         balance={liveBalance}
