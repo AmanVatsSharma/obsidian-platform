@@ -59,6 +59,15 @@ export type {
   CancelBracketGroupMutationOptions,
 } from '../generated/hooks';
 
+// Shared DTO types re-exported under both canonical and legacy names.
+// `features/trading-terminal/index.ts` imports these under the legacy
+// `InstrumentNode` / `BalanceNode` aliases; keep both names to avoid
+// breaking call sites that adopted the old gql-service.ts shape.
+export type { InstrumentDto } from '../generated/graphql';
+export type { InstrumentDto as InstrumentNode } from '../generated/graphql';
+export type { AccountBalancePayload } from '../generated/graphql';
+export type { AccountBalancePayload as BalanceNode } from '../generated/graphql';
+
 // ---------------------------------------------------------------------------
 // Custom wrapper hooks — preserve these as they have enriched types / logic
 // ---------------------------------------------------------------------------

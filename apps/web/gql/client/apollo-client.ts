@@ -14,6 +14,7 @@
  *   - @apollo/client            — ApolloClient, HttpLink, InMemoryCache
  *   - ./auth-link               — createAuthLink (Bearer token injection)
  *   - ./error-link              — createErrorLink (401/403/500 routing)
+ *   - ../../shared/apollo/mock-apollo-link — createMockApolloLink (dev fixture short-circuit)
  *   - ./cache-policies          — cachePolicies (field-level merge/read policies)
  *   - next/dist/lib/toast       — toast (with try/catch fallback)
  *
@@ -21,7 +22,10 @@
  *   - none (pure client factory — no network calls)
  *
  * Key invariants:
- *   - Link chain order: AuthLink → ErrorLink → HttpLink
+ *   - Link chain order: MockLink → AuthLink → ErrorLink → HttpLink
+ *     MockLink is FIRST so it can short-circuit the network when
+ *     NEXT_PUBLIC_MOCK_GQL='true' — in that mode, AuthLink/ErrorLink/HttpLink
+ *     are bypassed entirely and the response is served from fixtures.
  *     HttpLink must be LAST — it actually sends the HTTP request.
  *     ErrorLink consumes the response from HttpLink.
  *     AuthLink runs before HttpLink to set the Authorization header.
@@ -42,6 +46,7 @@
 import { ApolloClient, HttpLink, InMemoryCache, TypePolicies } from '@apollo/client';
 import { createAuthLink } from './auth-link';
 import { createErrorLink } from './error-link';
+import { createMockApolloLink } from '../../shared/apollo/mock-apollo-link';
 import { cachePolicies } from './cache-policies';
 
 // Module-level memoization — shared across React component re-renders
@@ -55,7 +60,7 @@ function createApolloClient(): ApolloClient<unknown> {
   });
 
   const client = new ApolloClient({
-    link: createAuthLink().concat(createErrorLink()).concat(httpLink),
+    link: createMockApolloLink().concat(createAuthLink()).concat(createErrorLink()).concat(httpLink),
     cache: new InMemoryCache({
       typePolicies: cachePolicies as TypePolicies,
     }),

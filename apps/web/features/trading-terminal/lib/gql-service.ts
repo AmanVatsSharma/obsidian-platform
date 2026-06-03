@@ -27,13 +27,18 @@
  *   - useAccountBalance(id)        — hook: account balance snapshot (equity, margin, freeMargin)
  *   - useWatchlists()              — hook: user's named watchlists
  *   - useWatchlistItems(id)        — hook: items in a given watchlist
- *   - useGqlPlaceOrder()          — mutation hook for order submission
  *   - useOrderChildren(parentId)   — hook: bracket TP/SL child orders
  *   - useStrategyPositions(id)     — hook: multi-leg strategy positions
  *   - useAccountRisk(id)          — hook: margin level and per-instrument exposure
  *   - usePlaceBracketOrder()       — mutation hook for bracket order submit
  *   - useCancelOrder()             — mutation hook for single order cancel
  *   - useCancelBracketGroup()      — mutation hook for bracket group cancel
+ *
+ * Removed (use @/gql/hooks/usePlaceOrder instead):
+ *   - PLACE_ORDER_MUTATION         — codegen now provides PlaceOrderDocument
+ *   - GqlPlaceOrderInput           — codegen now provides PlaceOrderInput
+ *   - GqlPlaceOrderResult          — codegen now provides PlaceOrderMutation result
+ *   - useGqlPlaceOrder()           — dead (referenced a non-existent backend mutation)
  *
  * Depends on:
  *   - @apollo/client — useQuery, useMutation, gql
@@ -46,9 +51,10 @@
  *   - Queries use the actual backend schema shapes from accounts.resolver.ts and
  *     market.resolver.ts — InstrumentDto { id, exchangeCode, symbol, displayName, type }
  *     and AccountBalancePayload { equity, margin, freeMargin, currency }.
- *   - useGqlPlaceOrder delegates to the REST /api/orders endpoint via fetchJson
- *     (no placeOrder mutation exists yet in the NestJS schema — this hook provides
- *     the GraphQL-shaped interface that can be wired to a future mutation).
+ *   - useGqlPlaceOrder and PLACE_ORDER_MUTATION were removed — the codegen pipeline
+ *     now provides a real `placeOrder` GraphQL mutation via @/gql/hooks (see
+ *     gql/hooks/usePlaceOrder.ts + usePlaceOrderMutation in generated/hooks.ts).
+ *     Callers should import `usePlaceOrder` from @/gql/hooks instead.
  *   - useOrderChildren / useStrategyPositions / useAccountRisk use cache-and-network
  *     to support live price refresh while showing cached data immediately.
  *   - usePlaceBracketOrder / useCancelOrder / useCancelBracketGroup refetch balance
@@ -57,7 +63,7 @@
  * Read order:
  *   1. useInstruments — canonical instrument feed (FX/crypto/indices/commodities)
  *   2. useAccountBalance — account snapshot for AccountSummaryPanel
- * 3. useGqlPlaceOrder — mutation bridge (REST today, GraphQL tomorrow)
+ *   3. (order placement removed — use @/gql/hooks/usePlaceOrder)
  *
  * Author:      BharatERP
  * Last-updated: 2026-05-24
@@ -208,73 +214,6 @@ export function useAccountBalance(accountId: string, currency?: string) {
     skip: !accountId,
     fetchPolicy: 'cache-and-network',
     nextFetchPolicy: 'cache-first',
-  });
-}
-
-/* ── Order placement ─────────────────────────────────────────────────────────── */
-
-/**
- * Input shape for the placeOrder mutation. Mirrors PlaceOrderDto on the backend.
- * The mutation itself delegates to /api/orders REST today; a native GraphQL
- * placeOrder mutation can replace it without changing this interface.
- */
-export interface GqlPlaceOrderInput {
-  accountId: string;
-  instrumentId: string;
-  side: 'BUY' | 'SELL';
-  type: 'MARKET' | 'LIMIT' | 'STOP' | 'GTT' | 'TRAILING_STOP' | 'ICEBERG' | 'TWAP' | 'VWAP';
-  quantity: string;
-  price?: string;
-  timeInForce?: 'DAY' | 'GTC' | 'IOC' | 'FOK';
-  clientOrderId?: string;
-  externalRefId?: string;
-  sl?: string;
-  tp?: string;
-}
-
-export interface GqlPlaceOrderResult {
-  id: string;
-  clientOrderId: string;
-  status: string;
-  message?: string;
-  filledQty?: number;
-  avgFillPrice?: number;
-  createdAt: string;
-}
-
-/** Bridge mutation — calls /api/orders via the web app's fetchJson. */
-export const PLACE_ORDER_MUTATION = gql`
-  mutation PlaceOrder($input: PlaceOrderInput!) {
-    placeOrder(input: $input) {
-      id
-      clientOrderId
-      status
-      message
-      filledQty
-      avgFillPrice
-      createdAt
-    }
-  }
-`;
-
-/**
- * Mutation hook for order submission.
- *
- * Today: delegates to REST /api/orders via the web app's internal fetchJson bridge.
- * Tomorrow: once a native `placeOrder` GraphQL mutation lands on the NestJS schema,
- * replace the internal call with `const [result] = useMutation(PLACE_ORDER_MUTATION)`.
- *
- * Usage:
- *   const [placeOrder, { loading, error }] = useGqlPlaceOrder();
- *   const result = await placeOrder({ variables: { input: { ... } } });
- */
-export function useGqlPlaceOrder() {
-  return useMutation<{ placeOrder: GqlPlaceOrderResult }>(PLACE_ORDER_MUTATION, {
-    refetchQueries: [
-      { query: GET_ACCOUNT_BALANCE, variables: {} },
-      { query: GET_INSTRUMENTS, variables: {} },
-    ],
-    awaitRefetchQueries: true,
   });
 }
 
