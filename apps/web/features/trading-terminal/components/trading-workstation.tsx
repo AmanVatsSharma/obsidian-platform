@@ -53,7 +53,9 @@ import { useGetOrdersQuery } from '@/gql/hooks';
 import { useGetPositionsQuery } from '@/gql/hooks';
 import { useGetQuoteQuery } from '@/gql/hooks';
 import { nanoid } from 'nanoid';
-import type { Instrument, PlaceUiOrder } from '@obsidian/trading-ui';
+import { submitAlgoOrderToOms } from '@/features/trading-terminal/lib/workstation-api';
+import type { PlaceUiOrder } from '@/features/trading-terminal/lib/workstation-api';
+import type { Instrument } from '@obsidian/trading-ui';
 import type { OpenPosition } from '@obsidian/trading-ui';
 import type { PendingOrder } from '@obsidian/trading-ui';
 
@@ -179,7 +181,9 @@ export function TradingWorkstation({
     };
   }, [parsedBalance, balanceData, accountId]);
 
-  // GraphQL-compatible trade-submission bridge — calls placeOrder mutation.
+  // Dispatch bridge — routes to the algo REST endpoint for TWAP/VWAP/ICEBERG
+  // (backend has no GraphQL algoOrder mutation), and to usePlaceOrderMutation
+  // for all other types.
   type TradeResult = { ok: true; detail?: string } | { ok: false; message: string };
   const onTradeSubmit = useMemo<(uiOrder: PlaceUiOrder) => Promise<TradeResult>>(
     () =>
@@ -192,6 +196,12 @@ export function TradingWorkstation({
           return { ok: false, message: 'No instrument selected.' };
         }
 
+        // ── Algo path (TWAP / VWAP / ICEBERG) → POST /api/orders/algo ─────────
+        if (uiOrder.algoType === 'TWAP' || uiOrder.algoType === 'VWAP' || uiOrder.algoType === 'ICEBERG') {
+          return submitAlgoOrderToOms(fetchWithAuth, uiOrder);
+        }
+
+        // ── Regular path → GraphQL usePlaceOrderMutation ──────────────────────
         const apiType: 'MARKET' | 'LIMIT' = uiOrder.type === 'Market' ? 'MARKET' : 'LIMIT';
         const side: 'BUY' | 'SELL' = uiOrder.side === 'buy' ? 'BUY' : 'SELL';
 

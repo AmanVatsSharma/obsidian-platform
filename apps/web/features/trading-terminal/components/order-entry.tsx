@@ -1,7 +1,8 @@
 /**
  * File:        components/order-entry.tsx
  * Module:      web-trading
- * Purpose:     Buy/sell ticket with full order type support (Market/Limit/Stop/GTT/Trailing/Stop/Iceberg/TWAP/VWAP) and bracket orders.
+ * Purpose:     Buy/sell ticket with full order type support
+ *              (Market/Limit/Stop/GTT/Trailing/Stop/Iceberg/TWAP/VWAP) and bracket orders.
  *
  * Exports:
  *   - OrderEntry — full order ticket with progressive disclosure for conditional/algo types
@@ -9,23 +10,26 @@
  * Depends on:
  *   - @/features/trading-terminal/lib/types — Instrument, OrderTypeExtended, TradePayload
  *   - @/features/trading-terminal/lib/format-utils — fmt, fmtPrice
- *   - @/gql/hooks/usePlaceOrder — enterprise codegen order placement mutation hook
+ *   - @/features/trading-terminal/lib/workstation-api — submitAlgoOrderToOms (REST /api/orders/algo)
+ *   - @/gql/hooks/usePlaceOrder — enterprise codegen order placement mutation hook (regular path)
  *
  * Side-effects:
- *   - usePlaceOrder mutation — Apollo network I/O on submit
+ *   - usePlaceOrder mutation — Apollo network I/O on submit (MARKET/LIMIT/STOP/GTT/TRAILING_STOP)
+ *   - fetchJson REST POST /api/orders/algo — on TWAP/VWAP/ICEBERG submit
  *
  * Key invariants:
  *   - Bracket section always visible; bracket submit fires when sl OR tp is filled
  *   - GTT requires triggerPrice + triggerCondition
  *   - TWAP/VWAP require slices (1–50) + duration (1–480 min)
+ *   - Algo types (TWAP/VWAP/ICEBERG) route through submitAlgoOrderToOms (REST), not GraphQL
  *
  * Read order:
  *   1. State declarations — all form fields
  *   2. Conditional field groups — GTT / Trailing / Iceberg / TWAP-VWAP
- *   3. Submit handler — routes to onTrade with full TradePayload
+ *   3. Submit handler — branches on algoType to dispatch via REST or GraphQL
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-30
+ * Last-updated: 2026-06-03
  */
 
 'use client';
@@ -34,6 +38,7 @@ import { useState } from 'react';
 import { nanoid } from 'nanoid';
 import type { Instrument, OrderTypeExtended, TriggerCondition } from '../lib/types';
 import { fmt, fmtPrice } from '../lib/format-utils';
+import { submitAlgoOrderToOms } from '../lib/workstation-api';
 import { usePlaceOrderMutation } from '@/gql/hooks';
 
 type PriceMap = Record<string, Instrument>;
@@ -75,6 +80,7 @@ export function OrderEntry({
     displayQty?: string;
     slices?: number;
     durationMinutes?: number;
+    algoType?: 'TWAP' | 'VWAP' | 'ICEBERG';
   }) => void;
 }) {
   const [error, setError] = useState<string | null>(null);
@@ -112,6 +118,8 @@ export function OrderEntry({
   const margin = (parseFloat(lots || '0') || 0) * ask * 10;
   const digits = instrument?.digits ?? 5;
 
+  const isAlgo = type === 'TWAP' || type === 'VWAP' || type === 'ICEBERG';
+
   const handleSubmit = async () => {
     setError(null);
     setSubmitting(true);
@@ -119,6 +127,56 @@ export function OrderEntry({
     const hasBracket = Boolean(sl || tp);
     const instrumentId = instrument?.instrumentId ?? '';
 
+    // ── Algo path (TWAP / VWAP / ICEBERG) → POST /api/orders/algo ───────────
+    if (isAlgo) {
+      if (!fetchJson) {
+        setSubmitting(false);
+        setError('Algo orders require an authenticated fetch client.');
+        return;
+      }
+      const algoResult = await submitAlgoOrderToOms(fetchJson, {
+        side,
+        type,
+        lots,
+        sl,
+        tp,
+        price,
+        instrument,
+        algoType: type,
+        ...(type === 'ICEBERG' && displayQty
+          ? { displayQty: parseFloat(displayQty) || 0 }
+          : {}),
+        ...(type === 'TWAP' || type === 'VWAP'
+          ? {
+              slices: parseInt(slices, 10) || 0,
+              durationMinutes: parseInt(durationMinutes, 10) || 0,
+            }
+          : {}),
+      });
+      setSubmitting(false);
+      if (!algoResult.ok) {
+        setError(algoResult.message);
+        return;
+      }
+      setError(null);
+      onTrade({
+        side,
+        type,
+        lots,
+        sl,
+        tp,
+        price,
+        instrument,
+        algoType: type,
+        ...(type === 'ICEBERG' && displayQty ? { displayQty } : {}),
+        ...((type === 'TWAP' || type === 'VWAP') && slices && durationMinutes
+          ? { slices: parseInt(slices, 10), durationMinutes: parseInt(durationMinutes, 10) }
+          : {}),
+      });
+      return;
+    }
+
+    // ── Regular path → GraphQL usePlaceOrderMutation ──────────────────────
     const input = {
       accountId: accountId ?? '',
       instrumentId,
@@ -167,10 +225,6 @@ export function OrderEntry({
         ...(type === 'GTT' && triggerPrice ? { triggerPrice, triggerCondition } : {}),
         ...(type === 'TRAILING_STOP' && (trailingDistance || trailingPct)
           ? { trailingDistance: trailingDistance || undefined, trailingPct: trailingPct || undefined }
-          : {}),
-        ...(type === 'ICEBERG' && displayQty ? { displayQty } : {}),
-        ...((type === 'TWAP' || type === 'VWAP') && slices && durationMinutes
-          ? { slices: parseInt(slices, 10), durationMinutes: parseInt(durationMinutes, 10) }
           : {}),
       });
     } catch (err) {

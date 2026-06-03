@@ -1,9 +1,32 @@
 /**
- * @file workstation-api.ts
- * @module web-trading
- * @description Merge `/market/watchlists` data with mock catalogue; optional OMS submit via `/api/orders` and `/api/orders/bracket`.
- * @author BharatERP
- * @created 2026-04-03
+ * File:        apps/web/features/trading-terminal/lib/workstation-api.ts
+ * Module:      web-trading
+ * Purpose:     Merge `/market/watchlists` data with mock catalogue; optional OMS
+ *              submit via `/api/orders`, `/api/orders/bracket`, and `/api/orders/algo`.
+ *
+ * Exports:
+ *   - FetchJsonFn                                       — injectable fetch (web: fetch+auth)
+ *   - PlaceUiOrder                                      — UI order payload (includes algo fields)
+ *   - mergeApiWatchlistInstruments(fn, base) → Instrument[]   — prepend OMS watchlist rows
+ *   - submitOrderToOms(fn, ui) → Result                 — POST PlaceOrderDto
+ *   - submitAlgoOrderToOms(fn, ui) → Result             — POST /api/orders/algo (TWAP/VWAP/ICEBERG)
+ *   - submitBracketOrderToOms(fn, ui) → Result          — POST /api/orders/bracket
+ *   - fetchOrderBookDepth(fn, symbol, levels?) → OrderBookDepth
+ *
+ * Depends on:
+ *   - nanoid — client order ID generation
+ *
+ * Side-effects:
+ *   - Network calls via fetchJson (REST against /api/orders, /api/orders/bracket, /api/orders/algo)
+ *
+ * Key invariants:
+ *   - submitAlgoOrderToOms accepts only TWAP / VWAP / ICEBERG; other types return { ok: false }
+ *   - For TWAP/VWAP, sliceCount >= 2; for ICEBERG, sliceCount is the visible qty per slice (>= 1)
+ *   - VWAP / ICEBERG require priceLimit (falls back to bid/ask if not supplied)
+ *   - All three submit helpers return the same { ok, detail | message } envelope; never throw
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-06-03
  */
 
 import { nanoid } from 'nanoid';
@@ -70,6 +93,25 @@ export type PlaceUiOrder = {
   tp: string;
   price: string;
   instrument: Instrument | null;
+  /**
+   * Algo type discriminator. Set by the form when type is TWAP / VWAP / ICEBERG.
+   * The dispatch bridge routes to submitAlgoOrderToOms when this is one of those three.
+   */
+  algoType?: 'TWAP' | 'VWAP' | 'ICEBERG';
+  /** TWAP / VWAP: number of slices. ICEBERG: visible qty per slice. */
+  slices?: number;
+  /** TWAP / VWAP: total duration in minutes. */
+  durationMinutes?: number;
+  /** ICEBERG: visible quantity per slice. (Same slot as slices — prefer slices for ICEBERG.) */
+  displayQty?: number;
+  /** VWAP / ICEBERG: limit price for child orders. Falls back to bid/ask. */
+  priceLimit?: string;
+  /** GTT trigger price — passed through for non-algo GTT orders. */
+  triggerPrice?: string;
+  triggerCondition?: 'ABOVE' | 'BELOW';
+  /** Trailing-stop controls. */
+  trailingDistance?: string;
+  trailingPct?: string;
 };
 
 /**
@@ -168,12 +210,7 @@ export async function submitOrderToOms(
  */
 export async function submitAlgoOrderToOms(
   fetchJson: FetchJsonFn,
-  ui: PlaceUiOrder & {
-    slices?: number;
-    durationMinutes?: number;
-    displayQty?: number;
-    priceLimit?: string;
-  },
+  ui: PlaceUiOrder,
 ): Promise<{ ok: true; detail?: string } | { ok: false; message: string }> {
   const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID;
   const demoInstrumentId = process.env.NEXT_PUBLIC_DEMO_INSTRUMENT_ID;
