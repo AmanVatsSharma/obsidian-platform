@@ -54,6 +54,7 @@ import { OrderAuditEntity } from '../entities/order-audit.entity';
 import { PlaceOrderDto, CancelOrderDto } from '../dtos/order.dto';
 import { ModifyOrderDto } from '../dtos/order.dto';
 import { PlaceBracketOrderDto } from '../dtos/bracket-order.dto';
+import { PlaceAlgoOrderDto } from '../dtos/algo-order.dto';
 import { AddExecutionDto } from '../dtos/execution.dto';
 import { NotificationService } from '../../notifications/services/notification.service';
 import { AppLoggerService } from '../../../shared/logger';
@@ -70,6 +71,7 @@ import {
 import { DEMO_EXCHANGE_ADAPTER } from '../adapters/demo-exchange.adapter';
 import { AppError } from '../../../common/errors/app-error';
 import { MarginEngineService } from './margin-engine.service';
+import { withRetry } from '../../../shared/resilience/retry.wrapper';
 import { RealtimePublisherService } from '../../realtime/prana-stream/services/realtime-publisher.service';
 import { AccountsService } from '../../accounts/services/accounts.service';
 import { RiskPolicyService } from '../../risk-policy/services/risk-policy.service';
@@ -537,6 +539,140 @@ export class OrderService {
 
       return { ok: true, ...results };
     });
+  }
+
+  /**
+   * Places an algo order (TWAP / VWAP / ICEBERG). Persists the parent order with
+   * algoType + algoMeta; AlgoOrderWorker dispatches the slices on its 10 s tick.
+   *
+   * Idempotency by externalRefId per tenant (DB unique constraint + service check).
+   * Slice exchange IO is internal to AlgoOrderWorker, which goes through the
+   * exchange adapter (connector layer wraps external calls in retry/circuit-breaker).
+   * The DB persist here is also wrapped in withRetry to absorb transient PG errors.
+   *
+   * Validation:
+   *   - TWAP / VWAP: sliceCount >= 2
+   *   - ICEBERG: priceLimit required
+   *
+   * @returns the parent algo order entity (status NEW → PLACED by worker on first slice)
+   */
+  async placeAlgo(
+    dto: PlaceAlgoOrderDto,
+  ): Promise<
+    | { ok: true; order: OrderEntity }
+    | { ok: false; code: string; message: string; externalRefId: string }
+  > {
+    const ctx = getRequestContext();
+    this.logger.debug('placeAlgo()', dto);
+
+    // Algo-shape validation (DTO decorators cover required fields + ranges).
+    if (dto.algoType === 'TWAP' || dto.algoType === 'VWAP') {
+      if (dto.sliceCount < 2) {
+        throw new AppError(
+          'ORDER_VALIDATION',
+          `${dto.algoType} requires sliceCount >= 2`,
+        );
+      }
+    }
+    if (dto.algoType === 'ICEBERG' && !dto.priceLimit) {
+      throw new AppError(
+        'ORDER_VALIDATION',
+        'ICEBERG requires priceLimit',
+      );
+    }
+    if (dto.durationMinutes != null && (dto.durationMinutes < 1 || dto.durationMinutes > 1440)) {
+      throw new AppError('ORDER_VALIDATION', 'durationMinutes must be between 1 and 1440');
+    }
+
+    return withRetry(
+      () =>
+        this.dataSource.transaction('REPEATABLE READ', async (manager) => {
+          await manager.query('SELECT pg_advisory_xact_lock($1)', [
+            this.lockKey(ctx.tenantId, dto.accountId),
+          ]);
+
+          // Idempotency by externalRefId
+          const existing = await manager.getRepository(OrderEntity).findOne({
+            where: { tenantId: ctx.tenantId, externalRefId: dto.externalRefId },
+          });
+          if (existing) {
+            return { ok: true, order: existing };
+          }
+
+          // Pre-trade risk + limits (same gates as place)
+          const qty = Number(dto.totalQuantity);
+          const px = dto.priceLimit != null ? Number(dto.priceLimit) : null;
+          const notional = qty * (px ?? 0);
+          const openOrderCount = await this.orders.count({
+            where: { tenantId: ctx.tenantId, accountId: dto.accountId, status: 'PLACED' },
+          });
+          await this.riskPolicy.enforcePreTrade({
+            tenantId: ctx.tenantId,
+            instrumentId: dto.instrumentId,
+            quantity: qty,
+            price: px,
+          });
+          await this.limitsControls.enforcePreTrade({
+            tenantId: ctx.tenantId,
+            accountId: dto.accountId,
+            instrumentId: dto.instrumentId,
+            notional,
+            openOrderCount,
+          });
+
+          // Slice count for algo meta
+          const totalSlices = dto.algoType === 'ICEBERG'
+            ? Math.ceil(qty / Math.max(1, dto.sliceCount))
+            : dto.sliceCount;
+          const intervalMs = dto.algoType !== 'ICEBERG' && dto.sliceCount > 0 && dto.durationMinutes
+            ? (dto.durationMinutes * 60 * 1000) / dto.sliceCount
+            : null;
+
+          const algoMeta: Record<string, unknown> = {
+            totalSlices,
+            slicesCompleted: 0,
+            sliceCount: dto.sliceCount,
+            durationMinutes: dto.durationMinutes ?? null,
+            nextSliceTime: intervalMs != null ? Date.now() + intervalMs : null,
+          };
+
+          const toSave = manager.getRepository(OrderEntity).create({
+            tenantId: ctx.tenantId,
+            accountId: dto.accountId,
+            instrumentId: dto.instrumentId,
+            side: dto.side,
+            type: dto.algoType,
+            quantity: dto.totalQuantity,
+            price: dto.priceLimit ?? null,
+            clientOrderId: dto.clientOrderId ?? `cli-algo-${Date.now()}`,
+            externalRefId: dto.externalRefId,
+            status: 'NEW',
+            filledQty: '0',
+            remainingQty: dto.totalQuantity,
+            algoType: dto.algoType,
+            algoMeta,
+            timeInForce: dto.timeInForce ?? 'DAY',
+          });
+          const saved = await manager.getRepository(OrderEntity).save(toSave);
+
+          await manager.getRepository(OrderAuditEntity).save(
+            manager.getRepository(OrderAuditEntity).create({
+              tenantId: ctx.tenantId,
+              orderId: saved.id,
+              action: 'PLACE_ALGO',
+              data: dto as any,
+            }),
+          );
+
+          this.orderEvents.publish({ type: 'order.algo.placed', payload: saved });
+          this.realtime.publishOrderUpdate(ctx.userId ?? saved.accountId, {
+            order: saved,
+            algo: { algoType: dto.algoType, algoMeta },
+          });
+          return { ok: true, order: saved };
+        }),
+      { maxAttempts: 3, baseDelayMs: 250, isRetryable: (err) => err instanceof AppError === false },
+    );
   }
 
   async cancel(dto: CancelOrderDto): Promise<OrderEntity | null> {

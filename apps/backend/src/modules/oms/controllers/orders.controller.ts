@@ -13,6 +13,7 @@ import { PermissionsGuard } from '../../rbac/guards/permissions.guard';
 import { TenantGuard } from '../../rbac/guards/tenant.guard';
 import { PlaceOrderDto, CancelOrderDto, ModifyOrderDto } from '../dtos/order.dto';
 import { PlaceBracketOrderDto } from '../dtos/bracket-order.dto';
+import { PlaceAlgoOrderDto } from '../dtos/algo-order.dto';
 import { AddExecutionDto } from '../dtos/execution.dto';
 import { OrderService } from '../services/order.service';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
@@ -141,6 +142,63 @@ export class OrdersController {
   getBracketChildren(@Param('orderId') orderId: string) {
     this.logger.debug('getBracketChildren called', { orderId });
     return this.service.getBracketChildren(orderId);
+  }
+
+  @Post('algo')
+  @Permissions('orders:write')
+  @ApiBearerAuth('JWT')
+  @ApiOperation({ summary: 'Place algo order (TWAP / VWAP / ICEBERG)' })
+  @ApiBody({
+    type: PlaceAlgoOrderDto,
+    examples: {
+      twap: {
+        value: {
+          accountId: 'acc-uuid',
+          instrumentId: 'inst-uuid',
+          side: 'BUY',
+          algoType: 'TWAP',
+          totalQuantity: '1000',
+          sliceCount: 10,
+          durationMinutes: 60,
+          clientOrderId: 'cli-algo-001',
+          externalRefId: 'ext-algo-001',
+        },
+      },
+      vwap: {
+        value: {
+          accountId: 'acc-uuid',
+          instrumentId: 'inst-uuid',
+          side: 'SELL',
+          algoType: 'VWAP',
+          totalQuantity: '500',
+          sliceCount: 5,
+          durationMinutes: 30,
+          priceLimit: '1500.00',
+          clientOrderId: 'cli-algo-002',
+          externalRefId: 'ext-algo-002',
+        },
+      },
+      iceberg: {
+        value: {
+          accountId: 'acc-uuid',
+          instrumentId: 'inst-uuid',
+          side: 'BUY',
+          algoType: 'ICEBERG',
+          totalQuantity: '1000',
+          sliceCount: 25,
+          priceLimit: '1500.00',
+          clientOrderId: 'cli-algo-003',
+          externalRefId: 'ext-algo-003',
+        },
+      },
+    },
+  })
+  @ApiResponse({ status: 201, description: 'Algo parent order accepted; slices dispatch on worker tick' })
+  @ApiResponse({ status: 400, description: 'Validation failed (invalid algoType, sliceCount, etc.)' })
+  @ApiResponse({ status: 409, description: 'Duplicate externalRefId with conflicting payload' })
+  placeAlgo(@Body() dto: PlaceAlgoOrderDto) {
+    this.logger.debug('placeAlgo called', dto);
+    return this.service.placeAlgo(dto);
   }
 
   @Post('executions')

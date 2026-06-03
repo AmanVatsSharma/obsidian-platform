@@ -28,6 +28,7 @@ Owns risk configuration including buying power rules and margin parameters per t
   - POST /orders — place (idempotent by `externalRefId`), creates hold using advisory lock per-account
   - POST /orders/modify — modify/replace (price/qty/TIF) via exchange adapter
   - POST /orders/cancel — cancel, releases hold and sends cancel to exchange adapter
+  - POST /orders/algo — place TWAP/VWAP/ICEBERG algo order (idempotent by `externalRefId`); parent persisted with `algoType` + `algoMeta`; `AlgoOrderWorker` dispatches slices on its 10s tick
   - POST /orders/executions — add execution (idempotent by `externalRefId`)
   - SSE /orders/stream — order/exec events
 - OMS Admin
@@ -87,5 +88,6 @@ flowchart TD
 - 2026-02-17: Realtime order publish now routes with request-context userId fallback, and OMS registered under Nx domain boundary project.
 - 2026-02-17: OMS exchange adapter now routes via `ExecutionGatewayService` with connector-family selection scaffolding.
 - 2026-03-15: Order placement, cancel, and modify branch on account type: DEMO accounts use DemoExchangeAdapter (simulated); LIVE accounts use real execution gateway.
+- 2026-06-03: Added `POST /orders/algo` REST endpoint + `OrderService.placeAlgo()` for TWAP/VWAP/ICEBERG. Persists parent order with `algoType` + `algoMeta`; `AlgoOrderWorker` dispatches slices on its 10s tick. Idempotent by `externalRefId`. DB persist wrapped in `withRetry` from `shared/resilience`. Web consumer `submitAlgoOrderToOms` added in `apps/web/features/trading-terminal/lib/workstation-api.ts`, calls `fetchWithAuth('/api/orders/algo', ...)`.
 
 
