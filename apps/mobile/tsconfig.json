@@ -1,1 +1,35 @@
-{"extends":"../../tsconfig.base.json","compilerOptions":{"strict":true,"noEmit":true,"jsx":"react-jsx","lib":["dom","esnext"]},"include":["src/**/*.ts","src/**/*.tsx"],"exclude":["node_modules","**/*.spec.ts","**/*.test.ts"]}
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "strict": true,
+    "noEmit": true,
+    "jsx": "react-jsx",
+    "lib": ["esnext", "dom", "dom.iterable"],
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "target": "es2022",
+    "types": ["react", "react-native"],
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"],
+      "@obsidian/mobile-ui-kit": ["../../libs/mobile-ui-kit/src/index.ts"],
+      "@obsidian/mobile-auth": ["../../libs/mobile-auth/src/index.ts"],
+      "@obsidian/mobile-api-client": ["../../libs/mobile-api-client/src/index.ts"],
+      "@obsidian/obsidian-ui": ["../../libs/obsidian-ui/src/index.ts"]
+    }
+  },
+  "include": [
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "src/**/*.ts",
+    "src/**/*.tsx",
+    ".expo/types/**/*.ts",
+    "expo-env.d.ts"
+  ],
+  "exclude": ["node_modules", "**/*.spec.ts", "**/*.test.ts"]
+}
