@@ -126,8 +126,7 @@ export class DataProviderEntity {
   @Column({ name: 'exchanges', type: 'varchar', length: 256, nullable: true })
   exchanges?: string | null; // Comma-separated: NSE,BSE,MCX
 
-  @Column({ name: 'execution_exchanges', type: 'varchar', length: 256, nullable: true })
-  executionExchanges?: string | null; // Exchanges to route orders to
+  // Note: execution is handled by your own B-book. Kite is data-only.
 
   // ─── CONFIG ─────────────────────────────────────────────────────
   @Column({ name: 'is_enabled', type: 'boolean', default: true })

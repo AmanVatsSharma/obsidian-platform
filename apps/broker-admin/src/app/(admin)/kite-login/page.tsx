@@ -1,8 +1,9 @@
 /**
  * File:        apps/broker-admin/src/app/(admin)/kite-login/page.tsx
  * Module:      broker-admin · Kite Login
- * Purpose:     Complete OAuth flow for connecting Zerodha Kite.
- *              Handles: API key setup → request token → PIN → access token
+ * Purpose:     OAuth flow for Zerodha Kite data access.
+ *              Kite provides instrument data and live prices only.
+ *              Execution is routed internally via your B-book.
  *
  * Exports:
  *   - default (KiteLoginPage) — step-by-step login flow
@@ -10,7 +11,7 @@
  * Key invariants:
  *   - Access token expires at midnight IST each day
  *   - Must re-login daily to refresh token
- *   - Save credentials to DB after successful login
+ *   - Kite = Data only. No order routing.
  *
  * Kite Connect Flow:
  *   1. Get API key from Kite dashboard
@@ -18,7 +19,7 @@
  *   3. User authorizes in Kite (browser)
  *   4. Enter PIN in our UI
  *   5. Exchange for access_token
- *   6. Save to database
+ *   6. Save credentials for live data fetch
  *
  * Author:      BharatERP
  * Last-updated: 2026-06-09
@@ -167,7 +168,7 @@ export default function KiteLoginPage() {
           <div>
             <p className="module-title">Zerodha Kite Connect</p>
             <p className="module-subtitle">
-              Connect your Kite account for live market data and trading
+              Kite for market data only — execution via your B-book
             </p>
           </div>
         </div>
