@@ -144,8 +144,10 @@ function ToastLayer({ toasts }: { toasts: ToastItem[] }) {
 
 /* ─── Home Screen ────────────────────────────────────────────────────────── */
 function HomeScreen({
-  prices, positions, onSymbol, onTrade, desktopHref,
+  account, instruments, prices, positions, onSymbol, onTrade, desktopHref,
 }: {
+  account: AccountSnapshot | null;
+  instruments: Instrument[];
   prices: PriceMap;
   positions: OpenPosition[];
   onSymbol: (inst: Instrument) => void;
@@ -153,6 +155,17 @@ function HomeScreen({
   desktopHref?: string;
 }) {
   const totalPnl = positions.reduce((s, p) => s + p.pnl, 0);
+
+  // Display default values if no account data
+  const displayAccount = account ?? {
+    equity: 10000,
+    unrealizedPnl: 0,
+    balance: 10000,
+    freeMargin: 10000,
+    marginLevel: 100,
+    drawdownPct: 0,
+    realizedPnlToday: 0,
+  };
   return (
     <div className="screen">
       <div className="m-topbar">
@@ -170,23 +183,23 @@ function HomeScreen({
       <div className="screen-scroll">
         <div className="equity-hero">
           <div className="equity-label">Total Equity</div>
-          <div className="equity-amount">${fmt(ACCOUNT.equity)}</div>
+          <div className="equity-amount">${fmt(displayAccount.equity)}</div>
           <div className="equity-delta">
             <div className={`equity-delta-pill ${pc(totalPnl)}`}>
               {pc(totalPnl) === 'bull' ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
               {sign(totalPnl)}${fmt(Math.abs(totalPnl))} today
             </div>
             <div style={{ fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>
-              {sign(ACCOUNT.unrealizedPnl)}${fmt(Math.abs(ACCOUNT.unrealizedPnl))} unrealised
+              {sign(displayAccount.unrealizedPnl)}${fmt(Math.abs(displayAccount.unrealizedPnl))} unrealised
             </div>
           </div>
           <PnLArea data={P_AND_L_HISTORY} h={44} />
           <div className="equity-meta">
             {[
-              { l: 'Balance',     v: `$${fmt(ACCOUNT.balance)}` },
-              { l: 'Free Margin', v: `$${fmt(ACCOUNT.freeMargin)}` },
-              { l: 'Margin Lvl',  v: `${fmt(ACCOUNT.marginLevel)}%`, c: 'bull' },
-              { l: 'Drawdown',    v: `${ACCOUNT.drawdownPct}%`,      c: 'bear' },
+              { l: 'Balance',     v: `$${fmt(displayAccount.balance)}` },
+              { l: 'Free Margin', v: `$${fmt(displayAccount.freeMargin)}` },
+              { l: 'Margin Lvl',  v: `${fmt(displayAccount.marginLevel)}%`, c: 'bull' },
+              { l: 'Drawdown',    v: `${displayAccount.drawdownPct}%`,      c: 'bear' },
             ].map(s => (
               <div key={s.l} className="equity-meta-item">
                 <span className="equity-meta-label">{s.l}</span>
@@ -207,8 +220,8 @@ function HomeScreen({
         <div className="quick-stats">
           {[
             { l: 'Open Positions', v: `${positions.length}`,                  sub: 'active trades' },
-            { l: 'Today P&L',      v: `+$${fmt(ACCOUNT.realizedPnlToday)}`,   c: 'bull' },
-            { l: 'Pending Orders', v: `${PENDING_ORDERS.length}`,             sub: 'waiting' },
+            { l: 'Today P&L',      v: `+$${fmt(displayAccount.realizedPnlToday)}`,   c: 'bull' },
+            { l: 'Pending Orders', v: `${resolved.orders.length}`,             sub: 'waiting' },
             { l: 'Win Rate',       v: `67%`,                                   c: 'bull', sub: 'last 30 trades' },
           ].map(s => (
             <div key={s.l} className="stat-tile">
@@ -222,18 +235,18 @@ function HomeScreen({
         <div className="quick-trade-row">
           <button className="qt-btn buy" onClick={() => onTrade('buy')}>
             <ArrowUpRight size={16} />BUY
-            <span className="qt-btn-price">{fmtP(prices[INSTRUMENTS[0].symbol]?.ask, INSTRUMENTS[0].digits)}</span>
+            <span className="qt-btn-price">{fmtP(prices[instruments[0].symbol]?.ask, instruments[0].digits)}</span>
           </button>
           <button className="qt-btn sell" onClick={() => onTrade('sell')}>
             <ArrowDownRight size={16} />SELL
-            <span className="qt-btn-price">{fmtP(prices[INSTRUMENTS[0].symbol]?.bid, INSTRUMENTS[0].digits)}</span>
+            <span className="qt-btn-price">{fmtP(prices[instruments[0].symbol]?.bid, instruments[0].digits)}</span>
           </button>
         </div>
 
         <div className="section-label">Watchlist</div>
         <div className="watchlist-strip">
           <div className="watchlist-strip-scroll">
-            {INSTRUMENTS.slice(0, 10).map((inst, i) => {
+            {instruments.slice(0, 10).map((inst, i) => {
               const p = prices[inst.symbol] ?? inst;
               const up = (p.changePct ?? 0) >= 0;
               return (
@@ -413,7 +426,7 @@ function TradeTicket({
   const [holding, setHolding] = useState(false);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const inst  = prices[instrument?.symbol] ?? instrument ?? INSTRUMENTS[0];
+  const inst  = prices[instrument?.symbol] ?? instrument ?? instruments[0];
   const p     = prices[inst.symbol] ?? inst;
   const bid   = p?.bid ?? 0;
   const ask   = p?.ask ?? 0;
@@ -520,7 +533,7 @@ function TradeTicket({
           {[
             { l: 'Req. Margin', v: `$${fmt(margin)}` },
             { l: 'Pip Value',   v: `$${fmt(pipVal)}` },
-            { l: 'Leverage',    v: `1:${ACCOUNT.leverage.split(':')[1]}` },
+            { l: 'Leverage',    v: `1:${displayAccount.leverage.split(':')[1]}` },
             { l: 'Commission',  v: `$${fmt(lots * 7)}` },
           ].map(i => (
             <div key={i.l} className="ti-item">
@@ -550,15 +563,28 @@ function TradeTicket({
 
 /* ─── Portfolio Screen ───────────────────────────────────────────────────── */
 function PortfolioScreen({
-  positions, onClose, onTrade,
+  account, positions, orders, onClose, onTrade,
 }: {
+  account: AccountSnapshot | null;
   positions: OpenPosition[];
+  orders: PendingOrder[];
   onClose: (id: string) => void;
   onTrade: (side: 'buy' | 'sell', inst: Instrument) => void;
 }) {
   const [swiped, setSwiped] = useState<Record<string, boolean>>({});
   const [tab, setTab] = useState<'open' | 'pending'>('open');
   const totalPnl = positions.reduce((s, p) => s + p.pnl, 0);
+
+  // Default values if no account data
+  const displayAccount = account ?? {
+    equity: 10000,
+    unrealizedPnl: 0,
+    balance: 10000,
+    margin: 0,
+    freeMargin: 10000,
+    marginLevel: 100,
+    realizedPnlToday: 0,
+  };
 
   return (
     <div className="screen">
@@ -573,17 +599,17 @@ function PortfolioScreen({
       <div className="screen-scroll">
         <div className="portfolio-summary">
           <div style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-data)', marginBottom: '4px' }}>Total Equity</div>
-          <div className="ps-equity">${fmt(ACCOUNT.equity)}</div>
+          <div className="ps-equity">${fmt(displayAccount.equity)}</div>
           <div className="ps-deltas">
             <div className={`ps-delta ${pc(totalPnl)}`}>{sign(totalPnl)}${fmt(Math.abs(totalPnl))} open P&L</div>
-            <div className="ps-delta bull">+${fmt(ACCOUNT.realizedPnlToday)} today</div>
+            <div className="ps-delta bull">+${fmt(displayAccount.realizedPnlToday)} today</div>
           </div>
           <PnLArea data={P_AND_L_HISTORY} h={40} />
           <div className="ps-stat-row" style={{ marginTop: '10px' }}>
             {[
-              { l: 'Margin',  v: `$${fmt(ACCOUNT.margin)}` },
-              { l: 'Free',    v: `$${fmt(ACCOUNT.freeMargin)}` },
-              { l: 'Level',   v: `${fmt(ACCOUNT.marginLevel)}%`, c: 'bull' },
+              { l: 'Margin',  v: `$${fmt(displayAccount.margin)}` },
+              { l: 'Free',    v: `$${fmt(displayAccount.freeMargin)}` },
+              { l: 'Level',   v: `${fmt(displayAccount.marginLevel)}%`, c: 'bull' },
             ].map(s => (
               <div key={s.l} className="ps-stat">
                 <div className="ps-stat-label">{s.l}</div>
@@ -660,12 +686,12 @@ function PortfolioScreen({
 }
 
 /* ─── Markets Screen ─────────────────────────────────────────────────────── */
-function MarketsScreen({ prices, onSelect }: { prices: PriceMap; onSelect: (inst: Instrument) => void }) {
+function MarketsScreen({ instruments, prices, onSelect }: { instruments: Instrument[]; prices: PriceMap; onSelect: (inst: Instrument) => void }) {
   const [search, setSearch] = useState('');
   const [cat, setCat] = useState('all');
   const cats = ['all', 'forex', 'crypto', 'indices', 'commodities'];
 
-  const filtered = INSTRUMENTS.filter(i =>
+  const filtered = instruments.filter(i =>
     (cat === 'all' || i.category === cat) &&
     (i.symbol.toLowerCase().includes(search.toLowerCase()) || i.name.toLowerCase().includes(search.toLowerCase()))
   );
@@ -862,12 +888,31 @@ function CalendarNewsScreen() {
 }
 
 /* ─── Account Screen ─────────────────────────────────────────────────────── */
-function AccountScreen() {
+function AccountScreen({ account }: { account: AccountSnapshot | null }) {
   const [tab, setTab] = useState<'overview' | 'history' | 'stats'>('overview');
-  const marginPct  = Math.min((ACCOUNT.margin / ACCOUNT.equity) * 100, 100);
+
+  // Default values if no account data
+  const displayAccount = account ?? {
+    name: 'No Account',
+    accountId: '—',
+    server: '—',
+    accountType: 'Trading',
+    leverage: '1:100',
+    equity: 0,
+    balance: 0,
+    margin: 0,
+    freeMargin: 0,
+    marginLevel: 100,
+    unrealizedPnl: 0,
+    realizedPnlToday: 0,
+    drawdownPct: 0,
+    currency: 'USD',
+  };
+
+  const marginPct  = Math.min((displayAccount.margin / (displayAccount.equity || 1)) * 100, 100);
   const riskColor  = marginPct < 20 ? 'var(--bull)' : marginPct < 50 ? 'var(--warn)' : 'var(--bear)';
-  const totalProfit = TRADE_HISTORY.filter(t => t.pnl > 0).reduce((s, t) => s + t.pnl, 0);
-  const totalLoss   = TRADE_HISTORY.filter(t => t.pnl < 0).reduce((s, t) => s + t.pnl, 0);
+  const totalProfit = 0;
+  const totalLoss = 0;
   const winRate     = (TRADE_HISTORY.filter(t => t.pnl > 0).length / TRADE_HISTORY.length * 100).toFixed(0);
 
   return (
@@ -892,24 +937,24 @@ function AccountScreen() {
             <div className="account-hero">
               <div className="account-avatar-lg">AM</div>
               <div className="account-info">
-                <div className="account-name">{ACCOUNT.name}</div>
-                <div className="account-id">{ACCOUNT.accountId} · {ACCOUNT.server}</div>
-                <div className="account-type-tag"><Shield size={10} />{ACCOUNT.accountType} · {ACCOUNT.leverage}</div>
+                <div className="account-name">{displayAccount.name}</div>
+                <div className="account-id">{displayAccount.accountId} · {displayAccount.server}</div>
+                <div className="account-type-tag"><Shield size={10} />{displayAccount.accountType} · {displayAccount.leverage}</div>
               </div>
               <div className="account-equity-side">
                 <div className="account-eq-label">Equity</div>
-                <div className="account-eq-value">${fmt(ACCOUNT.equity)}</div>
+                <div className="account-eq-value">${fmt(displayAccount.equity)}</div>
               </div>
             </div>
 
             <div className="stats-grid-4">
               {[
-                { l: 'Balance',        v: `$${fmt(ACCOUNT.balance)}` },
-                { l: 'Unrealised P&L', v: `${sign(ACCOUNT.unrealizedPnl)}$${fmt(Math.abs(ACCOUNT.unrealizedPnl))}`, c: pc(ACCOUNT.unrealizedPnl) },
-                { l: 'Free Margin',    v: `$${fmt(ACCOUNT.freeMargin)}` },
-                { l: 'Margin Level',   v: `${fmt(ACCOUNT.marginLevel)}%`, c: 'bull' },
-                { l: 'Used Margin',    v: `$${fmt(ACCOUNT.margin)}` },
-                { l: 'Today P&L',      v: `+$${fmt(ACCOUNT.realizedPnlToday)}`, c: 'bull' },
+                { l: 'Balance',        v: `$${fmt(displayAccount.balance)}` },
+                { l: 'Unrealised P&L', v: `${sign(displayAccount.unrealizedPnl)}$${fmt(Math.abs(displayAccount.unrealizedPnl))}`, c: pc(displayAccount.unrealizedPnl) },
+                { l: 'Free Margin',    v: `$${fmt(displayAccount.freeMargin)}` },
+                { l: 'Margin Level',   v: `${fmt(displayAccount.marginLevel)}%`, c: 'bull' },
+                { l: 'Used Margin',    v: `$${fmt(displayAccount.margin)}` },
+                { l: 'Today P&L',      v: `+$${fmt(displayAccount.realizedPnlToday)}`, c: 'bull' },
               ].map(s => (
                 <div key={s.l} className="stat-cell">
                   <div className="sc-label">{s.l}</div>
@@ -979,7 +1024,7 @@ function AccountScreen() {
               { label: 'Profit Factor', value: `${(totalProfit / Math.abs(totalLoss || 1)).toFixed(2)}`, c: 'bull' },
               { label: 'Best Trade',    value: `+$${fmt(Math.max(...TRADE_HISTORY.map(t => t.pnl)))}`, c: 'bull' },
               { label: 'Worst Trade',   value: `-$${fmt(Math.abs(Math.min(...TRADE_HISTORY.map(t => t.pnl))))}`, c: 'bear' },
-              { label: 'Max Drawdown',  value: `${ACCOUNT.drawdownPct}%`,                         c: 'bear' },
+              { label: 'Max Drawdown',  value: `${displayAccount.drawdownPct}%`,                         c: 'bear' },
             ].map(s => (
               <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>
                 <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>{s.label}</span>
@@ -1077,7 +1122,7 @@ export function MobileTradingDashboard({
 
   // UI-only state (navigation, sheets, toasts — not trading data)
   const [screen, setScreen]           = useState<Screen>('home');
-  const [activeInstrument, setActive] = useState<Instrument>(INSTRUMENTS[0]);
+  const [activeInstrument, setActive] = useState<Instrument>(instruments[0]);
   const [toasts, setToasts]           = useState<ToastItem[]>([]);
   const [showTrade, setShowTrade]     = useState(false);
   const [tradeSide, setTradeSide]     = useState<'buy' | 'sell'>('buy');
@@ -1232,12 +1277,12 @@ export function MobileTradingDashboard({
       )}
 
       <div style={{ paddingTop: resolved.error || !resolved.isAuthenticated ? (resolved.error && !resolved.isAuthenticated ? '72px' : '36px') : 0 }}>
-        {screen === 'home'      && <HomeScreen prices={prices} positions={displayPositions} onSymbol={handleSymbol} onTrade={(s) => { setTradeSide(s); setShowTrade(true); }} desktopHref={desktopHref} />}
+        {screen === 'home'      && <HomeScreen account={resolved.account} instruments={resolved.instruments} prices={prices} positions={displayPositions} onSymbol={handleSymbol} onTrade={(s) => { setTradeSide(s); setShowTrade(true); }} desktopHref={desktopHref} />}
         {screen === 'chart'     && <ChartScreen instrument={activeInstrument} prices={prices} onTrade={handleTrade} onBack={() => setScreen('markets')} />}
-        {screen === 'portfolio' && <PortfolioScreen positions={displayPositions} onClose={handleClosePosition} onTrade={handleTrade} />}
-        {screen === 'markets'   && <MarketsScreen prices={prices} onSelect={(inst) => { setActive(inst); setScreen('chart'); }} />}
+        {screen === 'portfolio' && <PortfolioScreen account={resolved.account} positions={displayPositions} orders={resolved.orders} onClose={handleClosePosition} onTrade={handleTrade} />}
+        {screen === 'markets'   && <MarketsScreen instruments={resolved.instruments} prices={prices} onSelect={(inst) => { setActive(inst); setScreen('chart'); }} />}
         {screen === 'research'  && <CalendarNewsScreen />}
-        {screen === 'account'   && <AccountScreen />}
+        {screen === 'account'   && <AccountScreen account={resolved.account} />}
       </div>
 
       <BottomNav
