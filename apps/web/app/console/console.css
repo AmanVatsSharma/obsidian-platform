@@ -921,3 +921,138 @@
   font-size: inherit;
   padding: 0;
 }
+
+/* ─── TABLET (≤900px already handled above) ─────────────────────────────────────── */
+@media (max-width: 767px) {
+  .obsidian-console .side { width: 56px; }
+  .obsidian-console .side-hd,
+  .obsidian-console .nav-group-l,
+  .obsidian-console .side-ft,
+  .obsidian-console .nav-i .lbl,
+  .obsidian-console .nav-i .badge { display: none; }
+  .obsidian-console .nav-i { justify-content: center; padding: 8px; }
+  .obsidian-console .scroll { padding: 14px 14px 56px; }
+  .obsidian-console .main-hd { padding: 12px 14px; }
+  .obsidian-console .frow { grid-template-columns: 1fr; gap: 6px; }
+  .obsidian-console .g2,
+  .obsidian-console .g3,
+  .obsidian-console .g4 { grid-template-columns: 1fr; }
+  .obsidian-console .sec-hd { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .obsidian-console .sec-hd .line { display: none; }
+  .obsidian-console .card .card-hd { flex-wrap: wrap; gap: 6px; }
+  .obsidian-console .kpi { padding: 12px; }
+  .obsidian-console .kpi .v { font-size: 18px; }
+  .obsidian-console .topbar { padding: 0 12px; }
+  .obsidian-console .logo { margin-right: 12px; }
+  .obsidian-console .crumbs { display: none; }
+  .obsidian-console .top-actions { gap: 8px; }
+  .obsidian-console .top-chip { padding: 4px 8px; font-size: 10px; }
+}
+
+/* ─── PHONE (≤480px) ────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  .obsidian-console { height: 100dvh; }
+  .obsidian-console .app { flex-direction: column; }
+  .obsidian-console .side {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    padding: 0;
+    border-top: 1px solid var(--border);
+    border-right: none;
+    z-index: 100;
+    background: var(--bg-surface);
+  }
+  .obsidian-console .side-hd,
+  .obsidian-console .side-ft,
+  .obsidian-console .nav-group,
+  .obsidian-console .nav-group-l { display: none; }
+  .obsidian-console .nav { flex-direction: row; gap: 0; flex: 1; }
+  .obsidian-console .nav-i {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 8px 4px;
+    gap: 2px;
+    min-width: 56px;
+  }
+  .obsidian-console .nav-i .icn { margin: 0; }
+  .obsidian-console .nav-i .lbl {
+    display: block;
+    font-size: 9px;
+    letter-spacing: 0.02em;
+  }
+  .obsidian-console .nav-i .badge { display: none; }
+  .obsidian-console .scroll {
+    padding: 12px 12px 72px;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .obsidian-console .main { flex: 1; overflow: hidden; }
+  .obsidian-console .main-hd {
+    padding: 10px 12px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .obsidian-console .main-hd h1 { font-size: 16px; }
+  .obsidian-console .main-hd .sub { width: 100%; font-size: 10px; }
+  .obsidian-console .topbar {
+    height: 48px;
+    padding: 0 10px;
+  }
+  .obsidian-console .logo { font-size: 13px; }
+  .obsidian-console .crumbs { display: none; }
+  .obsidian-console .top-actions { gap: 6px; }
+  .obsidian-console .top-chip { padding: 3px 6px; font-size: 9px; }
+  .obsidian-console .g2,
+  .obsidian-console .g3,
+  .obsidian-console .g4 { grid-template-columns: 1fr; gap: 10px; }
+  .obsidian-console .kpi { padding: 10px; }
+  .obsidian-console .kpi .v { font-size: 16px; }
+  .obsidian-console .kpi .l { font-size: 10px; }
+  .obsidian-console .kpi .delta { font-size: 9px; }
+  .obsidian-console .card { padding: 12px; }
+  .obsidian-console .card-hd { flex-wrap: wrap; }
+  .obsidian-console .card-hd h3 { font-size: 13px; }
+  .obsidian-console .sec { gap: 12px; }
+  .obsidian-console .sec-hd h2 { font-size: 14px; }
+  .obsidian-console .sec-hd .btn { font-size: 11px; padding: 6px 10px; }
+  .obsidian-console .tbl { font-size: 11px; }
+  .obsidian-console .tbl th,
+  .obsidian-console .tbl td { padding: 8px 6px; }
+  .obsidian-console .tbl .num { text-align: right; }
+  .obsidian-console .frow { grid-template-columns: 1fr; gap: 10px; }
+  .obsidian-console .ip { padding: 10px 12px; font-size: 14px; }
+  .obsidian-console .btn {
+    min-height: 44px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  .obsidian-console .btn.sm { min-height: 36px; padding: 8px 12px; font-size: 12px; }
+  .obsidian-console .obsidian-console-modal {
+    inset: 8px;
+    max-width: 100%;
+    margin: 0;
+  }
+  .obsidian-console-modal .modal-hd { padding: 12px; }
+  .obsidian-console-modal .modal-bd { padding: 14px; }
+  .obsidian-console-modal .modal-ft { padding: 12px; flex-direction: column; gap: 8px; }
+  .obsidian-console-modal .modal-ft .btn { width: 100%; }
+  .obsidian-console .status-banner { padding: 6px 10px; font-size: 10px; }
+}
+
+/* ─── SCROLLABLE TABLE WRAPPER FOR MOBILE ─────────────────────────────── */
+.obsidian-console .tbl-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -1px;
+  padding-bottom: 4px;
+}
+.obsidian-console .tbl-wrap .tbl {
+  min-width: 100%;
+}

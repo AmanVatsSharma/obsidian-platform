@@ -46,7 +46,26 @@ export type MobileWorkstationData = {
   orders: PendingOrder[];
   positions: OpenPosition[];
   accountId: string;
-  placeOrder: (input: { instrumentId: string; side: 'BUY' | 'SELL'; type: 'MARKET' | 'LIMIT'; quantity: string; price?: string }) => Promise<void>;
+  placeOrder: (input: {
+    instrumentId: string;
+    side: 'BUY' | 'SELL';
+    type: 'MARKET' | 'LIMIT' | 'STOP' | 'STOP_LIMIT' | 'GTT' | 'TRAILING_STOP';
+    quantity: string;
+    price?: string;
+    triggerPrice?: string;
+    triggerCondition?: 'ABOVE' | 'BELOW';
+    trailingDistance?: string;
+    trailingPct?: string;
+  }) => Promise<void>;
+  placeAlgoOrder: (input: {
+    instrumentId: string;
+    side: 'BUY' | 'SELL';
+    type: 'TWAP' | 'VWAP' | 'ICEBERG';
+    quantity: string;
+    slices?: number;
+    durationMinutes?: number;
+    displayQty?: string;
+  }) => Promise<void>;
   cancelOrder: (id: string) => Promise<void>;
   isAuthenticated: boolean;
   loading: boolean;

@@ -620,7 +620,7 @@ function PortfolioScreen({
         </div>
 
         <div className="tab-row">
-          {[{ id: 'open' as const, label: `Open (${positions.length})` }, { id: 'pending' as const, label: `Pending (${PENDING_ORDERS.length})` }].map(t => (
+          {[{ id: 'open' as const, label: `Open (${positions.length})` }, { id: 'pending' as const, label: `Pending (${orders.length})` }].map(t => (
             <button key={t.id} className={`m-tab ${tab === t.id ? 'active' : ''}`} onClick={() => setTab(t.id)}>{t.label}</button>
           ))}
         </div>
@@ -661,7 +661,7 @@ function PortfolioScreen({
           </>
         )}
 
-        {tab === 'pending' && PENDING_ORDERS.map(o => {
+        {tab === 'pending' && orders.map(o => {
           const isBuy = o.type.includes('BUY');
           return (
             <div key={o.id} className="position-item">
