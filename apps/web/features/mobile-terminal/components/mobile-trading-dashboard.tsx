@@ -913,7 +913,7 @@ function AccountScreen({ account }: { account: AccountSnapshot | null }) {
   const riskColor  = marginPct < 20 ? 'var(--bull)' : marginPct < 50 ? 'var(--warn)' : 'var(--bear)';
   const totalProfit = 0;
   const totalLoss = 0;
-  const winRate     = (TRADE_HISTORY.filter(t => t.pnl > 0).length / TRADE_HISTORY.length * 100).toFixed(0);
+  const winRate = '0';
 
   return (
     <div className="screen">

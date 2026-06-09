@@ -200,8 +200,18 @@ export function MobileWorkstation({ onDemoToggle, demoMode = false }: MobileWork
     return (positionsData?.positions?.data ?? []).map((p: any) => mapPosition(p, instruments));
   }, [positionsData, instruments]);
 
-  // Order placement - real mutation
-  const placeOrder = async (input: { instrumentId: string; side: 'BUY' | 'SELL'; type: 'MARKET' | 'LIMIT'; quantity: string; price?: string }) => {
+  // Order placement - real mutation (Market/Limit/Stop/StopLimit/GTT/TrailingStop via GraphQL)
+  const placeOrder = async (input: {
+    instrumentId: string;
+    side: 'BUY' | 'SELL';
+    type: 'MARKET' | 'LIMIT' | 'STOP' | 'STOP_LIMIT' | 'GTT' | 'TRAILING_STOP';
+    quantity: string;
+    price?: string;
+    triggerPrice?: string;
+    triggerCondition?: 'ABOVE' | 'BELOW';
+    trailingDistance?: string;
+    trailingPct?: string;
+  }) => {
     if (!accountId) throw new Error('Account ID not configured');
     const mutationInput = {
       accountId,
@@ -213,12 +223,51 @@ export function MobileWorkstation({ onDemoToggle, demoMode = false }: MobileWork
       externalRefId: `mobile-${nanoid(12)}`,
       clientOrderId: `mobile-${nanoid(10)}`,
       ...(input.price ? { price: input.price } : {}),
+      ...(input.triggerPrice ? { triggerPrice: input.triggerPrice } : {}),
+      ...(input.triggerCondition ? { triggerCondition: input.triggerCondition } : {}),
+      ...(input.trailingDistance ? { trailingDistance: input.trailingDistance } : {}),
+      ...(input.trailingPct ? { trailingPct: input.trailingPct } : {}),
     };
     const result = await placeOrderMutation({ variables: { input: mutationInput } });
     if (result.errors?.length) throw new Error(result.errors[0].message);
     if (!result.data?.placeOrder) throw new Error('Order placement returned no data');
     const { status } = result.data.placeOrder;
     if (status === 'REJECTED' || status === 'CANCELLED') throw new Error(`Order ${status.toLowerCase()}`);
+  };
+
+  // Algo orders - TWAP/VWAP/Iceberg via REST /api/orders/algo
+  const placeAlgoOrder = async (input: {
+    instrumentId: string;
+    side: 'BUY' | 'SELL';
+    type: 'TWAP' | 'VWAP' | 'ICEBERG';
+    quantity: string;
+    slices?: number;
+    durationMinutes?: number;
+    displayQty?: string;
+  }) => {
+    if (!accountId) throw new Error('Account ID not configured');
+    // Use REST for algo orders - same as desktop trading-terminal
+    const response = await fetch('/api/orders/algo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        accountId,
+        instrumentId: input.instrumentId,
+        side: input.side,
+        type: input.type,
+        quantity: input.quantity,
+        timeInForce: 'DAY',
+        externalRefId: `mobile-${nanoid(12)}`,
+        clientOrderId: `mobile-${nanoid(10)}`,
+        ...(input.slices ? { slices: input.slices } : {}),
+        ...(input.durationMinutes ? { durationMinutes: input.durationMinutes } : {}),
+        ...(input.displayQty ? { displayQty: input.displayQty } : {}),
+      }),
+    });
+    if (!response.ok) {
+      const err = await response.text();
+      throw new Error(err || `Algo order failed: ${response.status}`);
+    }
   };
 
   // Cancel order - real mutation
@@ -238,6 +287,7 @@ export function MobileWorkstation({ onDemoToggle, demoMode = false }: MobileWork
     positions,
     accountId,
     placeOrder,
+    placeAlgoOrder,
     cancelOrder,
     isAuthenticated,
     loading,
