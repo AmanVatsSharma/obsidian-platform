@@ -1,26 +1,28 @@
 /**
  * File:        apps/web/features/mobile-terminal/components/mobile-trading-dashboard.tsx
  * Module:      Mobile Terminal · Dashboard
- * Purpose:     Full mobile trading app — 8 screens with bottom nav, bottom sheets, live mock prices.
+ * Purpose:     Presentational mobile trading app — 8 screens with bottom nav, bottom sheets.
+ *              Consumes props from the MobileWorkstation adapter.
  *
  * Exports:
- *   - MobileTradingDashboard()   — root component; manages all screens, price ticks, and sheets
+ *   - MobileTradingDashboard({ data, onSetActiveSymbol })   — root component; renders screens, accepts live data
  *
  * Depends on:
- *   - @/features/trading-terminal/lib/mock-data — shared mock data (instruments, account, positions, etc.)
- *   - @/features/trading-terminal/lib/types      — shared TypeScript types
+ *   - @/features/trading-terminal/lib/types — Instrument, OpenPosition, PendingOrder, ToastItem, AccountSnapshot
+ *   - @/features/trading-terminal/lib/mock-data — INSTRUMENTS (fallback if no data passed)
  *   - lightweight-charts — dynamically imported for ChartScreen candlestick chart
  *   - lucide-react — icons
  *
  * Side-effects:
- *   - Sets price-tick interval (800ms) on mount
- *   - Sets P&L update interval (800ms) on mount
+ *   - Sets price-tick interval (800ms) on mount (only if no real prices available)
+ *   - Sets P&L update interval (800ms) on mount (only if no real positions)
  *
  * Key invariants:
  *   - Requires parent layout with NO AppShell — needs full-height (100dvh)
  *   - Uses LightweightCharts v4 API (addSeries + CandlestickSeries)
- *   - No auth — always renders with mock data
+ *   - Is prop-driven — no data fetching, no auth checks
  *   - CSS classes come from ../mobile.css (loaded by (mobile)/layout.tsx)
+ *   - Falls back to mock data if no `data` prop provided (for untested states)
  *
  * Read order:
  *   1. MobileTradingDashboard — entry point, state, price tick loop
@@ -28,27 +30,53 @@
  *   3. TradeTicket, DOMSheet — bottom sheets
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-06-07
  */
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import {
   Home, BarChart2, TrendingUp, Briefcase, User,
   Search, Bell, Settings, X, Plus, RefreshCw, Activity,
   ChevronLeft, ArrowUpRight, ArrowDownRight, Layers,
   CandlestickChart, SlidersHorizontal, Shield, LogOut,
 } from 'lucide-react';
-import type { Instrument, OpenPosition, ToastItem } from '@/features/trading-terminal/lib/types';
+import type { Instrument, OpenPosition, ToastItem, AccountSnapshot, QuoteDto, PendingOrder, PriceMap } from '@/features/trading-terminal/lib/types';
 import {
-  INSTRUMENTS, OPEN_POSITIONS, PENDING_ORDERS, TRADE_HISTORY,
-  ACCOUNT, DOM_DATA, ECONOMIC_CALENDAR, NEWS, TIMEFRAMES,
-  generateOHLCV, P_AND_L_HISTORY,
+  INSTRUMENTS, P_AND_L_HISTORY, ECONOMIC_CALENDAR, NEWS, TIMEFRAMES, generateOHLCV,
+  ACCOUNT, PENDING_ORDERS, DOM_DATA, TRADE_HISTORY,
 } from '@/features/trading-terminal/lib/mock-data';
 
-/* ─── Helpers ────────────────────────────────────────────────────────────── */
-const fmt    = (n: number, d = 2) => n?.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }) ?? '—';
+// ─── Prop Contract ─────────────────────────────────────────────────────────────
+
+type MobileWorkstationData = {
+  // Read
+  instruments: Instrument[];
+  quotesBySymbol: Record<string, QuoteDto>;
+  account: AccountSnapshot | null;
+  orders: PendingOrder[];
+  positions: OpenPosition[];
+  accountId: string;
+
+  // Write
+  placeOrder: (input: { instrumentId: string; side: 'BUY' | 'SELL'; type: 'MARKET' | 'LIMIT'; quantity: string; price?: string }) => Promise<void>;
+  cancelOrder: (id: string) => Promise<void>;
+
+  // Meta
+  isAuthenticated: boolean;
+  loading: boolean;
+  error: string | null;
+};
+
+type MobileTradingDashboardProps = {
+  data?: MobileWorkstationData;
+  onSetActiveSymbol?: (symbol: string) => void;
+};
+
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
+const fmt    = (n: number | undefined, d = 2) => n?.toLocaleString('en-US', { minimumFractionDigits: d, maximumFractionDigits: d }) ?? '—';
 const fmtP   = (n: number | undefined, dig: number | undefined) => n?.toFixed(dig ?? 5) ?? '—';
 const sign   = (n: number) => n >= 0 ? '+' : '';
 const pc     = (n: number) => n >= 0 ? 'bull' : 'bear';
@@ -995,22 +1023,72 @@ function BottomNav({ active, onChange, onTrade }: { active: Screen; onChange: (s
   );
 }
 
-/* ─── Root Component ─────────────────────────────────────────────────────── */
-export function MobileTradingDashboard() {
+/* ─── Root Component (Presentational) ────────────────────────────────────────
+ *
+ * Accepts all trading data via the `data` prop (supplied by MobileWorkstation adapter).
+ * The adapter handles Apollo hooks, auth fallback, and mock data — this component
+ * is purely presentational: UI state, navigation, and sheet visibility only.
+ *
+ * Fallback: if no `data` prop is provided, falls back to the original mock-data
+ * behaviour so the component remains usable in Storybook / isolated renders.
+ */
+export function MobileTradingDashboard({
+  data,
+  onSetActiveSymbol,
+}: MobileTradingDashboardProps) {
+  const resolved = data ?? {
+    instruments: INSTRUMENTS,
+    quotesBySymbol: {},
+    account: ACCOUNT,
+    orders: [],
+    positions: [],
+    accountId: '',
+    placeOrder: async () => {},
+    cancelOrder: async () => {},
+    isAuthenticated: false,
+    loading: false,
+    error: null,
+  };
+
+  // Merge live quotes (from adapter) with instrument catalogue for price lookups.
+  // The adapter's quotesBySymbol contains only the active instrument's live quote;
+  // inactive instruments keep their base price from the catalogue.
+  const prices: PriceMap = useMemo(() => {
+    const base: PriceMap = {};
+    resolved.instruments.forEach(inst => { base[inst.symbol] = { ...inst }; });
+    Object.entries(resolved.quotesBySymbol).forEach(([symbol, quote]) => {
+      if (base[symbol]) {
+        base[symbol] = {
+          ...base[symbol],
+          bid: quote.price,
+          ask: quote.price + base[symbol].spread * base[symbol].pip,
+          lastPrice: quote.price,
+        };
+      }
+    });
+    return base;
+  }, [resolved.instruments, resolved.quotesBySymbol]);
+
+  // UI-only state (navigation, sheets, toasts — not trading data)
   const [screen, setScreen]           = useState<Screen>('home');
   const [activeInstrument, setActive] = useState<Instrument>(INSTRUMENTS[0]);
-  const [prices, setPrices]           = useState<PriceMap>(() => Object.fromEntries(INSTRUMENTS.map(i => [i.symbol, { ...i }])));
-  const [positions, setPositions]     = useState<OpenPosition[]>(OPEN_POSITIONS);
   const [toasts, setToasts]           = useState<ToastItem[]>([]);
   const [showTrade, setShowTrade]     = useState(false);
   const [tradeSide, setTradeSide]     = useState<'buy' | 'sell'>('buy');
   const [showDOM, setShowDOM]         = useState(false);
+  const [simPrices, setSimPrices] = useState<Record<string, number>>({});
+
+  // Price-tick simulation — only active when the adapter provides no live quotes
+  // (i.e. unauthenticated or demo mode). When live quotes arrive, the adapter
+  // drives prices via useGetQuoteQuery and this interval is redundant.
+  const hasLiveQuotes = Object.keys(resolved.quotesBySymbol).length > 0;
 
   useEffect(() => {
+    if (hasLiveQuotes) return; // adapter drives prices
     const iv = setInterval(() => {
-      setPrices(prev => {
+      setSimPrices(prev => {
         const next = { ...prev };
-        INSTRUMENTS.forEach(inst => {
+        resolved.instruments.forEach(inst => {
           const p = next[inst.symbol];
           const tick = (Math.random() - 0.5) * inst.pip * 4;
           const newBid = parseFloat((p.bid + tick).toFixed(inst.digits));
@@ -1021,11 +1099,17 @@ export function MobileTradingDashboard() {
       });
     }, 800);
     return () => clearInterval(iv);
-  }, []);
+  }, [hasLiveQuotes, resolved.instruments]);
+
+  // P&L simulation — only active when the adapter provides no live positions
+  // (i.e. unauthenticated or demo mode). When live positions arrive, the
+  // adapter computes P&L and this interval is redundant.
+  const hasLivePositions = resolved.positions.length > 0;
 
   useEffect(() => {
+    if (hasLivePositions) return; // adapter drives positions
     const iv = setInterval(() => {
-      setPositions(prev => prev.map(pos => {
+      setLocalPositions(prev => prev.map(pos => {
         const p = prices[pos.symbol];
         if (!p) return pos;
         const diff = pos.type === 'BUY' ? (p.bid - pos.openPrice) : (pos.openPrice - p.ask);
@@ -1034,7 +1118,15 @@ export function MobileTradingDashboard() {
       }));
     }, 800);
     return () => clearInterval(iv);
-  }, [prices]);
+  }, [hasLivePositions, prices]);
+
+  // Local positions state — seeded from adapter data; only mutated locally
+  // for demo/mock mode (close-position swipe). In live mode, mutations
+  // go through the adapter's placeOrder/cancelOrder and Apollo refetches.
+  const [localPositions, setLocalPositions] = useState<OpenPosition[]>(resolved.positions);
+
+  // Sync positions from adapter when they change (e.g. after a mutation refetch)
+  useEffect(() => { setLocalPositions(resolved.positions); }, [resolved.positions]);
 
   const addToast = useCallback((text: string, sub: string, type: 'bull' | 'bear' = 'bull') => {
     const id = Date.now() + Math.random();
@@ -1048,36 +1140,91 @@ export function MobileTradingDashboard() {
     setShowTrade(true);
   }, []);
 
-  const handleConfirmTrade = useCallback(({ side, otype, lots, instrument }: { side: string; otype: string; lots: number; instrument: Instrument }) => {
-    const p = prices[instrument?.symbol] ?? instrument;
-    const fillPrice = side === 'buy' ? p.ask : p.bid;
-    addToast(
-      `${side.toUpperCase()} ${lots} lots ${instrument?.symbol}`,
-      `${otype} filled @ ${fmtP(fillPrice, instrument?.digits)}`,
-      side === 'buy' ? 'bull' : 'bear'
-    );
-  }, [prices, addToast]);
+  const handleConfirmTrade = useCallback(async ({ side, otype, lots, instrument }: { side: string; otype: string; lots: number; instrument: Instrument }) => {
+    try {
+      await resolved.placeOrder({
+        instrumentId: instrument.instrumentId ?? instrument.symbol,
+        side: side === 'buy' ? 'BUY' : 'SELL',
+        type: otype === 'Market' ? 'MARKET' : 'LIMIT',
+        quantity: lots.toFixed(2),
+        price: otype !== 'Market' ? instrument.ask.toFixed(instrument.digits + 2) : undefined,
+      });
+      const p = prices[instrument?.symbol] ?? instrument;
+      const fillPrice = side === 'buy' ? p.ask : p.bid;
+      addToast(
+        `${side.toUpperCase()} ${lots} lots ${instrument?.symbol}`,
+        `${otype} filled @ ${fmtP(fillPrice, instrument?.digits)}`,
+        side === 'buy' ? 'bull' : 'bear'
+      );
+    } catch (e) {
+      addToast(
+        `Order failed`,
+        e instanceof Error ? e.message : 'Unknown error',
+        'bear'
+      );
+    }
+  }, [resolved.placeOrder, prices, addToast]);
 
   const handleClosePosition = useCallback((id: string) => {
-    const pos = positions.find(p => p.id === id);
+    const pos = localPositions.find(p => p.id === id);
     if (!pos) return;
-    setPositions(prev => prev.filter(p => p.id !== id));
+    // Optimistic local removal; adapter's cancelOrder fires async
+    setLocalPositions(prev => prev.filter(p => p.id !== id));
+    void resolved.cancelOrder(id);
     addToast(`Closed ${pos.symbol}`, `P&L: ${sign(pos.pnl)}$${fmt(Math.abs(pos.pnl))}`, pos.pnl >= 0 ? 'bull' : 'bear');
-  }, [positions, addToast]);
+  }, [localPositions, resolved.cancelOrder, addToast]);
 
   const handleSymbol = useCallback((inst: Instrument) => {
     setActive(inst);
     setScreen('chart');
-  }, []);
+    onSetActiveSymbol?.(inst.symbol);
+  }, [onSetActiveSymbol]);
+
+  const displayPositions = hasLivePositions ? resolved.positions : localPositions;
 
   return (
     <div className="mobile-app">
-      {screen === 'home'      && <HomeScreen prices={prices} positions={positions} onSymbol={handleSymbol} onTrade={(s) => { setTradeSide(s); setShowTrade(true); }} />}
-      {screen === 'chart'     && <ChartScreen instrument={activeInstrument} prices={prices} onTrade={handleTrade} onBack={() => setScreen('markets')} />}
-      {screen === 'portfolio' && <PortfolioScreen positions={positions} onClose={handleClosePosition} onTrade={handleTrade} />}
-      {screen === 'markets'   && <MarketsScreen prices={prices} onSelect={(inst) => { setActive(inst); setScreen('chart'); }} />}
-      {screen === 'research'  && <CalendarNewsScreen />}
-      {screen === 'account'   && <AccountScreen />}
+      {resolved.loading && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'var(--bg-base)', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          zIndex: 9999, color: 'var(--text-muted)', fontSize: '14px',
+        }}>
+          Loading…
+        </div>
+      )}
+
+      {resolved.error && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0,
+          background: 'rgba(255,59,92,0.15)', borderBottom: '1px solid var(--bear)',
+          padding: '8px 16px', fontSize: '12px', color: 'var(--bear)',
+          zIndex: 9998, fontFamily: 'var(--font-data)',
+        }}>
+          {resolved.error}
+        </div>
+      )}
+
+      {!resolved.isAuthenticated && (
+        <div style={{
+          position: 'fixed', top: resolved.error ? '36px' : 0, left: 0, right: 0,
+          background: 'var(--bg-elevated)', borderBottom: '1px solid var(--border)',
+          padding: '10px 16px', fontSize: '13px', color: 'var(--text-secondary)',
+          zIndex: 9997, textAlign: 'center',
+        }}>
+          Sign in to trade live · <span style={{ color: 'var(--accent)', cursor: 'pointer' }}>Log in</span>
+        </div>
+      )}
+
+      <div style={{ paddingTop: resolved.error || !resolved.isAuthenticated ? (resolved.error && !resolved.isAuthenticated ? '72px' : '36px') : 0 }}>
+        {screen === 'home'      && <HomeScreen prices={prices} positions={displayPositions} onSymbol={handleSymbol} onTrade={(s) => { setTradeSide(s); setShowTrade(true); }} />}
+        {screen === 'chart'     && <ChartScreen instrument={activeInstrument} prices={prices} onTrade={handleTrade} onBack={() => setScreen('markets')} />}
+        {screen === 'portfolio' && <PortfolioScreen positions={displayPositions} onClose={handleClosePosition} onTrade={handleTrade} />}
+        {screen === 'markets'   && <MarketsScreen prices={prices} onSelect={(inst) => { setActive(inst); setScreen('chart'); }} />}
+        {screen === 'research'  && <CalendarNewsScreen />}
+        {screen === 'account'   && <AccountScreen />}
+      </div>
 
       <BottomNav
         active={screen}
