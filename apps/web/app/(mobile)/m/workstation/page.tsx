@@ -2,9 +2,10 @@
  * File:        apps/web/app/(mobile)/m/workstation/page.tsx
  * Module:      Mobile · Workstation Page
  * Purpose:     Renders the full-screen mobile trading terminal — wired to backend via MobileWorkstation adapter.
+ *              NO MOCK DATA - always connects to backend for data.
  *
  * Exports:
- *   - MobileWorkstationPage() → ReactNode   — full-screen mobile terminal (live data when authenticated)
+ *   - MobileWorkstationPage() → ReactNode   — full-screen mobile terminal (live data from backend)
  *
  * Depends on:
  *   - @/features/mobile-terminal — MobileWorkstation adapter component
@@ -13,9 +14,9 @@
  *   - GraphQL queries via Apollo Client hooks
  *
  * Key invariants:
- *   - MobileWorkstation handles auth fallback to mock data
+ *   - MobileWorkstation always fetches from backend
+ *   - Shows loading/empty/error states when no data
  *   - Parent (mobile)/layout.tsx deliberately omits AppShell; mobile terminal requires 100dvh
- *   - Supports ?demo=1 query param for demo mode without backend
  *
  * Read order:
  *   1. This file — entry point
@@ -23,18 +24,14 @@
  *   3. features/mobile-terminal/components/mobile-trading-dashboard.tsx — presentational UI
  *
  * Author:      BharatERP
- * Last-updated: 2026-06-07
+ * Last-updated: 2026-06-09
  */
 
 'use client';
 
-import { useMemo } from 'react';
-import { useSearchParams } from 'next/navigation';
 import { MobileWorkstation } from '@/features/mobile-terminal';
 
 export default function MobileWorkstationPage() {
-  const searchParams = useSearchParams();
-  const demoMode = useMemo(() => searchParams.get('demo') === '1', [searchParams]);
-
-  return <MobileWorkstation demoMode={demoMode} desktopHref="/workstation?desktop=1" />;
+  // NO demo mode - always fetch from backend
+  return <MobileWorkstation desktopHref="/workstation?desktop=1" />;
 }
