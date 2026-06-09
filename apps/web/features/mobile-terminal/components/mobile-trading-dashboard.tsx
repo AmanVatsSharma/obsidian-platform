@@ -2,27 +2,29 @@
  * File:        apps/web/features/mobile-terminal/components/mobile-trading-dashboard.tsx
  * Module:      Mobile Terminal · Dashboard
  * Purpose:     Presentational mobile trading app — 8 screens with bottom nav, bottom sheets.
- *              Consumes props from the MobileWorkstation adapter.
+ *              Consumes props from the MobileWorkstation adapter. NO mock data - proper
+ *              empty states and loading indicators.
  *
  * Exports:
  *   - MobileTradingDashboard({ data, onSetActiveSymbol })   — root component; renders screens, accepts live data
  *
  * Depends on:
  *   - @/features/trading-terminal/lib/types — Instrument, OpenPosition, PendingOrder, ToastItem, AccountSnapshot
- *   - @/features/trading-terminal/lib/mock-data — INSTRUMENTS (fallback if no data passed)
  *   - lightweight-charts — dynamically imported for ChartScreen candlestick chart
  *   - lucide-react — icons
  *
  * Side-effects:
- *   - Sets price-tick interval (800ms) on mount (only if no real prices available)
- *   - Sets P&L update interval (800ms) on mount (only if no real positions)
+ *   - Sets price-tick interval (800ms) on mount only when no live quotes available
+ *   - Sets P&L update interval (800ms) on mount only when no live positions
  *
  * Key invariants:
  *   - Requires parent layout with NO AppShell — needs full-height (100dvh)
  *   - Uses LightweightCharts v4 API (addSeries + CandlestickSeries)
- *   - Is prop-driven — no data fetching, no auth checks
+ *   - Is prop-driven — all data comes from `data` prop
  *   - CSS classes come from ../mobile.css (loaded by (mobile)/layout.tsx)
- *   - Falls back to mock data if no `data` prop provided (for untested states)
+ *   - Empty states shown when data arrays are empty (no mock fallback)
+ *   - Loading state shown when data.loading is true
+ *   - Error banner shown when data.error is set
  *
  * Read order:
  *   1. MobileTradingDashboard — entry point, state, price tick loop
@@ -30,7 +32,7 @@
  *   3. TradeTicket, DOMSheet — bottom sheets
  *
  * Author:      BharatERP
- * Last-updated: 2026-06-07
+ * Last-updated: 2026-06-09
  */
 
 'use client';
@@ -44,10 +46,7 @@ import {
   CandlestickChart, SlidersHorizontal, Shield, LogOut, Monitor,
 } from 'lucide-react';
 import type { Instrument, OpenPosition, ToastItem, AccountSnapshot, QuoteDto, PendingOrder, PriceMap } from '@/features/trading-terminal/lib/types';
-import {
-  INSTRUMENTS, P_AND_L_HISTORY, ECONOMIC_CALENDAR, NEWS, TIMEFRAMES, generateOHLCV,
-  ACCOUNT, PENDING_ORDERS, DOM_DATA, TRADE_HISTORY,
-} from '@/features/trading-terminal/lib/mock-data';
+import { ECONOMIC_CALENDAR, NEWS, TIMEFRAMES, generateOHLCV, DOM_DATA } from '@/features/trading-terminal/lib/mock-data';
 
 // ─── Prop Contract ─────────────────────────────────────────────────────────────
 
@@ -1032,30 +1031,30 @@ function BottomNav({ active, onChange, onTrade }: { active: Screen; onChange: (s
 /* ─── Root Component (Presentational) ────────────────────────────────────────
  *
  * Accepts all trading data via the `data` prop (supplied by MobileWorkstation adapter).
- * The adapter handles Apollo hooks, auth fallback, and mock data — this component
- * is purely presentational: UI state, navigation, and sheet visibility only.
+ * The adapter handles Apollo hooks - this component is purely presentational.
  *
- * Fallback: if no `data` prop is provided, falls back to the original mock-data
- * behaviour so the component remains usable in Storybook / isolated renders.
+ * NO FALLBACK TO MOCK DATA - all data comes from props. Proper loading/empty/error states shown.
  */
 export function MobileTradingDashboard({
   data,
   onSetActiveSymbol,
   desktopHref,
 }: MobileTradingDashboardProps) {
-  const resolved = data ?? {
-    instruments: INSTRUMENTS,
-    quotesBySymbol: {},
-    account: ACCOUNT,
-    orders: [],
-    positions: [],
-    accountId: '',
-    placeOrder: async () => {},
-    cancelOrder: async () => {},
-    isAuthenticated: false,
-    loading: false,
-    error: null,
-  };
+  // Require data prop - always show loading/error state if missing, not mock fallback
+  if (!data) {
+    return (
+      <div className="mobile-app">
+        <div className="screen">
+          <div className="data-error">
+            <div className="data-error-icon">⚠️</div>
+            <div className="data-error-text">Loading trading data...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const resolved = data;
 
   // Merge live quotes (from adapter) with instrument catalogue for price lookups.
   // The adapter's quotesBySymbol contains only the active instrument's live quote;

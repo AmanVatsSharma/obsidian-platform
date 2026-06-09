@@ -29,5 +29,5 @@
 import { TradingWorkstation } from '@/features/trading-terminal';
 
 export default function WorkstationPage() {
-  return <TradingWorkstation mobileHref="/m/workstation" />;
+  return <TradingWorkstation mobileHref="/m/workstation?mobile=1" />;
 }
