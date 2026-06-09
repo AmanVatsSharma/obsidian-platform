@@ -11,7 +11,8 @@ export type ConnectorFamily =
   | 'EQUITIES_FNO'
   | 'US_EQUITIES_OPTIONS'
   | 'CRYPTO_CEX'
-  | 'COMMODITIES';
+  | 'COMMODITIES'
+  | 'KITE_INDIA';
 
 export type GatewayOrderRequest = {
   tenantId: string;

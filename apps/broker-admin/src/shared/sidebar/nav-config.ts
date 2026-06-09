@@ -38,6 +38,7 @@ export const NAV_GROUPS: NavGroup[] = [
     items: [
       { id: 'instruments',      label: 'Instruments',       href: '/instruments' },
       { id: 'market-providers', label: 'Data Providers',  href: '/market-providers' },
+      { id: 'kite-login',       label: 'Kite Login',        href: '/kite-login' },
       { id: 'pricing-rules',    label: 'Pricing Rules',    href: '/pricing-rules' },
       { id: 'sessions',         label: 'Trading Sessions',  href: '/trading-sessions' },
       { id: 'orders',           label: 'Order Management', href: '/orders' },
@@ -47,6 +48,7 @@ export const NAV_GROUPS: NavGroup[] = [
     section: 'RISK & COMPLIANCE',
     items: [
       { id: 'risk-dashboard',  label: 'Risk Dashboard',      href: '/risk-dashboard', icon: Shield },
+      { id: 'segment-access',  label: 'Segment Access',      href: '/segment-access' },
       { id: 'exposure-limits', label: 'Exposure Limits',     href: '/exposure-limits' },
       { id: 'surveillance',    label: 'Surveillance Alerts', href: '/surveillance', badge: '3', badgeWarn: true },
       { id: 'aml-monitor',     label: 'AML Monitor',         href: '/aml-monitor' },

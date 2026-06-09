@@ -122,9 +122,12 @@ export class DataProviderEntity {
   @Column({ name: 'quote_count_today', type: 'bigint', default: 0 })
   quoteCountToday!: number;
 
-  // ─── MAPPED EXCHANGES ────────────────────────────────
+  // ─── EXCHANGE MAPPINGS ─────────────────────────────────
   @Column({ name: 'exchanges', type: 'varchar', length: 256, nullable: true })
   exchanges?: string | null; // Comma-separated: NSE,BSE,MCX
+
+  @Column({ name: 'execution_exchanges', type: 'varchar', length: 256, nullable: true })
+  executionExchanges?: string | null; // Exchanges to route orders to
 
   // ─── CONFIG ─────────────────────────────────────────────────────
   @Column({ name: 'is_enabled', type: 'boolean', default: true })

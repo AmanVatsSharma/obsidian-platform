@@ -17,13 +17,15 @@ import { FxCfdConnector } from './connectors/fx-cfd/fx-cfd.connector';
 import { IbkrConnector } from './connectors/ibkr/ibkr.connector';
 import { BinanceConnector } from './connectors/binance/binance.connector';
 import { UsEquitiesOptionsConnector } from './connectors/us-equities-options/us-equities-options.connector';
+import { KiteExecutionConnector } from './connectors/kite/kite-execution.connector';
 import { ExecutionGatewayController } from './controllers/execution-gateway.controller';
 import { ExecutionConnectorEntity } from './entities/execution-connector.entity';
 import { ExecutionGatewayService } from './services/execution-gateway.service';
 import { ExecutionGatewayResolver } from './execution-gateway.resolver';
+import { MarketModule } from '../market/market.module';
 
 @Module({
-  imports: [SharedModule, RbacModule, TypeOrmModule.forFeature([ExecutionConnectorEntity])],
+  imports: [SharedModule, RbacModule, MarketModule, TypeOrmModule.forFeature([ExecutionConnectorEntity])],
   controllers: [ExecutionGatewayController],
   providers: [
     ExecutionGatewayService,
@@ -34,8 +36,9 @@ import { ExecutionGatewayResolver } from './execution-gateway.resolver';
     CryptoCexConnector,
     BinanceConnector,
     CommoditiesConnector,
+    KiteExecutionConnector,
     ExecutionGatewayResolver,
   ],
-  exports: [ExecutionGatewayService],
+  exports: [ExecutionGatewayService, KiteExecutionConnector],
 })
 export class ExecutionGatewayModule {}

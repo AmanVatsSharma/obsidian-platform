@@ -31,7 +31,7 @@ import { usePathname } from 'next/navigation';
 import {
   Activity, AlertTriangle, BarChart2, Bell, BookOpen, Bot, Briefcase,
   ChevronRight, ChevronsLeft, ChevronsRight, ClipboardList, Code,
-  DollarSign, FileText, Filter, Layers, LayoutDashboard, Link2,
+  Database, DollarSign, FileText, Filter, Layers, LayoutDashboard, Link2,
   Megaphone, PieChart, Shield, TrendingUp, Users, Users2, UserCheck,
   Wallet, Webhook, Zap, Settings, RefreshCw, UserCog,
 } from 'lucide-react';
@@ -48,10 +48,12 @@ const ICON_MAP: Record<string, React.ReactNode> = {
   'client-groups':       <Users2 size={15} strokeWidth={2} />,
   'instruments':         <Layers size={15} strokeWidth={2} />,
   'market-providers':   <Database size={15} strokeWidth={2} />,
+  'kite-login':        <Key size={15} strokeWidth={2} />,
   'pricing-rules':     <Filter size={15} strokeWidth={2} />,
   'sessions':            <RefreshCw size={15} strokeWidth={2} />,
   'orders':              <ClipboardList size={15} strokeWidth={2} />,
   'risk-dashboard':      <Shield size={15} strokeWidth={2} />,
+  'segment-access':     <Users2 size={15} strokeWidth={2} />,
   'exposure-limits':     <BarChart2 size={15} strokeWidth={2} />,
   'surveillance':        <AlertTriangle size={15} strokeWidth={2} />,
   'aml-monitor':         <Bot size={15} strokeWidth={2} />,
