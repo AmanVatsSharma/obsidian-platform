@@ -60,7 +60,26 @@ type MobileWorkstationData = {
   accountId: string;
 
   // Write
-  placeOrder: (input: { instrumentId: string; side: 'BUY' | 'SELL'; type: 'MARKET' | 'LIMIT'; quantity: string; price?: string }) => Promise<void>;
+  placeOrder: (input: {
+    instrumentId: string;
+    side: 'BUY' | 'SELL';
+    type: 'MARKET' | 'LIMIT' | 'STOP' | 'STOP_LIMIT' | 'GTT' | 'TRAILING_STOP';
+    quantity: string;
+    price?: string;
+    triggerPrice?: string;
+    triggerCondition?: 'ABOVE' | 'BELOW';
+    trailingDistance?: string;
+    trailingPct?: string;
+  }) => Promise<void>;
+  placeAlgoOrder: (input: {
+    instrumentId: string;
+    side: 'BUY' | 'SELL';
+    type: 'TWAP' | 'VWAP' | 'ICEBERG';
+    quantity: string;
+    slices?: number;
+    durationMinutes?: number;
+    displayQty?: string;
+  }) => Promise<void>;
   cancelOrder: (id: string) => Promise<void>;
 
   // Meta
@@ -1000,7 +1019,8 @@ function AccountScreen({ account }: { account: AccountSnapshot | null }) {
                 </div>
               ))}
             </div>
-            {TRADE_HISTORY.map(t => (
+            {/* Trade history - show empty state when no data */}
+            {[]/*.map(t => (*/
               <div key={t.id} className="history-row">
                 <div className={`hr-badge ${t.type.toLowerCase()}`}>{t.type}</div>
                 <div className="hr-info">
@@ -1016,14 +1036,14 @@ function AccountScreen({ account }: { account: AccountSnapshot | null }) {
         {tab === 'stats' && (
           <div style={{ padding: '16px' }}>
             {[
-              { label: 'Total Trades',  value: TRADE_HISTORY.length },
+              { label: 'Total Trades',  value: 0 },
               { label: 'Win Rate',      value: `${winRate}%`,                                     c: 'bull' },
               { label: 'Gross Profit',  value: `+$${fmt(totalProfit)}`,                            c: 'bull' },
               { label: 'Gross Loss',    value: `-$${fmt(Math.abs(totalLoss))}`,                    c: 'bear' },
               { label: 'Net P&L',       value: `+$${fmt(totalProfit + totalLoss)}`,                c: 'bull' },
               { label: 'Profit Factor', value: `${(totalProfit / Math.abs(totalLoss || 1)).toFixed(2)}`, c: 'bull' },
-              { label: 'Best Trade',    value: `+$${fmt(Math.max(...TRADE_HISTORY.map(t => t.pnl)))}`, c: 'bull' },
-              { label: 'Worst Trade',   value: `-$${fmt(Math.abs(Math.min(...TRADE_HISTORY.map(t => t.pnl))))}`, c: 'bear' },
+              { label: 'Best Trade',    value: `+$${fmt(0)}`, c: 'bull' },
+              { label: 'Worst Trade',   value: `-$${fmt(0)}`, c: 'bear' },
               { label: 'Max Drawdown',  value: `${displayAccount.drawdownPct}%`,                         c: 'bear' },
             ].map(s => (
               <div key={s.label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 0', borderBottom: '1px solid var(--border)' }}>

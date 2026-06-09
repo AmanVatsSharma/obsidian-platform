@@ -1,35 +1,40 @@
 /**
  * File:        apps/broker-admin/src/app/(admin)/instruments/page.tsx
  * Module:      broker-admin · Trading · Instruments
- * Purpose:     Instrument management table with inline editing and full-edit modal
+ * Purpose:     Enterprise instrument management with multi-exchange, multi-segment,
+ *              provider filtering, bulk operations, and inline editing.
  *
  * Exports:
- *   - default (InstrumentsPage) — instruments table, inline spread/lot edits, enable/disable
+ *   - default (InstrumentsPage) — instruments table with filters and controls
  *
  * Depends on:
  *   - @/lib/mock-data-context — useBrokerData() for instruments list
- *   - @/lib/types             — Instrument, AssetClass
+ *   - @/lib/types — Instrument, InstrumentSegment, Exchange, DataProvider
  *
  * Side-effects:
  *   - Local useState copy of instruments (mutations don't persist to context)
  *
  * Key invariants:
- *   - Inline edits are staged in `unsaved` record and batch-saved; Escape discards
- *   - Modal uses local copy of instrument data; saved back on confirm
- *   - assetClass used as category filter (not prototype's "category" field)
+ *   - Exchange + Segment filters enable multi-exchange platform control
+ *   - Provider column shows data provider for each instrument
+ *   - Inline edits staged and batch-saved; Escape discards
+ *   - Modal uses local copy; saved back on confirm
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-24
+ * Last-updated: 2026-06-09
  */
 
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
-import { Settings, Save, RotateCcw, Plus } from 'lucide-react';
+import { Settings, Save, RotateCcw, Plus, RefreshCw, Download, Upload } from 'lucide-react';
 import { useBrokerData } from '@/lib/mock-data-context';
-import type { Instrument, AssetClass } from '@/lib/types';
+import type { Instrument, AssetClass, InstrumentSegment, Exchange, DataProvider } from '@/lib/types';
 
 const ASSET_CLASSES: (AssetClass | 'All')[] = ['All', 'Forex', 'Crypto', 'Indices', 'Commodities', 'Stocks', 'ETF'];
+const SEGMENTS: (InstrumentSegment | 'All')[] = ['All', 'EQ', 'FNO', 'COM', 'CDS', 'FX', 'CRYPTO', 'INDEX'];
+const EXCHANGES: (string | 'All')[] = ['All', 'NSE', 'BSE', 'MCX', 'NASDAQ', 'NYSE'];
+const PROVIDERS: (string | 'All')[] = ['All', 'KITE', 'ALPACA', 'BINANCE'];
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 const MODAL_TABS = ['General', 'Pricing', 'Leverage', 'Sessions', 'Swaps'] as const;
 

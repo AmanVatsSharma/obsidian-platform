@@ -197,24 +197,88 @@ export interface ClientGroup {
 
 export type AssetClass = 'Forex' | 'Indices' | 'Commodities' | 'Crypto' | 'Stocks' | 'ETF';
 
+// New enterprise instrument types - supports multi-exchange, multi-segment, multi-provider
+export type InstrumentStatus = 'Active' | 'Disabled' | 'Halted' | 'Archived';
+export type InstrumentSegment = 'EQ' | 'FNO' | 'COM' | 'CDS' | 'FX' | 'CRYPTO' | 'INDEX';
+export type InstrumentType = 'EQUITY' | 'FUTURE' | 'OPTION' | 'ETF' | 'FOREX' | 'CRYPTO' | 'INDEX';
+
 export interface Instrument {
   id: string;
   symbol: string;
   name: string;
   assetClass: AssetClass;
-  status: 'Active' | 'Disabled' | 'Halted';
+  // Extended fields for enterprise multi-exchange support
+  exchange?: string;        // NSE, BSE, MCX, NASDAQ
+  segment?: InstrumentSegment; // EQ, FNO, COM, CDS, FX, CRYPTO, INDEX
+  type?: InstrumentType;
+  status: InstrumentStatus;
+  isTradingEnabled?: boolean;
+  // Provider linkage
+  providerCode?: string;    // KITE, ALPACA, BINANCE
+  providerSymbol?: string;  // Provider's native symbol
+  // Trading params
   spread: number;
   spreadType: 'Fixed' | 'Variable';
+  spreadOverride?: number;
   minLot: number;
   maxLot: number;
   lotStep: number;
+  lotOverride?: number;
   leverage: string;
+  leverageOverride?: string;
+  maxPositionOverride?: number;
+  // Derivatives (F&O)
+  baseSymbol?: string;
+  expiry?: string;
+  strike?: number;
+  optionType?: 'CE' | 'PE';
+  expiryLabel?: string;
+  // Meta
+  tickSize?: string;
+  contractSize?: string;
+  // Stats
+  openPositions: number;
+  volumeToday: number;
+  // Swaps (forex)
   swapLong: number;
   swapShort: number;
   digits: number;
-  contractSize: number;
-  openPositions: number;
-  volumeToday: number;
+}
+
+// ─── EXCHANGE ────────────────────────────────────────────────────────────────
+export type ExchangeStatus = 'Active' | 'Maintenance' | 'Suspended';
+export type ExchangeSegment = 'EQUITY' | 'FNO' | 'COM' | 'CDS' | 'ALL';
+
+export interface Exchange {
+  id: string;
+  code: string;           // NSE, BSE, MCX
+  name: string;
+  country?: string;
+  timezone?: string;
+  segment: ExchangeSegment;
+  status: ExchangeStatus;
+  dataProviderCode?: string;   // KITE, ALPACA
+  executionProviderCode?: string;
+  regularOpen?: string;
+  regularClose?: string;
+  currency?: string;
+  isDefault?: boolean;
+}
+
+// ─── DATA PROVIDER ────────────────────────────────────────────────────────────────
+export type ProviderStatus = 'Connected' | 'Disconnected' | 'Error';
+
+export interface DataProvider {
+  id: string;
+  code: string;           // KITE, ALPACA, BINANCE
+  name: string;
+  providerType: 'data' | 'execution' | 'both';
+  exchanges: string[];     // Mapped exchanges
+  status: ProviderStatus;
+  lastHealthCheck?: string;
+  latency?: number;
+  instrumentCount?: number;
+  errorMessage?: string;
 }
 
 // ─── PRICING RULE ─────────────────────────────────────────────────────────────
