@@ -1,0 +1,66 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - generic [ref=e4]:
+      - generic [ref=e5]: NestTrade
+      - generic [ref=e6]: demo
+    - navigation [ref=e7]:
+      - link "Workstation" [ref=e8] [cursor=pointer]:
+        - /url: /workstation
+      - link "Mobile" [ref=e9] [cursor=pointer]:
+        - /url: /m/workstation
+      - link "Open Terminal" [ref=e10] [cursor=pointer]:
+        - /url: /workstation
+  - main [ref=e11]:
+    - generic [ref=e12]:
+      - heading "Professional trading, demo-ready." [level=1] [ref=e13]
+      - paragraph [ref=e14]: Obsidian is a multi-surface trading platform. All views below run on mock data — no login, no backend required.
+    - link "Open Trading Workstation" [ref=e15] [cursor=pointer]:
+      - /url: /workstation
+      - img [ref=e16]
+      - text: Open Trading Workstation
+    - generic [ref=e19]:
+      - link "Workstation Desktop Full-screen desktop trading terminal with charting, DOM, and order book. Open →" [ref=e20] [cursor=pointer]:
+        - /url: /workstation
+        - generic [ref=e21]:
+          - generic [ref=e22]: Workstation
+          - generic [ref=e23]: Desktop
+        - paragraph [ref=e24]: Full-screen desktop trading terminal with charting, DOM, and order book.
+        - generic [ref=e25]: Open →
+      - link "Mobile Terminal Mobile PWA-ready mobile app with bottom nav, 8 screens, and swipe-to-close positions. Open →" [ref=e26] [cursor=pointer]:
+        - /url: /m/workstation
+        - generic [ref=e27]:
+          - generic [ref=e28]: Mobile Terminal
+          - generic [ref=e29]: Mobile
+        - paragraph [ref=e30]: PWA-ready mobile app with bottom nav, 8 screens, and swipe-to-close positions.
+        - generic [ref=e31]: Open →
+      - link "Portfolio Trader Positions, holdings, and P&L surfaces inside the AppShell. Open →" [ref=e32] [cursor=pointer]:
+        - /url: /portfolio
+        - generic [ref=e33]:
+          - generic [ref=e34]: Portfolio
+          - generic [ref=e35]: Trader
+        - paragraph [ref=e36]: Positions, holdings, and P&L surfaces inside the AppShell.
+        - generic [ref=e37]: Open →
+      - link "Funds Trader Balances, linked accounts, deposits, withdrawals, and transaction history. Open →" [ref=e38] [cursor=pointer]:
+        - /url: /funds
+        - generic [ref=e39]:
+          - generic [ref=e40]: Funds
+          - generic [ref=e41]: Trader
+        - paragraph [ref=e42]: Balances, linked accounts, deposits, withdrawals, and transaction history.
+        - generic [ref=e43]: Open →
+      - link "Orders Trader Live orders, pending queue, and trade history with advanced filters. Open →" [ref=e44] [cursor=pointer]:
+        - /url: /orders
+        - generic [ref=e45]:
+          - generic [ref=e46]: Orders
+          - generic [ref=e47]: Trader
+        - paragraph [ref=e48]: Live orders, pending queue, and trade history with advanced filters.
+        - generic [ref=e49]: Open →
+      - link "Onboarding Trader KYC, profile completion, and broker profile setup wizard. Open →" [ref=e50] [cursor=pointer]:
+        - /url: /onboarding
+        - generic [ref=e51]:
+          - generic [ref=e52]: Onboarding
+          - generic [ref=e53]: Trader
+        - paragraph [ref=e54]: KYC, profile completion, and broker profile setup wizard.
+        - generic [ref=e55]: Open →
+  - contentinfo [ref=e56]:
+    - generic [ref=e57]: Obsidian · Demo build · No backend integration
+    - generic [ref=e58]: apps/web · Next.js 15 · App Router

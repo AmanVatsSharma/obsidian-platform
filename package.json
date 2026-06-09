@@ -21,6 +21,8 @@
     "lint:desktop": "nx run desktop-pro:lint",
     "lint:wave2-surfaces": "nx run-many -t lint --projects=dealer-workstation,support-ops,ib-portal,developer-portal,public-site,mobile,desktop-pro",
     "test": "nx run-many -t test --all",
+    "test:web": "nx test web",
+    "test:backend": "nx test backend",
     "e2e": "nx run web-e2e:e2e",
     "affected:lint": "nx run-many -t lint --projects=backend,backend-auth,backend-rbac,backend-tenancy,backend-oms,backend-market,backend-accounts,broker-admin,web --skip-nx-cache",
     "affected:test": "nx affected -t test",
