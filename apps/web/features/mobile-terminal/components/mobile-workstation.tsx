@@ -56,6 +56,7 @@ export type MobileWorkstationData = {
 export type MobileWorkstationProps = {
   onDemoToggle?: (enabled: boolean) => void;
   demoMode?: boolean;
+  desktopHref?: string;
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────

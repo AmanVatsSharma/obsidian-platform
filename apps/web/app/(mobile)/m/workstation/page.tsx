@@ -36,5 +36,5 @@ export default function MobileWorkstationPage() {
   const searchParams = useSearchParams();
   const demoMode = useMemo(() => searchParams.get('demo') === '1', [searchParams]);
 
-  return <MobileWorkstation demoMode={demoMode} />;
+  return <MobileWorkstation demoMode={demoMode} desktopHref="/workstation?desktop=1" />;
 }

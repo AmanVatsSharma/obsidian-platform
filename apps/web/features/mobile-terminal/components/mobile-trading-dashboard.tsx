@@ -36,11 +36,12 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import Link from 'next/link';
 import {
   Home, BarChart2, TrendingUp, Briefcase, User,
   Search, Bell, Settings, X, Plus, RefreshCw, Activity,
   ChevronLeft, ArrowUpRight, ArrowDownRight, Layers,
-  CandlestickChart, SlidersHorizontal, Shield, LogOut,
+  CandlestickChart, SlidersHorizontal, Shield, LogOut, Monitor,
 } from 'lucide-react';
 import type { Instrument, OpenPosition, ToastItem, AccountSnapshot, QuoteDto, PendingOrder, PriceMap } from '@/features/trading-terminal/lib/types';
 import {
@@ -72,6 +73,7 @@ type MobileWorkstationData = {
 type MobileTradingDashboardProps = {
   data?: MobileWorkstationData;
   onSetActiveSymbol?: (symbol: string) => void;
+  desktopHref?: string;
 };
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -143,12 +145,13 @@ function ToastLayer({ toasts }: { toasts: ToastItem[] }) {
 
 /* ─── Home Screen ────────────────────────────────────────────────────────── */
 function HomeScreen({
-  prices, positions, onSymbol, onTrade,
+  prices, positions, onSymbol, onTrade, desktopHref,
 }: {
   prices: PriceMap;
   positions: OpenPosition[];
   onSymbol: (inst: Instrument) => void;
   onTrade: (side: 'buy' | 'sell') => void;
+  desktopHref?: string;
 }) {
   const totalPnl = positions.reduce((s, p) => s + p.pnl, 0);
   return (
@@ -158,6 +161,9 @@ function HomeScreen({
         <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '4px' }}>
           <div className="status-pill"><div className="status-pill-dot" />LIVE</div>
           <button className="m-icon-btn"><Bell size={18} /><span className="m-notif-badge" /></button>
+          {desktopHref && (
+            <Link href={desktopHref} className="m-icon-btn" style={{ textDecoration: 'none', color: 'var(--text)' }}><Monitor size={18} /></Link>
+          )}
           <div className="m-avatar">AM</div>
         </div>
       </div>
@@ -1035,6 +1041,7 @@ function BottomNav({ active, onChange, onTrade }: { active: Screen; onChange: (s
 export function MobileTradingDashboard({
   data,
   onSetActiveSymbol,
+  desktopHref,
 }: MobileTradingDashboardProps) {
   const resolved = data ?? {
     instruments: INSTRUMENTS,
@@ -1226,7 +1233,7 @@ export function MobileTradingDashboard({
       )}
 
       <div style={{ paddingTop: resolved.error || !resolved.isAuthenticated ? (resolved.error && !resolved.isAuthenticated ? '72px' : '36px') : 0 }}>
-        {screen === 'home'      && <HomeScreen prices={prices} positions={displayPositions} onSymbol={handleSymbol} onTrade={(s) => { setTradeSide(s); setShowTrade(true); }} />}
+        {screen === 'home'      && <HomeScreen prices={prices} positions={displayPositions} onSymbol={handleSymbol} onTrade={(s) => { setTradeSide(s); setShowTrade(true); }} desktopHref={desktopHref} />}
         {screen === 'chart'     && <ChartScreen instrument={activeInstrument} prices={prices} onTrade={handleTrade} onBack={() => setScreen('markets')} />}
         {screen === 'portfolio' && <PortfolioScreen positions={displayPositions} onClose={handleClosePosition} onTrade={handleTrade} />}
         {screen === 'markets'   && <MarketsScreen prices={prices} onSelect={(inst) => { setActive(inst); setScreen('chart'); }} />}
