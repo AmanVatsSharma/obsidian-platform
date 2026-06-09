@@ -11,6 +11,7 @@
  *   - @obsidian/trading-ui — TradingWorkstation (lib), Instrument, PlaceUiOrder
  *   - @/shared/providers/auth-provider — useAuth (web-only auth context)
  *   - @/shared/fetch-with-auth — fetchWithAuth (auth-aware REST helper, signed FetchJsonFn)
+ *   - @/features/trading-terminal/lib/workstation-api — submitAlgoOrderToOms, resolveApiType, PlaceUiOrder (web-extended)
  *   - @/gql/hooks/useInstruments — instrument catalogue hook (pollInterval: 5000)
  *   - @/gql/hooks/useAccountBalance — account balance hook
  *   - @/gql/hooks/usePlaceOrder — order submission mutation hook
@@ -22,7 +23,8 @@
  * Side-effects:
  *   - Network calls via Apollo Client (useInstruments + useAccountBalance queries,
  *     placeOrder mutation + useOrders + usePositions + useQuote)
- *   - REST calls via fetchWithAuth (fetchJson prop) for /market/watchlists and /api/orders
+ *   - REST calls via fetchWithAuth (fetchJson prop) for /market/watchlists, /api/orders,
+ *     and /api/orders/algo (TWAP / VWAP / ICEBERG)
  *
  * Key invariants:
  *   - accessToken absent → auth header is omitted (unauthenticated mode)
@@ -30,6 +32,11 @@
  *   - AccountSummaryPanel receives live balance from useAccountBalance (falls back to mock)
  *   - TradingWorkstation receives onTradeSubmit (GraphQL-compatible bridge)
  *   - TradingWorkstation receives fetchJson = fetchWithAuth (real REST, NOT a noop stub)
+ *   - onTradeSubmit dispatches TWAP / VWAP / ICEBERG to submitAlgoOrderToOms (REST);
+ *     MARKET / LIMIT to usePlaceOrderMutation (GraphQL)
+ *   - Algo kind is resolved from uiOrder.algoType first, else mapped from uiOrder.type
+ *     via resolveApiType (lib's PlaceUiOrder has no algoType field — only the web-extended
+ *     type does, so the type-mapping fallback keeps the algo path exercisable today)
  *   - ApolloProviderWrapper is already mounted in layout.tsx — no double-wrapping
  *   - QuoteUpdater polls active instrument every 2 s; full injection into lib prices is P4
  *
@@ -53,7 +60,7 @@ import { useGetOrdersQuery } from '@/gql/hooks';
 import { useGetPositionsQuery } from '@/gql/hooks';
 import { useGetQuoteQuery } from '@/gql/hooks';
 import { nanoid } from 'nanoid';
-import { submitAlgoOrderToOms } from '@/features/trading-terminal/lib/workstation-api';
+import { submitAlgoOrderToOms, resolveApiType } from '@/features/trading-terminal/lib/workstation-api';
 import type { PlaceUiOrder } from '@/features/trading-terminal/lib/workstation-api';
 import type { Instrument } from '@obsidian/trading-ui';
 import type { OpenPosition } from '@obsidian/trading-ui';
@@ -184,6 +191,14 @@ export function TradingWorkstation({
   // Dispatch bridge — routes to the algo REST endpoint for TWAP/VWAP/ICEBERG
   // (backend has no GraphQL algoOrder mutation), and to usePlaceOrderMutation
   // for all other types.
+  //
+  // The lib's `PlaceUiOrder` (from @obsidian/trading-ui) does NOT carry an
+  // `algoType` discriminator — it only exposes the 7 base fields. The local
+  // web `PlaceUiOrder` extends it with `algoType` + algo params so the local
+  // `OrderEntry` (with progressive disclosure) can populate them. Until that
+  // form is wired into the lib's panel, we ALSO fall back to detecting algo
+  // by mapping `uiOrder.type` through `resolveApiType` so the path is exercised
+  // even when callers only set the plain `type` string (e.g. 'TWAP').
   type TradeResult = { ok: true; detail?: string } | { ok: false; message: string };
   const onTradeSubmit = useMemo<(uiOrder: PlaceUiOrder) => Promise<TradeResult>>(
     () =>
@@ -197,8 +212,30 @@ export function TradingWorkstation({
         }
 
         // ── Algo path (TWAP / VWAP / ICEBERG) → POST /api/orders/algo ─────────
-        if (uiOrder.algoType === 'TWAP' || uiOrder.algoType === 'VWAP' || uiOrder.algoType === 'ICEBERG') {
-          return submitAlgoOrderToOms(fetchWithAuth, uiOrder);
+        // Resolve the algo kind from the explicit `algoType` discriminator first
+        // (set by the local web OrderEntry) and fall back to mapping `type`.
+        const algoKind =
+          uiOrder.algoType ?? (() => {
+            const mapped = resolveApiType(uiOrder.type);
+            return mapped === 'TWAP' || mapped === 'VWAP' || mapped === 'ICEBERG'
+              ? mapped
+              : undefined;
+          })();
+
+        if (algoKind) {
+          // Defensive type guard: catch malformed payloads before they reach the
+          // OMS so the user sees a clear "AppError-style" message rather than a
+          // 400 from the backend or, worse, a silent fall-through to GraphQL.
+          if (!uiOrder.lots || parseFloat(uiOrder.lots) <= 0) {
+            return { ok: false, message: `${algoKind} orders require totalQuantity > 0.` };
+          }
+          if (algoKind !== 'ICEBERG' && (uiOrder.slices ?? 0) < 2) {
+            return { ok: false, message: `${algoKind} requires slices >= 2.` };
+          }
+          if (algoKind === 'ICEBERG' && (uiOrder.displayQty ?? uiOrder.slices ?? 0) < 1) {
+            return { ok: false, message: 'Iceberg displayQty must be >= 1.' };
+          }
+          return submitAlgoOrderToOms(fetchWithAuth, { ...uiOrder, algoType: algoKind });
         }
 
         // ── Regular path → GraphQL usePlaceOrderMutation ──────────────────────
