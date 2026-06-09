@@ -63,6 +63,7 @@ import { OrderEventsService } from '../oms/services/order-events.service';
     GreeksCalculatorService,
     CircuitBreakerService,
     AutoLiquidationWorker,
+    OrderEventsService,
   ],
   exports: [
     RiskEngineService,
