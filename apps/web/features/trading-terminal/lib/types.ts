@@ -23,7 +23,22 @@ export type Instrument = {
   digits: number;
   /** When set (e.g. from `/market/watchlists/.../items`) orders can be sent to OMS. */
   instrumentId?: string;
+  /** Internal DTO id used as the GraphQL `instrumentId` for placing orders. */
+  id?: string;
+  /** Latest price — used in mobile dashboard price display. */
+  lastPrice?: number;
 };
+
+/** Live quote snapshot for a single instrument (e.g. `/market/quotes/...`). */
+export type QuoteDto = {
+  symbol: string;
+  exchange: string;
+  price: number;
+  ts: string;
+};
+
+/** Price map for mobile dashboard — maps symbol to live quote. */
+export type PriceMap = Record<string, QuoteDto | Instrument>;
 
 export type DomRow = {
   price: number;

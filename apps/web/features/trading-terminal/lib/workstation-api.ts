@@ -117,8 +117,10 @@ export type PlaceUiOrder = {
 /**
  * Map UI type label to API OrderTypeExtended value.
  * Unrecognised labels default to LIMIT (covers legacy "Limit" / "Stop" / "Market" strings).
+ * Exported so the dispatch bridge in trading-workstation.tsx can detect algo types from
+ * the lib's plain `type` string (which does NOT carry an explicit algoType discriminator).
  */
-function resolveApiType(uiType: string): OrderTypeExtended {
+export function resolveApiType(uiType: string): OrderTypeExtended {
   const map: Record<string, OrderTypeExtended> = {
     Market: 'MARKET',
     Limit: 'LIMIT',
@@ -223,7 +225,13 @@ export async function submitAlgoOrderToOms(
     return { ok: false, message: 'Pick a watchlist-backed instrument or set NEXT_PUBLIC_DEMO_INSTRUMENT_ID.' };
   }
 
-  const algoType = resolveApiType(ui.type);
+  // Trust explicit `algoType` discriminator first; fall back to type mapping.
+  const algoType = (ui.algoType as 'TWAP' | 'VWAP' | 'ICEBERG' | undefined) ??
+    (() => {
+      const mapped = resolveApiType(ui.type);
+      return mapped === 'TWAP' || mapped === 'VWAP' || mapped === 'ICEBERG' ? mapped : undefined;
+    })();
+
   if (algoType !== 'TWAP' && algoType !== 'VWAP' && algoType !== 'ICEBERG') {
     return { ok: false, message: `submitAlgoOrderToOms called with non-algo type: ${algoType}` };
   }
