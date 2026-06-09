@@ -73,8 +73,6 @@ export type MobileWorkstationData = {
 };
 
 export type MobileWorkstationProps = {
-  onDemoToggle?: (enabled: boolean) => void;
-  demoMode?: boolean;
   desktopHref?: string;
 };
 
@@ -100,7 +98,7 @@ const mapOrder = (o: any, instruments: Instrument[]): PendingOrder => {
 // or signals loading/error to the UI via the data prop.
 //
 
-export function MobileWorkstation({ onDemoToggle, demoMode = false }: MobileWorkstationProps) {
+export function MobileWorkstation({ }: MobileWorkstationProps) {
   const { accessToken } = useAuth();
   const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID ?? '';
   const isAuthenticated = !!(accessToken && accountId);

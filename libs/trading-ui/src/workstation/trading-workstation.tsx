@@ -111,7 +111,7 @@ export function TradingWorkstation({
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
-      const merged = await mergeApiWatchlistInstruments(fetchJson, [...INSTRUMENTS]);
+      const merged = await mergeApiWatchlistInstruments(fetchJson, []);
       if (!cancelled) {
         setInstruments(merged);
         setPrices((prev) => {
@@ -227,7 +227,7 @@ export function TradingWorkstation({
   );
 
   const pinned = useMemo(() => {
-    const catalogue = instruments.filter((i) => INSTRUMENTS.some((b) => b.symbol === i.symbol));
+    const catalogue = instruments.filter((i) => instruments.some((b) => b.symbol === i.symbol));
     return (catalogue.length ? catalogue : instruments).slice(0, 5);
   }, [instruments]);
 
