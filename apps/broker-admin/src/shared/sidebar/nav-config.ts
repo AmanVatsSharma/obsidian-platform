@@ -36,10 +36,11 @@ export const NAV_GROUPS: NavGroup[] = [
   {
     section: 'TRADING',
     items: [
-      { id: 'instruments',   label: 'Instruments',      href: '/instruments' },
-      { id: 'pricing-rules', label: 'Pricing Rules',    href: '/pricing-rules' },
-      { id: 'sessions',      label: 'Trading Sessions', href: '/trading-sessions' },
-      { id: 'orders',        label: 'Order Management', href: '/orders' },
+      { id: 'instruments',      label: 'Instruments',       href: '/instruments' },
+      { id: 'market-providers', label: 'Data Providers',  href: '/market-providers' },
+      { id: 'pricing-rules',    label: 'Pricing Rules',    href: '/pricing-rules' },
+      { id: 'sessions',         label: 'Trading Sessions',  href: '/trading-sessions' },
+      { id: 'orders',           label: 'Order Management', href: '/orders' },
     ],
   },
   {
