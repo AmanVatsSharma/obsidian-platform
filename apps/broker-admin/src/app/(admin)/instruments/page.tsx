@@ -300,7 +300,9 @@ export default function InstrumentsPage() {
 
   const getVal = (inst: Instrument, field: keyof Instrument): number => {
     const key = `${inst.symbol}.${field}` as UnsavedKey;
-    return (key in unsaved ? unsaved[key] : inst[field]) as number;
+    // For existing fields, get value or default. For new fields (Exchange, Segment), return 0
+    const val = key in unsaved ? unsaved[key] : inst[field];
+    return typeof val === 'number' ? val : 0;
   };
 
   const stageEdit = (symbol: string, field: keyof Instrument, value: number) => {

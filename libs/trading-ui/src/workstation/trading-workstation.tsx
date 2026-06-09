@@ -101,12 +101,12 @@ export function TradingWorkstation({
 }) {
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [activeInstrument, setActiveInstrument] = useState<Instrument | null>(
-    initialInstrument !== undefined ? initialInstrument : INSTRUMENTS[0] ?? null,
+    initialInstrument !== undefined ? initialInstrument : null,
   );
   const [prices, setPrices] = useState<Record<string, Instrument>>(() =>
     Object.fromEntries(INSTRUMENTS.map((i) => [i.symbol, { ...i }])),
   );
-  const [positions, setPositions] = useState<OpenPosition[]>(seededPositions ?? OPEN_POSITIONS);
+  const [positions, setPositions] = useState<OpenPosition[]>(seededPositions ?? []);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const [ping, setPing] = useState(12);
 
