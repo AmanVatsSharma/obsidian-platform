@@ -20,59 +20,70 @@
  *   - On success, AuthProvider stores the access token; page redirects to /dashboard
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-09
+ * Last-updated: 2026-06-10
  */
 
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/shared/providers/auth-provider';
-import { AuthShell, FormCard, TextInput, PrimaryButton, FieldLabel, AuthIcons } from '@obsidian/web-auth';
+import { AuthShell, FormCard, TextInput, PrimaryButton, FieldLabel, AuthIcons, CountrySelector, OtpInput } from '@obsidian/web-auth';
 
 const TENANT_ID = process.env.NEXT_PUBLIC_TENANT_ID ?? 'web';
+
+interface Country {
+  code: string;
+  name: string;
+  dialCode: string;
+}
 
 export default function LoginPage() {
   const router = useRouter();
   const { requestOtp, verifyOtp } = useAuth();
 
+  // Determine default country from browser locale or saved preference
+  const getDefaultCountry = (): Country => {
+    const savedCountry = localStorage.getItem('preferred-country');
+    if (savedCountry) {
+      const parsed = JSON.parse(savedCountry);
+      return parsed; // code, name, dialCode format
+    }
+
+    // Try to detect from browser locale
+    const locale = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase();
+    const defaultCountry: Country | null = {
+      'US': { code: 'US', name: 'United States', dialCode: '+1' },
+      'GB': { code: 'GB', name: 'United Kingdom', dialCode: '+44' },
+      'IN': { code: 'IN', name: 'India', dialCode: '+91' },
+      'SG': { code: 'SG', name: 'Singapore', dialCode: '+65' },
+      'AU': { code: 'AU', name: 'Australia', dialCode: '+61' },
+      'CA': { code: 'CA', name: 'Canada', dialCode: '+1' },
+      'DE': { code: 'DE', name: 'Germany', dialCode: '+49' },
+      'FR': { code: 'FR', name: 'France', dialCode: '+33' },
+      'JP': { code: 'JP', name: 'Japan', dialCode: '+81' },
+      'AE': { code: 'AE', name: 'UAE', dialCode: '+971' },
+    }[locale] || { code: 'IN', name: 'India', dialCode: '+91' };
+
+    return defaultCountry;
+  };
+
   const [step, setStep] = useState<'mobile' | 'otp'>('mobile');
+  const [country, setCountry] = useState<Country>(getDefaultCountry);
   const [mobile, setMobile] = useState('');
   const [otp, setOtp] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [digits, setDigits] = useState<string[]>(['', '', '', '', '', '']);
+  // Derive full E.164 number for API
+  const fullMobile = country ? `${country.dialCode}${mobile.replace(/^\+/, '')}` : mobile;
 
-  function handleDigit(i: number, v: string) {
-    const c = v.replace(/\D/g, '').slice(-1);
-    const next = [...digits];
-    next[i] = c;
-    setDigits(next);
-    setOtp(next.join(''));
-    if (c && i < 5) otpRefs.current[i + 1]?.focus();
-  }
-
-  function handleDigitKeyDown(i: number, e: React.KeyboardEvent) {
-    if (e.key === 'Backspace' && !digits[i] && i > 0) otpRefs.current[i - 1]?.focus();
-  }
-
-  function handleDigitPaste(e: React.ClipboardEvent) {
-    const text = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
-    if (text.length === 6) {
-      setDigits(text.split(''));
-      setOtp(text);
-      otpRefs.current[5]?.focus();
-    }
-    e.preventDefault();
-  }
 
   async function handleRequestOtp() {
     setError('');
     setLoading(true);
     try {
-      await requestOtp(TENANT_ID, mobile.trim());
+      await requestOtp(TENANT_ID, fullMobile);
       setStep('otp');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to send OTP');
@@ -85,12 +96,26 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
     try {
-      await verifyOtp({ tenantId: TENANT_ID, mobileE164: mobile.trim(), otp: otp.trim() });
+      await verifyOtp({ tenantId: TENANT_ID, mobileE164: fullMobile, otp: otp.trim() });
       router.replace('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');
     } finally {
       setLoading(false);
+    }
+  }
+
+  function handleOtpChange(value: string) {
+    setOtp(value);
+  }
+
+  // Save country preference to localStorage on change
+  function handleCountryChange(newCountry: Country) {
+    setCountry(newCountry);
+    try {
+      localStorage.setItem('preferred-country', JSON.stringify(newCountry));
+    } catch {
+      // localStorage unavailable (private browsing, etc.)
     }
   }
 
@@ -111,12 +136,20 @@ export default function LoginPage() {
         >
           <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <FieldLabel>Mobile number (E.164)</FieldLabel>
+              <FieldLabel>Country</FieldLabel>
+              <CountrySelector
+                selectedCountry={country}
+                onCountryChange={handleCountryChange}
+              />
+            </div>
+
+            <div>
+              <FieldLabel>Mobile number</FieldLabel>
               <TextInput
                 value={mobile}
                 onChange={setMobile}
                 type="tel"
-                placeholder="+919999999999"
+                placeholder={country ? `${country.dialCode} 9999999999` : 'Select country first'}
                 icon={AuthIcons.phone}
                 autoFocus
               />
@@ -144,7 +177,7 @@ export default function LoginPage() {
       <FormCard
         back={
           <span
-            onClick={() => { setStep('mobile'); setDigits(['', '', '', '', '', '']); setOtp(''); setError(''); }}
+            onClick={() => { setStep('mobile'); setOtp(''); setError(''); }}
             style={{
               display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
               fontFamily: 'var(--font-data)', fontSize: 10, fontWeight: 600,
@@ -158,7 +191,7 @@ export default function LoginPage() {
         subtitle={
           <>
             We sent a 6-digit code to{' '}
-            <span style={{ color: 'var(--fg1)', fontFamily: 'var(--font-data)' }}>{mobile}</span>.
+            <span style={{ color: 'var(--fg1)', fontFamily: 'var(--font-data)' }}>{fullMobile}</span>.
             Code expires in 10 minutes.
           </>
         }
@@ -166,29 +199,19 @@ export default function LoginPage() {
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           <div>
             <FieldLabel>One-time passcode</FieldLabel>
-            <div style={{ display: 'flex', gap: 10 }} onPaste={handleDigitPaste}>
-              {digits.map((d, i) => (
-                <input
-                  key={i}
-                  ref={el => { otpRefs.current[i] = el; }}
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={1}
-                  value={d}
-                  autoFocus={i === 0}
-                  onChange={e => handleDigit(i, e.target.value)}
-                  onKeyDown={e => handleDigitKeyDown(i, e)}
-                  style={{
-                    flex: 1, height: 64, borderRadius: 'var(--r-md)',
-                    background: d ? 'var(--bg-panel)' : 'var(--bg-elevated)',
-                    border: `1px solid ${!d && i === digits.findIndex(x => !x) ? 'var(--accent)' : d ? 'var(--border-md)' : 'var(--border)'}`,
-                    boxShadow: (!d && i === digits.findIndex(x => !x)) ? '0 0 0 3px rgba(59,130,246,0.15)' : 'none',
-                    textAlign: 'center',
-                    fontFamily: 'var(--font-data)', fontSize: 28, fontWeight: 600,
-                    color: 'var(--fg1)', outline: 'none',
-                  }}
-                />
-              ))}
+            <OtpInput
+              value={otp}
+              onChange={handleOtpChange}
+              error={!!error}
+            />
+            <div style={{
+              marginTop: '6px',
+              fontFamily: 'var(--font-data)',
+              fontSize: 11,
+              color: 'var(--fg3)',
+              textAlign: 'center',
+            }}>
+              Enter the 6-digit code sent to {fullMobile}
             </div>
           </div>
 
@@ -214,7 +237,7 @@ export default function LoginPage() {
             <span>OTP valid for 10 minutes</span>
             <span style={{ marginLeft: 'auto' }}>
               <span
-                onClick={() => requestOtp(TENANT_ID, mobile.trim())}
+                onClick={() => requestOtp(TENANT_ID, fullMobile)}
                 style={{
                   color: 'var(--accent)', cursor: 'pointer',
                   letterSpacing: '0.06em', textTransform: 'uppercase', fontSize: 9, fontWeight: 600,

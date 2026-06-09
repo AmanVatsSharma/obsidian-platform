@@ -10,6 +10,7 @@ import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SharedModule } from '../../../shared/shared.module';
 import { RbacModule } from '../../rbac/rbac.module';
+import { MarketModule } from '../../market/market.module';
 import { PranaStreamGateway } from './gateway/prana-stream.gateway';
 import { SubscriptionRegistryService } from './services/subscription-registry.service';
 import { WsJwtGuard } from './guards/ws-jwt.guard';
@@ -19,6 +20,7 @@ import { CompositeMarketDataAdapter } from './adapters/composite-market-data.ada
 import { MainMarketDataAdapter } from './adapters/main-market-data.adapter';
 import { VortexMarketDataAdapter } from './adapters/vortex-market-data.adapter';
 import { MockMarketDataAdapter } from './adapters/mock-market-data.adapter';
+import { KiteMarketDataAdapter } from './adapters/kite-market-data.adapter';
 import { RealtimePublisherService } from './services/realtime-publisher.service';
 import { RealtimeScaleCoordinatorService } from './services/realtime-scale-coordinator.service';
 import { AdminPranaController } from './controllers/admin-prana.controller';
@@ -33,6 +35,7 @@ import { RealtimeResolver } from './realtime.resolver';
   imports: [
     SharedModule,
     RbacModule,
+    MarketModule,
     JwtModule.register({}),
     TypeOrmModule.forFeature([
       AccountEntity,
@@ -52,6 +55,7 @@ import { RealtimeResolver } from './realtime.resolver';
     MainMarketDataAdapter,
     VortexMarketDataAdapter,
     MockMarketDataAdapter,
+    KiteMarketDataAdapter,
     WsJwtGuard,
     RealtimeResolver,
   ],

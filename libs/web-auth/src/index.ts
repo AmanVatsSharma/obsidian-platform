@@ -19,7 +19,7 @@
  *   - CSS variables must be in scope (provided by obsidian-ui tokens.css)
  *
  * Author:       BharatERP
- * Last-updated: 2026-05-09
+ * Last-updated: 2026-06-10
  */
 
 // ─── Types & utilities ──────────────────────────────────────────
@@ -41,6 +41,8 @@ export { ObsidianLogo } from './components/shared/obsidian-logo';
 export { SparkChart } from './components/shared/spark-chart';
 export { TextInput, PrimaryButton, GhostButton, FieldLabel, Divider, LegalFooter } from './components/shared/primitives';
 export { AuthIcons } from './components/shared/icons';
+export { CountrySelector } from './components/shared/country-selector';
+export { OtpInput } from './components/shared/otp-input';
 
 // ─── Auth screens ───────────────────────────────────────────────
 export { LoginScreen } from './components/screens/login-screen';
