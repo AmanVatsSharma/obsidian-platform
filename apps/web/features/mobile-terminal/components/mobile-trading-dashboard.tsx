@@ -1076,7 +1076,13 @@ export function MobileTradingDashboard({
   const [showTrade, setShowTrade]     = useState(false);
   const [tradeSide, setTradeSide]     = useState<'buy' | 'sell'>('buy');
   const [showDOM, setShowDOM]         = useState(false);
-  const [simPrices, setSimPrices] = useState<Record<string, number>>({});
+  // Seed sim prices from the instrument catalogue on first mount so the
+  // interval below never reads `undefined.bid` on its first tick.
+  const [simPrices, setSimPrices] = useState<Record<string, { bid: number; ask: number }>>(() => {
+    const seed: Record<string, { bid: number; ask: number }> = {};
+    INSTRUMENTS.forEach(inst => { seed[inst.symbol] = { bid: inst.bid, ask: inst.ask }; });
+    return seed;
+  });
 
   // Price-tick simulation — only active when the adapter provides no live quotes
   // (i.e. unauthenticated or demo mode). When live quotes arrive, the adapter
@@ -1087,13 +1093,15 @@ export function MobileTradingDashboard({
     if (hasLiveQuotes) return; // adapter drives prices
     const iv = setInterval(() => {
       setSimPrices(prev => {
-        const next = { ...prev };
+        const next: Record<string, { bid: number; ask: number }> = { ...prev };
         resolved.instruments.forEach(inst => {
-          const p = next[inst.symbol];
+          // Fall back to the instrument's base price if no seed entry exists
+          // (defensive — should not happen since simPrices is seeded on mount).
+          const p = next[inst.symbol] ?? { bid: inst.bid, ask: inst.ask };
           const tick = (Math.random() - 0.5) * inst.pip * 4;
           const newBid = parseFloat((p.bid + tick).toFixed(inst.digits));
           const newAsk = parseFloat((newBid + inst.spread * inst.pip).toFixed(inst.digits));
-          next[inst.symbol] = { ...p, bid: newBid, ask: newAsk };
+          next[inst.symbol] = { bid: newBid, ask: newAsk };
         });
         return next;
       });
