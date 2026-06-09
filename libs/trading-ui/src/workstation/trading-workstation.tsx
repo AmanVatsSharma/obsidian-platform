@@ -242,7 +242,7 @@ export function TradingWorkstation({
           activeInstrument={activeInstrument}
           prices={prices}
           onSymbolClick={setActiveInstrument}
-          account={ACCOUNT}
+          account={balance ?? null}
           pinned={pinned}
         />
 
@@ -290,7 +290,7 @@ export function TradingWorkstation({
           </div>
         </div>
 
-        <StatusBarTrading ping={ping} account={ACCOUNT} mobileHref={mobileHref} />
+        <StatusBarTrading ping={ping} account={balance ?? null} mobileHref={mobileHref} />
         <ToastContainer toasts={toasts} />
       </div>
     </div>
