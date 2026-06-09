@@ -429,21 +429,52 @@ function ChartScreen({
 }
 
 /* ─── Trade Ticket Bottom Sheet ──────────────────────────────────────────── */
+type OrderTypeMobile = 'Market' | 'Limit' | 'Stop' | 'Stop Limit' | 'GTT' | 'Trailing' | 'Iceberg' | 'TWAP' | 'VWAP';
+type AlgoTypeMobile = 'TWAP' | 'VWAP' | 'ICEBERG';
+
 function TradeTicket({
   instrument, prices, onClose, onConfirm,
 }: {
   instrument: Instrument;
   prices: PriceMap;
   onClose: () => void;
-  onConfirm: (order: { side: string; otype: string; lots: number; instrument: Instrument }) => void;
+  onConfirm: (order: {
+    side: string;
+    otype: OrderTypeMobile;
+    lots: number;
+    instrument: Instrument;
+    price?: string;
+    triggerPrice?: string;
+    triggerCondition?: 'ABOVE' | 'BELOW';
+    trailingDistance?: string;
+    trailingPct?: string;
+    displayQty?: string;
+    algoType?: AlgoTypeMobile;
+    slices?: number;
+    durationMinutes?: number;
+  }) => void;
 }) {
   const [side, setSide]   = useState<'buy' | 'sell'>('buy');
-  const [otype, setOtype] = useState('Market');
+  const [otype, setOtype] = useState<OrderTypeMobile>('Market');
   const [lots, setLots]   = useState(1.00);
   const [sl, setSl]       = useState('');
   const [tp, setTp]       = useState('');
+  const [price, setPrice] = useState('');
   const [holding, setHolding] = useState(false);
   const holdRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // GTT fields
+  const [triggerPrice, setTriggerPrice] = useState('');
+  const [triggerCondition, setTriggerCondition] = useState<'ABOVE' | 'BELOW'>('ABOVE');
+
+  // Trailing Stop fields
+  const [trailingDistance, setTrailingDistance] = useState('');
+  const [trailingPct, setTrailingPct] = useState('');
+
+  // Algo fields (TWAP/VWAP/Iceberg)
+  const [slices, setSlices] = useState('10');
+  const [durationMinutes, setDurationMinutes] = useState('30');
+  const [displayQty, setDisplayQty] = useState('');
 
   const inst  = prices[instrument?.symbol] ?? instrument ?? instruments[0];
   const p     = prices[inst.symbol] ?? inst;
@@ -453,13 +484,38 @@ function TradeTicket({
   const margin = lots * ask * 1000 / 100;
   const pipVal = lots * 10;
 
+  // Determine if algo order (goes via REST)
+  const isAlgo = otype === 'TWAP' || otype === 'VWAP' || otype === 'Iceberg';
+
   const adjustLots = (d: number) => setLots(v => Math.max(0.01, parseFloat((v + d).toFixed(2))));
   const presets = [0.01, 0.05, 0.10, 0.50, 1.00, 2.00];
 
   const startHold = () => {
     setHolding(true);
     holdRef.current = setTimeout(() => {
-      onConfirm({ side, otype, lots, instrument: inst });
+      const order: Parameters<typeof onConfirm>[0] = { side, otype, lots, instrument: inst };
+      // Add conditional fields based on order type
+      if (otype === 'Limit' || otype === 'Stop' || otype === 'Stop Limit') {
+        order.price = price;
+      }
+      if (otype === 'GTT') {
+        order.triggerPrice = triggerPrice;
+        order.triggerCondition = triggerCondition;
+      }
+      if (otype === 'Trailing') {
+        order.trailingDistance = trailingDistance;
+        order.trailingPct = trailingPct;
+      }
+      if (otype === 'Iceberg') {
+        order.displayQty = displayQty;
+        order.algoType = 'ICEBERG';
+      }
+      if (otype === 'TWAP' || otype === 'VWAP') {
+        order.algoType = otype as AlgoTypeMobile;
+        order.slices = parseInt(slices) || 10;
+        order.durationMinutes = parseInt(durationMinutes) || 30;
+      }
+      onConfirm(order);
       onClose();
     }, 900);
   };
