@@ -1,0 +1,15 @@
+# Extended user profile for /console - fetches full user data beyond the basic CurrentUserDto
+query GetUserProfile($userId: ID!) {
+  user(id: $userId) {
+    id
+    tenantId
+    mobileE164
+    email
+    isMobileVerified
+    isEmailVerified
+    name
+    countryCode
+    isActive
+    createdAt
+  }
+}

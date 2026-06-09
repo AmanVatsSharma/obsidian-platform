@@ -1,0 +1,11 @@
+# Fetch all trading accounts for the current user
+query GetMyAccounts {
+  myAccounts {
+    id
+    accountType
+    status
+    baseCurrency
+    createdAt
+    updatedAt
+  }
+}

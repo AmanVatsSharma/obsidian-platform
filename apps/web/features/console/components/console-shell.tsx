@@ -61,7 +61,7 @@ import {
   type ConsoleSectionId,
 } from '../lib/sections';
 import type { ConsoleUser } from '../lib/seed-data';
-import { useConsoleUser } from '../lib/use-console-user';
+import { useConsoleUser, useConsoleUserStatus } from '../lib/use-console-user';
 
 type SidebarBadge = { kind: ObsidianBadgeKind; text: string } | null;
 
@@ -260,9 +260,75 @@ function MainHeader({
   );
 }
 
+/**
+ * StatusBanner — surfaces backend connectivity state at the top of the main
+ * column. Three modes:
+ *   - loading + authed → subtle "Refreshing…" with a pulse dot
+ *   - error + authed   → warn-coloured "Showing cached data — refresh failed"
+ *   - unauthed         → muted "Preview mode — sign in to sync your data"
+ */
+function StatusBanner({
+  status,
+}: {
+  status: ReturnType<typeof useConsoleUserStatus>;
+}) {
+  if (!status.isAuthenticated) {
+    return (
+      <div
+        className="status-banner muted"
+        role="status"
+        aria-live="polite"
+        data-testid="console-banner-preview"
+      >
+        <span className="dot" aria-hidden="true" />
+        <span>Preview mode — sign in to sync your real account data.</span>
+      </div>
+    );
+  }
+  if (status.error) {
+    return (
+      <div
+        className="status-banner warn"
+        role="status"
+        aria-live="polite"
+        data-testid="console-banner-error"
+      >
+        <span className="dot" aria-hidden="true" />
+        <span>
+          Showing cached data — refresh failed.{' '}
+          <button
+            type="button"
+            className="link"
+            onClick={() => {
+              void status.refetch();
+            }}
+          >
+            Retry
+          </button>
+        </span>
+      </div>
+    );
+  }
+  if (status.loading) {
+    return (
+      <div
+        className="status-banner loading"
+        role="status"
+        aria-live="polite"
+        data-testid="console-banner-loading"
+      >
+        <span className="dot pulse" aria-hidden="true" />
+        <span>Refreshing account data…</span>
+      </div>
+    );
+  }
+  return null;
+}
+
 export function ConsoleShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname() ?? '/console';
   const user = useConsoleUser();
+  const status = useConsoleUserStatus();
   const section = findSectionByPath(pathname);
 
   return (
@@ -272,6 +338,7 @@ export function ConsoleShell({ children }: { children: React.ReactNode }) {
         <Sidebar user={user} pathname={pathname} />
         <main className="main">
           <MainHeader section={section} user={user} />
+          <StatusBanner status={status} />
           <div className="scroll">{children}</div>
         </main>
       </div>

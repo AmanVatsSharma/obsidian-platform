@@ -140,3 +140,10 @@ export {
   type UseModifyOrderResult,
   ModifyOrderDocument,
 } from './useModifyOrder';
+
+// Console user aggregator — pulls together profile, accounts, KYC, etc.
+export {
+  useConsoleUser,
+  useConsoleUserStatus,
+  type UseConsoleUserStatusResult,
+} from './useConsoleUser';

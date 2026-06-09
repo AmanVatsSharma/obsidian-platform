@@ -869,3 +869,55 @@
   .obsidian-console .main-hd { padding: 16px 18px; }
   .obsidian-console .frow { grid-template-columns: 1fr; gap: 8px; }
 }
+
+/* status banner — shows backend connectivity state */
+.obsidian-console .status-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  font-family: var(--font-data);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  border-bottom: 1px solid var(--border);
+  transition: all 180ms var(--ease);
+}
+.obsidian-console .status-banner .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  flex-shrink: 0;
+}
+.obsidian-console .status-banner .dot.pulse {
+  animation: banner-pulse 1.2s ease-in-out infinite;
+}
+@keyframes banner-pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+.obsidian-console .status-banner.muted {
+  background: var(--bg-elevated);
+  color: var(--fg3);
+  border-color: var(--border);
+}
+.obsidian-console .status-banner.loading {
+  background: rgba(16, 217, 150, 0.05);
+  color: var(--bull);
+  border-color: rgba(16, 217, 150, 0.15);
+}
+.obsidian-console .status-banner.warn {
+  background: rgba(237, 137, 54, 0.08);
+  color: var(--warn);
+  border-color: rgba(237, 137, 54, 0.2);
+}
+.obsidian-console .status-banner .link {
+  background: none;
+  border: none;
+  color: inherit;
+  text-decoration: underline;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  padding: 0;
+}
