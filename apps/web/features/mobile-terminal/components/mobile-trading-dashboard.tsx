@@ -557,17 +557,186 @@ function TradeTicket({
         </div>
 
         <div className="order-type-row">
-          {['Market', 'Limit', 'Stop', 'Stop Limit'].map(t => (
-            <button key={t} className={`ot-btn ${otype === t ? 'active' : ''}`} onClick={() => setOtype(t)}>{t}</button>
+          {['Market', 'Limit', 'Stop', 'Stop Limit', 'GTT', 'Trailing', 'Iceberg', 'TWAP', 'VWAP'].map(t => (
+            <button key={t} className={`ot-btn ${otype === t ? 'active' : ''}`} onClick={() => setOtype(t as OrderTypeMobile)}>{t}</button>
           ))}
         </div>
 
-        {otype !== 'Market' && (
+        {/* Price input for Limit, Stop, Stop Limit */}
+        {(otype === 'Limit' || otype === 'Stop' || otype === 'Stop Limit') && (
           <div style={{ margin: '14px 16px 0' }}>
             <div className="sltp-label">Price</div>
             <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
-              <input className="sltp-input" type="number" placeholder={fmtP(bid, dig)} />
+              <input
+                className="sltp-input"
+                type="number"
+                placeholder={fmtP(bid, dig)}
+                value={price}
+                onChange={e => setPrice(e.target.value)}
+              />
               <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>{inst.symbol?.split('/')[1] ?? 'USD'}</span>
+            </div>
+          </div>
+        )}
+
+        {/* GTT Fields */}
+        {otype === 'GTT' && (
+          <div style={{ margin: '14px 16px 0', gap: '12px' }}>
+            <div>
+              <div className="sltp-label">Trigger Price</div>
+              <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
+                <input
+                  className="sltp-input"
+                  type="number"
+                  placeholder={fmtP(bid, dig)}
+                  value={triggerPrice}
+                  onChange={e => setTriggerPrice(e.target.value)}
+                />
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>{inst.symbol?.split('/')[1] ?? 'USD'}</span>
+              </div>
+            </div>
+            <div>
+              <div className="sltp-label">Trigger Condition</div>
+              <div className="side-toggle" style={{ marginTop: '8px', marginBottom: '8px' }}>
+                <button
+                  className={`side-btn ${triggerCondition === 'ABOVE' ? 'active' : ''}`}
+                  onClick={() => setTriggerCondition('ABOVE')}
+                >
+                  ↑ Above
+                </button>
+                <button
+                  className={`side-btn ${triggerCondition === 'BELOW' ? 'active' : ''}`}
+                  onClick={() => setTriggerCondition('BELOW')}
+                >
+                  ↓ Below
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Trailing Stop Fields */}
+        {otype === 'Trailing' && (
+          <div style={{ margin: '14px 16px 0', gap: '12px' }}>
+            <div>
+              <div className="sltp-label">Trailing Distance</div>
+              <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
+                <input
+                  className="sltp-input"
+                  type="number"
+                  step="0.00001"
+                  placeholder="0.00005"
+                  value={trailingDistance}
+                  onChange={e => setTrailingDistance(e.target.value)}
+                />
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>Points</span>
+              </div>
+            </div>
+            <div>
+              <div className="sltp-label">Trailing Percentage</div>
+              <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
+                <input
+                  className="sltp-input"
+                  type="number"
+                  step="0.1"
+                  placeholder="5.0"
+                  value={trailingPct}
+                  onChange={e => setTrailingPct(e.target.value)}
+                />
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>%</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* TWAP / VWAP Fields */}
+        {otype === 'TWAP' && (
+          <div style={{ margin: '14px 16px 0', gap: '12px' }}>
+            <div>
+              <div className="sltp-label">Number of TWAP slices</div>
+              <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
+                <input
+                  className="sltp-input"
+                  type="number"
+                  min="1"
+                  max="50"
+                  placeholder="10"
+                  value={slices}
+                  onChange={e => setSlices(e.target.value)}
+                />
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>slices</span>
+              </div>
+            </div>
+            <div>
+              <div className="sltp-label">Duration</div>
+              <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
+                <input
+                  className="sltp-input"
+                  type="number"
+                  min="1"
+                  max="480"
+                  placeholder="30"
+                  value={durationMinutes}
+                  onChange={e => setDurationMinutes(e.target.value)}
+                />
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>minutes</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Iceberg Fields */}
+        {otype === 'Iceberg' && (
+          <div style={{ margin: '14px 16px 0', gap: '12px' }}>
+            <div>
+              <div className="sltp-label">Display Quantity</div>
+              <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
+                <input
+                  className="sltp-input"
+                  type="number"
+                  min="1"
+                  placeholder="100"
+                  value={displayQty}
+                  onChange={e => setDisplayQty(e.target.value)}
+                />
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>lots</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* VWAP Fields - same as TWAP */}
+        {otype === 'VWAP' && (
+          <div style={{ margin: '14px 16px 0', gap: '12px' }}>
+            <div>
+              <div className="sltp-label">Number of VWAP slices</div>
+              <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
+                <input
+                  className="sltp-input"
+                  type="number"
+                  min="1"
+                  max="50"
+                  placeholder="10"
+                  value={slices}
+                  onChange={e => setSlices(e.target.value)}
+                />
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>slices</span>
+              </div>
+            </div>
+            <div>
+              <div className="sltp-label">Duration</div>
+              <div className="sltp-input-wrap" style={{ marginTop: '5px' }}>
+                <input
+                  className="sltp-input"
+                  type="number"
+                  min="1"
+                  max="480"
+                  placeholder="30"
+                  value={durationMinutes}
+                  onChange={e => setDurationMinutes(e.target.value)}
+                />
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>minutes</span>
+              </div>
             </div>
           </div>
         )}
@@ -1275,22 +1444,76 @@ export function MobileTradingDashboard({
     setShowTrade(true);
   }, []);
 
-  const handleConfirmTrade = useCallback(async ({ side, otype, lots, instrument }: { side: string; otype: string; lots: number; instrument: Instrument }) => {
+  const handleConfirmTrade = useCallback(async ({
+    side, otype, lots, instrument,
+    price, triggerPrice, triggerCondition, trailingDistance, trailingPct,
+    displayQty, algoType, slices, durationMinutes
+  }: {
+    side: string;
+    otype: OrderTypeMobile;
+    lots: number;
+    instrument: Instrument;
+    price?: string;
+    triggerPrice?: string;
+    triggerCondition?: 'ABOVE' | 'BELOW';
+    trailingDistance?: string;
+    trailingPct?: string;
+    displayQty?: string;
+    algoType?: AlgoTypeMobile;
+    slices?: number;
+    durationMinutes?: number;
+  }) => {
+    const instId = instrument.instrumentId ?? instrument.symbol;
+    const p = prices[instrument?.symbol] ?? instrument;
+    const fillPrice = side === 'buy' ? p.ask : p.bid;
+
     try {
-      await resolved.placeOrder({
-        instrumentId: instrument.instrumentId ?? instrument.symbol,
-        side: side === 'buy' ? 'BUY' : 'SELL',
-        type: otype === 'Market' ? 'MARKET' : 'LIMIT',
-        quantity: lots.toFixed(2),
-        price: otype !== 'Market' ? instrument.ask.toFixed(instrument.digits + 2) : undefined,
-      });
-      const p = prices[instrument?.symbol] ?? instrument;
-      const fillPrice = side === 'buy' ? p.ask : p.bid;
-      addToast(
-        `${side.toUpperCase()} ${lots} lots ${instrument?.symbol}`,
-        `${otype} filled @ ${fmtP(fillPrice, instrument?.digits)}`,
-        side === 'buy' ? 'bull' : 'bear'
-      );
+      // Determine order type mapping to API enum
+      const typeMap: Record<string, string> = {
+        'Market': 'MARKET',
+        'Limit': 'LIMIT',
+        'Stop': 'STOP',
+        'Stop Limit': 'STOP_LIMIT',
+        'GTT': 'GTT',
+        'Trailing': 'TRAILING_STOP',
+      };
+
+      // Route to appropriate handler based on order type
+      if (otype === 'TWAP' || otype === 'VWAP' || otype === 'Iceberg') {
+        // Algo orders - use REST
+        await resolved.placeAlgoOrder({
+          instrumentId: instId,
+          side: side === 'buy' ? 'BUY' : 'SELL',
+          type: otype === 'Iceberg' ? 'ICEBERG' : (otype as 'TWAP' | 'VWAP'),
+          quantity: lots.toFixed(2),
+          slices,
+          durationMinutes,
+          displayQty,
+        });
+        addToast(
+          `${side.toUpperCase()} ${lots} lots ${instrument?.symbol}`,
+          `${otype} algo order placed`,
+          side === 'buy' ? 'bull' : 'bear'
+        );
+      } else {
+        // Standard orders via GraphQL mutation
+        await resolved.placeOrder({
+          instrumentId: instId,
+          side: side === 'buy' ? 'BUY' : 'SELL',
+          type: (typeMap[otype] || 'MARKET') as 'MARKET' | 'LIMIT' | 'STOP' | 'STOP_LIMIT' | 'GTT' | 'TRAILING_STOP',
+          quantity: lots.toFixed(2),
+          price,
+          triggerPrice,
+          triggerCondition,
+          trailingDistance,
+          trailingPct,
+        });
+        addToast(
+          `${side.toUpperCase()} ${lots} lots ${instrument?.symbol}`,
+          `${otype} ${otype === 'Market' ? 'filled' : 'placed'} @ ${fmtP(fillPrice, instrument?.digits)}`,
+          side === 'buy' ? 'bull' : 'bear'
+        );
+      }
     } catch (e) {
       addToast(
         `Order failed`,
@@ -1298,7 +1521,7 @@ export function MobileTradingDashboard({
         'bear'
       );
     }
-  }, [resolved.placeOrder, prices, addToast]);
+  }, [resolved.placeOrder, resolved.placeAlgoOrder, prices, addToast]);
 
   const handleClosePosition = useCallback((id: string) => {
     const pos = localPositions.find(p => p.id === id);

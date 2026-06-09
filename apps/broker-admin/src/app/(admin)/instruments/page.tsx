@@ -235,15 +235,68 @@ function EditModal({ instrument, onClose, onSave }: {
 export default function InstrumentsPage() {
   const { instruments: initialInstruments } = useBrokerData();
   const [instruments, setInstruments] = useState<Instrument[]>([...initialInstruments]);
-  const [filter, setFilter] = useState<AssetClass | 'All'>('All');
+
+  // Multi-filter state for enterprise support
+  const [assetClassFilter, setAssetClassFilter] = useState<AssetClass | 'All'>('All');
+  const [exchangeFilter, setExchangeFilter] = useState<string | 'All'>('All');
+  const [segmentFilter, setSegmentFilter] = useState<InstrumentSegment | 'All'>('All');
+  const [providerFilter, setProviderFilter] = useState<string | 'All'>('All');
+  const [statusFilter, setStatusFilter] = useState<Instrument['status'] | 'All'>('All');
+  const [searchQuery, setSearchQuery] = useState('');
+
   const [unsaved, setUnsaved] = useState<Partial<Record<UnsavedKey, number>>>({});
   const [editing, setEditing] = useState<string | null>(null);
   const [modal, setModal] = useState<Instrument | null>(null);
 
-  const displayed = useMemo(
-    () => filter === 'All' ? instruments : instruments.filter(i => i.assetClass === filter),
-    [instruments, filter]
-  );
+  // Multi-filter logic
+  const displayed = useMemo(() => {
+    let result = instruments;
+
+    if (assetClassFilter !== 'All') {
+      result = result.filter(i => i.assetClass === assetClassFilter);
+    }
+    if (exchangeFilter !== 'All') {
+      result = result.filter(i => i.exchange === exchangeFilter);
+    }
+    if (segmentFilter !== 'All') {
+      result = result.filter(i => i.segment === segmentFilter);
+    }
+    if (providerFilter !== 'All') {
+      result = result.filter(i => i.providerCode === providerFilter);
+    }
+    if (statusFilter !== 'All') {
+      result = result.filter(i => i.status === statusFilter);
+    }
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(i =>
+        i.symbol.toLowerCase().includes(q) ||
+        i.name.toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [instruments, assetClassFilter, exchangeFilter, segmentFilter, providerFilter, statusFilter, searchQuery]);
+
+  // Stats for filter tabs
+  const stats = useMemo(() => {
+    return {
+      total: instruments.length,
+      active: instruments.filter(i => i.status === 'Active').length,
+      disabled: instruments.filter(i => i.status === 'Disabled').length,
+      halted: instruments.filter(i => i.status === 'Halted').length,
+      byExchange: {
+        NSE: instruments.filter(i => i.exchange === 'NSE').length,
+        BSE: instruments.filter(i => i.exchange === 'BSE').length,
+        MCX: instruments.filter(i => i.exchange === 'MCX').length,
+      },
+      bySegment: {
+        EQ: instruments.filter(i => i.segment === 'EQ').length,
+        FNO: instruments.filter(i => i.segment === 'FNO').length,
+        COM: instruments.filter(i => i.segment === 'COM').length,
+      },
+    };
+  }, [instruments]);
 
   const getVal = (inst: Instrument, field: keyof Instrument): number => {
     const key = `${inst.symbol}.${field}` as UnsavedKey;
@@ -309,7 +362,7 @@ export default function InstrumentsPage() {
         <div>
           <p className="module-title">Instruments</p>
           <p className="module-subtitle">
-            {instruments.filter(i => i.status === 'Active').length} active · {instruments.length} total
+            {stats.active} active · {stats.total} total · {stats.bySegment.EQ} EQ · {stats.bySegment.FNO} F&O
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -327,42 +380,146 @@ export default function InstrumentsPage() {
               </button>
             </>
           )}
-          <button className="btn-ghost btn btn-sm">Import</button>
-          <button className="btn-primary btn btn-sm"><Plus size={13} /> Add Instrument</button>
+          <button className="btn-ghost btn btn-sm">
+            <RefreshCw size={12} /> Sync
+          </button>
+          <button className="btn-ghost btn btn-sm">
+            <Download size={12} /> Export
+          </button>
+          <button className="btn-ghost btn btn-sm">
+            <Upload size={12} /> Import
+          </button>
+          <button className="btn-primary btn btn-sm"><Plus size={13} /> Add</button>
         </div>
       </div>
 
       <div className="p-6">
-        {/* Asset class filter */}
-        <div className="chart-tabs mb-4">
-          {ASSET_CLASSES.map(cls => {
-            const cnt = cls === 'All' ? instruments.length : instruments.filter(i => i.assetClass === cls).length;
-            return (
-              <button key={cls} className={`chart-tab ${filter === cls ? 'active' : ''}`} onClick={() => setFilter(cls)}>
-                {cls} <span className="ml-1 font-mono text-[9px] text-fg3">{cnt}</span>
-              </button>
-            );
-          })}
+        {/* Filter bar - enterprise multi-filter */}
+        <div className="flex flex-wrap items-center gap-3 mb-4 p-3 rounded-lg border border-[var(--border)] bg-[var(--bg-elevated)]">
+          {/* Exchange filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-fg3">Exchange</span>
+            <select
+              className="input input-sm w-20"
+              value={exchangeFilter}
+              onChange={e => setExchangeFilter(e.target.value as typeof exchangeFilter)}
+            >
+              {EXCHANGES.map(ex => <option key={ex} value={ex}>{ex}</option>)}
+            </select>
+          </div>
+
+          {/* Segment filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-fg3">Segment</span>
+            <select
+              className="input input-sm w-20"
+              value={segmentFilter}
+              onChange={e => setSegmentFilter(e.target.value as typeof segmentFilter)}
+            >
+              {SEGMENTS.map(seg => <option key={seg} value={seg}>{seg}</option>)}
+            </select>
+          </div>
+
+          {/* Provider filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-fg3">Provider</span>
+            <select
+              className="input input-sm w-24"
+              value={providerFilter}
+              onChange={e => setProviderFilter(e.target.value as typeof providerFilter)}
+            >
+              {PROVIDERS.map(prov => <option key={prov} value={prov}>{prov}</option>)}
+            </select>
+          </div>
+
+          {/* Status filter */}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] text-fg3">Status</span>
+            <select
+              className="input input-sm w-24"
+              value={statusFilter}
+              onChange={e => setStatusFilter(e.target.value as typeof statusFilter)}
+            >
+              <option value="All">All</option>
+              <option value="Active">Active</option>
+              <option value="Disabled">Disabled</option>
+              <option value="Halted">Halted</option>
+            </select>
+          </div>
+
+          {/* Search */}
+          <div className="flex items-center gap-2 flex-1">
+            <input
+              className="input input-sm flex-1"
+              type="text"
+              placeholder="Search symbol or name..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+            />
+          </div>
+
+          {/* Clear filters */}
+          {(exchangeFilter !== 'All' || segmentFilter !== 'All' || providerFilter !== 'All' || statusFilter !== 'All' || searchQuery) && (
+            <button
+              className="btn-ghost btn btn-xs"
+              onClick={() => {
+                setExchangeFilter('All');
+                setSegmentFilter('All');
+                setProviderFilter('All');
+                setStatusFilter('All');
+                setSearchQuery('');
+              }}
+            >
+              Clear
+            </button>
+          )}
+        </div>
+
+        {/* Stats row */}
+        <div className="flex gap-4 mb-4 text-[11px]">
+          <span className="text-fg2">
+            NSE: <span className="font-mono text-bull">{stats.byExchange.NSE}</span>
+          </span>
+          <span className="text-fg2">
+            BSE: <span className="font-mono">{stats.byExchange.BSE}</span>
+          </span>
+          <span className="text-fg2">
+            MCX: <span className="font-mono">{stats.byExchange.MCX}</span>
+          </span>
+          <span className="text-fg3">|</span>
+          <span className="text-fg2">
+            EQ: <span className="font-mono">{stats.bySegment.EQ}</span>
+          </span>
+          <span className="text-fg2">
+            F&O: <span className="font-mono">{stats.bySegment.FNO}</span>
+          </span>
+          <span className="text-fg2">
+            COM: <span className="font-mono">{stats.bySegment.COM}</span>
+          </span>
+        </div>
+
+        {/* Results count */}
+        <div className="text-[11px] text-fg3 mb-2">
+          Showing {displayed.length} of {stats.total} instruments
         </div>
 
         <div className="card overflow-x-auto">
-          <table className="data-table" style={{ minWidth: 960 }}>
+          <table className="data-table" style={{ minWidth: 1080 }}>
             <thead>
               <tr>
-                <th className="w-12">On</th>
+                <th className="w-10">On</th>
                 <th className="w-20">Symbol</th>
                 <th>Name</th>
-                <th className="w-20">Class</th>
-                <th className="w-20">Spread Type</th>
-                <th className="w-16">Spread</th>
-                <th className="w-16">Min Lot</th>
-                <th className="w-16">Max Lot</th>
-                <th className="w-20">Leverage</th>
-                <th className="w-16">Swap L</th>
-                <th className="w-16">Swap S</th>
-                <th className="w-20">Vol Today</th>
-                <th className="w-16">Status</th>
-                <th className="w-12"></th>
+                <th className="w-16">Exch</th>
+                <th className="w-14">Seg</th>
+                <th className="w-16">Type</th>
+                <th className="w-14">Status</th>
+                <th className="w-14">Spread</th>
+                <th className="w-12">Lot</th>
+                <th className="w-14">Lever</th>
+                <th className="w-16">Provider</th>
+                <th className="w-16">Vol Today</th>
+                <th className="w-10"></th>
               </tr>
             </thead>
             <tbody>
@@ -371,36 +528,73 @@ export default function InstrumentsPage() {
                   <td>
                     <button
                       onClick={() => toggleStatus(inst.symbol)}
-                      className={`relative h-5 w-9 rounded-full transition-colors ${inst.status === 'Active' ? 'bg-bull/30' : 'bg-[var(--border-md)]'}`}
+                      className={`relative h-5 w-9 rounded-full transition-colors ${inst.isTradingEnabled && inst.status === 'Active' ? 'bg-bull/30' : 'bg-[var(--border-md)]'}`}
                     >
-                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${inst.status === 'Active' ? 'translate-x-4' : 'translate-x-0.5'}`} />
+                      <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform ${inst.isTradingEnabled && inst.status === 'Active' ? 'translate-x-4' : 'translate-x-0.5'}`} />
                     </button>
                   </td>
-                  <td className={`mono-cell font-bold text-[12px] ${inst.status === 'Active' ? 'text-fg1' : 'text-fg3'}`}>
+                  <td className={`mono-cell font-bold text-[12px] ${inst.isTradingEnabled && inst.status === 'Active' ? 'text-fg1' : 'text-fg3'}`}>
                     {inst.symbol}
                   </td>
                   <td className="max-w-[160px] overflow-hidden text-ellipsis whitespace-nowrap text-[11px] text-fg2">
                     {inst.name}
                   </td>
-                  <td><span className="badge badge-muted">{inst.assetClass}</span></td>
-                  <td className="text-[11px] text-fg2">{inst.spreadType}</td>
-                  <td><InlineCell inst={inst} field="spread" /></td>
-                  <td><InlineCell inst={inst} field="minLot" /></td>
-                  <td><InlineCell inst={inst} field="maxLot" /></td>
-                  <td className="mono-cell text-[11px] text-fg2">{inst.leverage}</td>
-                  <td className={`mono-cell text-[11px] ${inst.swapLong < 0 ? 'text-bear' : 'text-bull'}`}>
-                    {inst.swapLong > 0 ? '+' : ''}{inst.swapLong}
+                  {/* Exchange */}
+                  <td className="mono-cell text-[11px] text-fg2 font-bold">
+                    {inst.exchange || 'N/A'}
                   </td>
-                  <td className={`mono-cell text-[11px] ${inst.swapShort < 0 ? 'text-bear' : 'text-bull'}`}>
-                    {inst.swapShort > 0 ? '+' : ''}{inst.swapShort}
-                  </td>
-                  <td className="mono-cell text-[11px] text-fg2">{inst.volumeToday.toLocaleString()}</td>
+                  {/* Segment */}
                   <td>
-                    <span className="flex items-center gap-1.5 text-[11px]">
-                      <StatusDot status={inst.status} />
-                      {inst.status}
+                    <span className="mono-cell text-[11px] px-2 py-0.5 rounded bg-[var(--bg-elevated)] text-fg2">
+                      {inst.segment || 'N/A'}
                     </span>
                   </td>
+                  {/* Type */}
+                  <td>
+                    <span className="badge badge-muted">{inst.type || inst.assetClass}</span>
+                  </td>
+                  {/* Status with color */}
+                  <td>
+                    <StatusDot status={inst.status} />
+                    <span className="text-[11px] ml-1">{inst.status}</span>
+                  </td>
+                  {/* Spread */}
+                  <td>
+                    {inst.spreadOverride ? (
+                      <span className="mono-cell text-[11px] text-warn">
+                        {inst.spreadOverride}
+                      </span>
+                    ) : (
+                      <InlineCell inst={inst} field="spread" />
+                    )}
+                  </td>
+                  {/* Lot Size */}
+                  <td>
+                    {inst.lotOverride ? (
+                      <span className="mono-cell text-[11px] text-warn">
+                        {inst.lotOverride}
+                      </span>
+                    ) : (
+                      <InlineCell inst={inst} field="minLot" />
+                    )}
+                  </td>
+                  {/* Leverage */}
+                  <td className="mono-cell text-[11px]">
+                    {inst.leverageOverride ? (
+                      <span className="text-warn">{inst.leverageOverride}</span>
+                    ) : (
+                      inst.leverage
+                    )}
+                  </td>
+                  {/* Provider */}
+                  <td className="mono-cell text-[11px] text-fg2">
+                    {inst.providerCode || 'GENERIC'}
+                  </td>
+                  {/* Volume */}
+                  <td className="mono-cell text-[11px] text-fg2">
+                    {inst.volumeToday.toLocaleString()}
+                  </td>
+                  {/* Actions */}
                   <td>
                     <button className="btn-ghost btn btn-xs p-1" onClick={() => setModal(inst)}>
                       <Settings size={12} />

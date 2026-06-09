@@ -2,35 +2,37 @@
  * File:        libs/trading-ui/src/workstation/trading-workstation.tsx
  * Module:      trading-ui · Workstation
  * Purpose:     Full trading workstation shell — platform-agnostic orchestrator for all trading panels.
+ *              NO MOCK DATA - all data must be passed via props. Empty states shown when data is empty.
  *
  * Exports:
  *   - TradingWorkstation({ fetchJson, mobileHref?, forceMobileLayout?, omsConfig?, onTradeSubmit?, balance?, positions?, pendingOrders? }) → ReactNode
  *
  * Depends on:
  *   - ../lib/workstation-api — FetchJsonFn, OmsConfig, PlaceUiOrder, mergeApiWatchlistInstruments, submitOrderToOms
- *   - ../lib/mock-data — ACCOUNT, INSTRUMENTS, OPEN_POSITIONS
  *   - ../lib/format-utils — fmt, fmtPrice, pnlSign
  *   - ../types/instrument — Instrument, OpenPosition, ToastItem
  *   - ../panels/* — all nine trading panel components
  *
  * Side-effects:
- *   - setInterval for price tick simulation (cleared on unmount)
- *   - setInterval for P&L recalculation against live prices (cleared on unmount)
- *   - Network call on mount via fetchJson (watchlist merge)
+ *   - setInterval for price tick simulation (only when no live prices and instruments provided)
+ *   - setInterval for P&L recalculation (only when no live positions provided)
+ *   - Network call via fetchJson (watchlist merge)
  *
  * Key invariants:
  *   - fetchJson is injected by the caller — no direct use of window.fetch, useAuth, or next/link
  *   - Web app passes fetch+Bearer; Electron passes window.ntBridge.api.fetch (IPC call)
  *   - mobileHref absent → StatusBarTrading omits the Mobile link (correct for Electron renderer)
  *   - omsConfig absent → submitOrderToOms returns { ok: false } and falls back to simulated fill toast
+ *   - instruments/positions/orders MUST be passed via props - NO automatic mock data fallback
+ *   - Empty arrays shown as "no data" UI, not fallback to mock data
  *
  * Read order:
  *   1. TradingWorkstation — component entry, state declarations
  *   2. handleTrade — core trade-submission + toast feedback
- *   3. price/position simulation effects
+ *   3. price/position simulation effects (only when no live data)
  *
  * Author:      BharatERP
- * Last-updated: 2026-04-26
+ * Last-updated: 2026-06-09
  */
 
 'use client';
@@ -38,7 +40,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { Instrument, OpenPosition, PendingOrder, ToastItem } from '../types/instrument';
 import { fmt, fmtPrice, pnlSign } from '../lib/format-utils';
-import { ACCOUNT, INSTRUMENTS, OPEN_POSITIONS } from '../lib/mock-data';
+// NO MOCK DATA - all data must come from props
 import {
   mergeApiWatchlistInstruments,
   submitOrderToOms,
@@ -97,7 +99,7 @@ export function TradingWorkstation({
     leverage: string;
   };
 }) {
-  const [instruments, setInstruments] = useState<Instrument[]>(INSTRUMENTS);
+  const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [activeInstrument, setActiveInstrument] = useState<Instrument | null>(
     initialInstrument !== undefined ? initialInstrument : INSTRUMENTS[0] ?? null,
   );
