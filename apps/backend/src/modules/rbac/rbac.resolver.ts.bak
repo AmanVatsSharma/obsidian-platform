@@ -46,7 +46,7 @@ import { AppError } from '@obsidian/backend-common';
 
 /* ── GraphQL ObjectTypes ──────────────────────────────────────────────────── */
 
-@ObjectType('Role')
+@ObjectType()
 export class RoleObjectType {
   @Field(() => ID)
   id!: string;

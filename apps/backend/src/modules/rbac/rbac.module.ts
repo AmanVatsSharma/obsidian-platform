@@ -22,7 +22,7 @@ import { AdminRolesController } from './controllers/admin-roles.controller';
 import { AdminPermissionsController } from './controllers/admin-permissions.controller';
 import { AdminTeamController } from './controllers/admin-team.controller';
 import { UserEntity } from '../users/entities/user.entity';
-import { RbacResolver } from './rbac.resolver';
+// import { RbacResolver } from './rbac.resolver';
 
 @Module({
   imports: [
@@ -35,7 +35,7 @@ import { RbacResolver } from './rbac.resolver';
     ]),
   ],
   controllers: [AdminRolesController, AdminPermissionsController, AdminTeamController],
-  providers: [RbacService, PermissionsGuard, PlatformOwnerGuard, RolesGuard, TenantGuard, RbacSeeder, RbacResolver],
+  providers: [RbacService, PermissionsGuard, PlatformOwnerGuard, RolesGuard, TenantGuard, RbacSeeder],
   exports: [RbacService, PermissionsGuard, PlatformOwnerGuard, RolesGuard, TenantGuard],
 })
 export class RbacModule {}
