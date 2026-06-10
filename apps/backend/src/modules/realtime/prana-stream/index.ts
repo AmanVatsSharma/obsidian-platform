@@ -11,6 +11,7 @@ export * from './realtime.resolver';
 export * from './gateway/prana-stream.gateway';
 export * from './services/realtime-aggregator.service';
 export * from './services/subscription-registry.service';
+export * from './services/realtime-backpressure.service';
 export * from './adapters/market-data.provider';
 
 

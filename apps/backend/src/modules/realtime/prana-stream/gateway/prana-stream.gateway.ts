@@ -10,6 +10,7 @@ import {
   MessageBody,
   OnGatewayConnection,
   OnGatewayDisconnect,
+  OnGatewayInit,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
@@ -21,6 +22,7 @@ import { SubscriptionRegistryService } from '../services/subscription-registry.s
 import { WsJwtGuard } from '../guards/ws-jwt.guard';
 import { RealtimeAggregatorService } from '../services/realtime-aggregator.service';
 import { RealtimeScaleCoordinatorService } from '../services/realtime-scale-coordinator.service';
+import { RealtimeBackpressureService } from '../services/realtime-backpressure.service';
 
 type SubscribePayload = {
   watchlist?: Array<{ exchange: string; symbol: string }>;
@@ -38,7 +40,7 @@ type OrderBookSubscribePayload = {
 @WebSocketGateway({ namespace: '/ws/prana', cors: { origin: '*' } })
 @UseGuards(WsJwtGuard)
 export class PranaStreamGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit
 {
   @WebSocketServer()
   private server!: Server;
@@ -48,8 +50,17 @@ export class PranaStreamGateway
     private readonly subs: SubscriptionRegistryService,
     private readonly aggregator: RealtimeAggregatorService,
     private readonly scaleCoordinator: RealtimeScaleCoordinatorService,
+    private readonly backpressure: RealtimeBackpressureService,
   ) {
     this.logger.setContext(PranaStreamGateway.name);
+  }
+
+  afterInit(): void {
+    // Bind the backpressure tracker to the live Socket.IO server. The
+    // tracker listens to `connection` / `disconnect` and periodically
+    // force-disconnects sockets whose transport buffer is full.
+    this.backpressure.attachToServer(this.server);
+    this.logger.debug('Backpressure service attached to server');
   }
 
   handleConnection(client: Socket): void {

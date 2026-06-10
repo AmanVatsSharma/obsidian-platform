@@ -48,6 +48,7 @@ import { HoldEntity } from '../../accounts/entities/hold.entity';
 import { RealtimeResolver } from './realtime.resolver';
 import { RealtimePublishOutboxHandler } from './outbox/realtime-publish-outbox.handler';
 import { OUTBOX_HANDLERS } from '../../../shared/outbox/outbox-worker.skeleton';
+import { RealtimeBackpressureService } from './services/realtime-backpressure.service';
 
 @Module({
   imports: [
@@ -76,6 +77,7 @@ import { OUTBOX_HANDLERS } from '../../../shared/outbox/outbox-worker.skeleton';
     KiteMarketDataAdapter,
     WsJwtGuard,
     RealtimeResolver,
+    RealtimeBackpressureService,
     // Register the OMS/Accounts outbox → realtime bridge.
     // NestJS merges all providers with the OUTBOX_HANDLERS token into an array.
     RealtimePublishOutboxHandler,
@@ -88,6 +90,7 @@ import { OUTBOX_HANDLERS } from '../../../shared/outbox/outbox-worker.skeleton';
     RealtimeAggregatorService,
     RealtimePublisherService,
     RealtimePublishOutboxHandler,
+    RealtimeBackpressureService,
   ],
   controllers: [AdminPranaController],
 })

@@ -107,7 +107,18 @@ export type ConnectionStatus =
   | 'connecting'
   | 'connected'
   | 'reconnecting'
+  | 'backpressure-slow'
+  | 'backpressure-critical'
   | 'error';
+
+export type BackpressureEvent = {
+  level: 0 | 1 | 2 | 3;
+  pendingBytes: number;
+  softLimit: number;
+  hardLimit: number;
+  reason: 'soft-limit-exceeded' | 'hard-limit-approaching' | 'hard-limit-exceeded';
+  hint: 'client-should-slow-subscription-rate' | 'client-should-reconnect-with-snapshot';
+};
 
 export type PranaEventName =
   | 'watchlist.ticks'
@@ -115,4 +126,6 @@ export type PranaEventName =
   | 'position.updated'
   | 'account.updated'
   | 'orderbook.depth'
-  | 'snapshot';
+  | 'snapshot'
+  | 'backpressure.slow'
+  | 'backpressure.disconnect';

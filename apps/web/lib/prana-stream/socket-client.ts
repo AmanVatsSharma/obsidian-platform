@@ -161,6 +161,17 @@ class PranaStreamClient {
       this.dispatch('orderbook.depth', data),
     );
     s.on('snapshot', (data: unknown) => this.dispatch('snapshot', data));
+    s.on('backpressure.slow', (data: unknown) => this.dispatch('backpressure.slow', data));
+    s.on('backpressure.disconnect', (data: unknown) => this.dispatch('backpressure.disconnect', data));
+
+    // Surface backpressure events in connection status
+    s.on('backpressure.slow', (data: any) => {
+      if (data?.level === 1) {
+        this.setStatus('backpressure-slow');
+      } else if (data?.level === 2) {
+        this.setStatus('backpressure-critical');
+      }
+    });
   }
 
   // ---------------------------------------------------------------------
