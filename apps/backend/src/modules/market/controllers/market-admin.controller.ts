@@ -299,8 +299,8 @@ export class MarketAdminController {
             exchange,
             lotSize,
             tickSize,
-            _,
-            _,
+            ,
+            ,
             isin,
           ] = cols;
 

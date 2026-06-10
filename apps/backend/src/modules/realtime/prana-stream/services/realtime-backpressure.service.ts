@@ -282,11 +282,14 @@ export class RealtimeBackpressureService
       });
     }
     tracker.totalDropped++;
-    this.logger.error('Force disconnected slow client', {
-      socketId: socket.id,
-      userId: tracker.userId,
-      reason,
-      pendingBytes: tracker.pendingBytes,
-    });
+    this.logger.error(
+      'Force disconnected slow client',
+      JSON.stringify({
+        socketId: socket.id,
+        userId: tracker.userId,
+        reason,
+        pendingBytes: tracker.pendingBytes,
+      }),
+    );
   }
 }

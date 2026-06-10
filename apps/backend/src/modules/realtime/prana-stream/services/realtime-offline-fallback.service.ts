@@ -176,17 +176,17 @@ export class RealtimeOfflineFallbackService {
       // notifications module's init order. Both modules are global-ish
       // but notifications depends on a websocket adapter, so we cannot
       // import eagerly at module-construction time.
-      const { NotificationsService } = await import(
-        '../../../notifications/notifications.service'
+      const { NotificationService } = await import(
+        '../../../notifications/services/notification.service'
       );
-      // The NotificationsService is a global; in a real call this would
+      // The NotificationService is a global; in a real call this would
       // come from the DI container. We use a process-wide singleton ref
       // set during application bootstrap.
       const svc = (globalThis as any).__notificationsService as
-        | InstanceType<typeof NotificationsService>
+        | InstanceType<typeof NotificationService>
         | undefined;
-      if (svc?.sendRealtime) {
-        await svc.sendRealtime(userId, eventName, data);
+      if (svc?.send) {
+        await svc.send({ userId, channel: 'inapp', title: eventName, body: JSON.stringify(data) });
       }
     } catch (err) {
       this.logger.debug('push notification dispatch failed (non-fatal)', {
