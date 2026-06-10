@@ -133,6 +133,23 @@ export class BulkUpdateInstrumentDto {
   @IsString()
   @MaxLength(32)
   provider?: string;
+
+  @IsOptional()
+  @IsNumber()
+  spreadOverride?: number;
+
+  @IsOptional()
+  @IsNumber()
+  lotOverride?: number;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(16)
+  leverageOverride?: string;
+
+  @IsOptional()
+  @IsNumber()
+  maxPositionOverride?: number;
 }
 
 /**

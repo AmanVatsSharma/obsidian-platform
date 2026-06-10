@@ -46,6 +46,7 @@ import { RolesGuard } from '../../rbac/guards/roles.guard';
 import { Roles } from '../../rbac/decorators/roles.decorator';
 import { AppLoggerService } from '../../../shared/logger';
 import { ApiBearerAuth, ApiOperation, ApiParam, ApiQuery, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { InstrumentSegment, InstrumentStatus } from '../entities/instrument.entity';
 
 @UseGuards(JwtAuthGuard, TenantGuard, RolesGuard)
 @Roles('admin')
@@ -79,10 +80,10 @@ export class AdminInstrumentsController {
     return this.svc.listInstruments({
       exchangeCode: query.exchange,
       type: query.type,
-      segment: query.segment,
+      segment: query.segment as InstrumentSegment | undefined,
       provider: query.provider,
       q: query.q,
-      status: query.status,
+      status: query.status as InstrumentStatus | undefined,
       limit: query.limit ?? 50,
       offset: query.offset ?? 0,
     });
@@ -139,7 +140,7 @@ export class AdminInstrumentsController {
       provider: dto.provider,
     };
 
-    const count = await this.svc.bulkUpdateInstruments(attrs, filters);
+    const count = await this.svc.bulkUpdateInstruments(attrs, filters as any);
     return { updated: count };
   }
 

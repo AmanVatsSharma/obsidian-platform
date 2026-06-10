@@ -190,7 +190,7 @@ export class MarketAdminController {
     // Also update in-memory adapter
     this.kiteAdapter.updateCredentials(dto.apiKey, dto.accessToken);
 
-    this.logger.info('Kite credentials saved', { providerId: provider.id });
+    this.logger.log('Kite credentials saved', { providerId: provider.id });
     return { saved: true, providerId: provider.id };
   }
 
@@ -314,19 +314,21 @@ export class MarketAdminController {
           const seg = mapping.segment;
 
           // Map instrument type
+          const typeStr = type as unknown as string;
           let finalType: InstrumentType = InstrumentType.EQUITY;
-          if (type === 'EQ') finalType = InstrumentType.EQUITY;
-          else if (type === 'FUT') finalType = InstrumentType.FUTURE;
-          else if (type === 'OPT') finalType = InstrumentType.OPTION;
-          else if (type === 'CO') finalType = InstrumentType.FUTURE; // cover_order
-          else if (type === 'BO') finalType = InstrumentType.FUTURE; // blanket_order
-          else if (type === 'CE' || type === 'PE') finalType = InstrumentType.OPTION;
-          else if (type === 'FUNDS') finalType = InstrumentType.FOREX;
+          if (typeStr === 'EQ') finalType = InstrumentType.EQUITY;
+          else if (typeStr === 'FUT') finalType = InstrumentType.FUTURE;
+          else if (typeStr === 'OPT') finalType = InstrumentType.OPTION;
+          else if (typeStr === 'CO') finalType = InstrumentType.FUTURE; // cover_order
+          else if (typeStr === 'BO') finalType = InstrumentType.FUTURE; // blanket_order
+          else if (typeStr === 'CE' || typeStr === 'PE') finalType = InstrumentType.OPTION;
+          else if (typeStr === 'FUNDS') finalType = InstrumentType.FOREX;
 
-          const segmentEnum = seg === 'EQ' ? InstrumentSegment.EQ
-            : seg === 'FNO' ? InstrumentSegment.FNO
-            : seg === 'COM' ? InstrumentSegment.COM
-            : seg === 'CDS' ? InstrumentSegment.CDS
+          const segStr = seg as unknown as string;
+          const segmentEnum = segStr === 'EQ' ? InstrumentSegment.EQ
+            : segStr === 'FNO' ? InstrumentSegment.FNO
+            : segStr === 'COM' ? InstrumentSegment.COM
+            : segStr === 'CDS' ? InstrumentSegment.CDS
             : InstrumentSegment.EQ;
 
           // Check if exists
@@ -341,7 +343,7 @@ export class MarketAdminController {
             existing.displayName = name;
             existing.type = finalType;
             existing.segment = segmentEnum;
-            existing.lotSize = lotSize ? parseInt(lotSize) : 1;
+            existing.lotSize = lotSize ? String(parseInt(lotSize, 10)) : '1';
             existing.tickSize = tickSize ? tickSize : '0.05';
             existing.meta = { ...existing.meta, isin };
             await this.instruments.save(existing);
@@ -358,7 +360,7 @@ export class MarketAdminController {
               providerCode: 'KITE',
               providerSymbol: symbol,
               providerToken: instrumentToken,
-              lotSize: lotSize ? parseInt(lotSize) : 1,
+              lotSize: lotSize ? String(parseInt(lotSize, 10)) : '1',
               tickSize: tickSize ? tickSize : '0.05',
               meta: { isin },
             });
@@ -369,7 +371,7 @@ export class MarketAdminController {
         }
 
         totalSynced += synced;
-        this.logger.info(`Synced ${synced} instruments from Kite ${kiteExchange}`);
+        this.logger.log(`Synced ${synced} instruments from Kite ${kiteExchange}`);
       } catch (e) {
         this.logger.error('Kite instruments sync failed', (e as Error).stack);
       }
