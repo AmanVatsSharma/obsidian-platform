@@ -94,7 +94,7 @@ export class KiteWebSocketService implements OnModuleInit, OnModuleDestroy {
     if (provider?.apiKey && provider?.accessToken) {
       this.apiKey = provider.apiKey;
       this.accessToken = provider.accessToken;
-      this.logger.info('Kite WebSocket credentials loaded');
+      this.logger.log('Kite WebSocket credentials loaded');
     }
   }
 
@@ -111,7 +111,7 @@ export class KiteWebSocketService implements OnModuleInit, OnModuleDestroy {
   updateCredentials(apiKey: string, accessToken: string): void {
     this.apiKey = apiKey;
     this.accessToken = accessToken;
-    this.logger.info('Kite WebSocket credentials updated');
+    this.logger.log('Kite WebSocket credentials updated');
     // Reconnect with new credentials
     if (this.ws) {
       this.ws.close();
@@ -223,13 +223,13 @@ export class KiteWebSocketService implements OnModuleInit, OnModuleDestroy {
       return;
     }
 
-    this.logger.info('Connecting to Kite WebSocket...');
+    this.logger.log('Connecting to Kite WebSocket...');
 
     const url = `${KITE_WS_URL}?api_key=${this.apiKey}&access_token=${this.accessToken}`;
     this.ws = new WebSocket(url);
 
     this.ws.on('open', () => {
-      this.logger.info('Kite WebSocket connected');
+      this.logger.log('Kite WebSocket connected');
       this.reconnectAttempts = 0;
       this.sendSubscriptionMessage();
     });
@@ -291,6 +291,8 @@ export class KiteWebSocketService implements OnModuleInit, OnModuleDestroy {
     const mapping = this.tokenSymbolMap.get(token);
     if (!mapping) return null;
 
+    const depth = raw.depth as { buy?: Array<{ price: number; quantity: number }>; sell?: Array<{ price: number; quantity: number }> } | undefined;
+
     return {
       instrumentToken: token,
       tradingsymbol: mapping.symbol,
@@ -298,10 +300,10 @@ export class KiteWebSocketService implements OnModuleInit, OnModuleDestroy {
       lastPrice: raw.last_price as number,
       ohlc: raw.ohlc as KiteTick['ohlc'],
       volume: raw.volume_traded as number,
-      bid: raw.depth?.buy?.[0]?.price as number,
-      ask: raw.depth?.sell?.[0]?.price as number,
-      bidQty: raw.depth?.buy?.[0]?.quantity as number,
-      askQty: raw.depth?.sell?.[0]?.quantity as number,
+      bid: depth?.buy?.[0]?.price,
+      ask: depth?.sell?.[0]?.price,
+      bidQty: depth?.buy?.[0]?.quantity,
+      askQty: depth?.sell?.[0]?.quantity,
       timestamp: raw.timestamp as number,
       change: raw.change as number,
     };
@@ -350,7 +352,7 @@ export class KiteWebSocketService implements OnModuleInit, OnModuleDestroy {
     );
 
     this.reconnectAttempts++;
-    this.logger.info(`Reconnecting Kite WebSocket in ${delay}ms (attempt ${this.reconnectAttempts})`);
+    this.logger.log(`Reconnecting Kite WebSocket in ${delay}ms (attempt ${this.reconnectAttempts})`);
 
     this.reconnectTimer = setTimeout(() => this.connect(), delay);
   }

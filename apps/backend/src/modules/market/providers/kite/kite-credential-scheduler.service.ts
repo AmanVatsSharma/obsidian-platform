@@ -44,7 +44,7 @@ export class KiteCredentialSchedulerService implements OnModuleInit {
   }
 
   onModuleInit(): void {
-    this.logger.info('Kite credential scheduler started');
+    this.logger.log('Kite credential scheduler started');
   }
 
   /**
@@ -77,7 +77,7 @@ export class KiteCredentialSchedulerService implements OnModuleInit {
         if (kite.status !== ProviderStatus.CONNECTED) {
           kite.status = ProviderStatus.CONNECTED;
           kite.lastError = null;
-          this.logger.info('Kite connection recovered');
+          this.logger.log('Kite connection recovered');
         }
         kite.latencyMs = Date.now() - kite.lastHealthCheck.getTime();
       } else {
@@ -104,7 +104,7 @@ export class KiteCredentialSchedulerService implements OnModuleInit {
     if (!kite || !kite.isEnabled) return;
 
     const isIST = (new Date().getUTCHours() + 5) % 24; // Approximate
-    this.logger.info('Checking Kite token validity before market open');
+    this.logger.log('Checking Kite token validity before market open');
 
     if (kite.status !== ProviderStatus.CONNECTED) {
       this.logger.warn('Kite is not connected. Admin needs to re-login before market open.');
@@ -125,7 +125,7 @@ export class KiteCredentialSchedulerService implements OnModuleInit {
       return;
     }
 
-    this.logger.info('Starting weekly Kite instrument sync');
+    this.logger.log('Starting weekly Kite instrument sync');
     // The actual sync is done via admin endpoint:
     // POST /admin/market-data/kite/sync
     // This is a reminder/log; in production, could call the service directly
@@ -140,7 +140,7 @@ export class KiteCredentialSchedulerService implements OnModuleInit {
     const kite = await this.providers.findOne({ where: { code: 'KITE' } });
     if (!kite || !kite.isEnabled) return;
 
-    this.logger.info('Post-market Kite check complete', {
+    this.logger.log('Post-market Kite check complete', {
       status: kite.status,
       instrumentCount: kite.instrumentCount,
     });

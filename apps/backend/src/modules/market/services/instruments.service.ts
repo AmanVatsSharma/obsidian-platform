@@ -58,7 +58,7 @@ export interface ListInstrumentsOptions extends Partial<AdminListInstrumentsQuer
   offset?: number;
 }
 
-export interface BulkUpdateOptions extends Partial<BulkUpdateInstrumentDto> {
+export interface BulkUpdateOptions {
   symbols?: string[];
   exchangeCode?: string;
   segment?: InstrumentSegment;
@@ -145,14 +145,17 @@ export class InstrumentsService {
   }
 
   /**
-   * Legacy overload for simple filters (backward compatible)
+   * Legacy overload for simple filters (backward compatible).
+   * Returns a flat array instead of the paginated envelope.
    */
-  listInstruments(filters: {
+  async listInstrumentsFlat(filters: {
     exchangeCode?: string;
     type?: string;
     q?: string;
   }): Promise<InstrumentEntity[]> {
-    return this.listInstruments(filters).then((r) => r.instruments);
+    this.logger.debug('listInstrumentsFlat() called', filters);
+    const result = await this.listInstruments(filters);
+    return result.instruments;
   }
 
   /**
@@ -197,16 +200,16 @@ export class InstrumentsService {
       throw new AppError('RESOURCE_NOT_FOUND', `Instrument ${id} not found`);
     }
 
-    // Merge updates
-    const updated = this.instruments.create({
+    // Merge updates — apply only defined attrs onto the existing entity
+    const updated: InstrumentEntity = {
       ...existing,
-      status: attrs.status ?? existing.status,
+      status: (attrs.status ?? existing.status) as InstrumentStatus,
       isTradingEnabled: attrs.isTradingEnabled ?? existing.isTradingEnabled,
       spreadOverride: attrs.spreadOverride ?? existing.spreadOverride,
       lotOverride: attrs.lotOverride ?? existing.lotOverride,
       leverageOverride: attrs.leverageOverride ?? existing.leverageOverride,
       maxPositionOverride: attrs.maxPositionOverride ?? existing.maxPositionOverride,
-    });
+    };
 
     return this.instruments.save(updated);
   }
