@@ -19,6 +19,7 @@ import { CashLedgerEntryEntity } from '../../../accounts/entities/cash-ledger-en
 import { HoldEntity } from '../../../accounts/entities/hold.entity';
 import { In, Repository } from 'typeorm';
 import { RealtimeEventBufferService } from './realtime-event-buffer.service';
+import { LtpCacheService } from '../../../market/services/ltp-cache.service';
 
 @Injectable()
 export class RealtimeAggregatorService {
@@ -43,6 +44,7 @@ export class RealtimeAggregatorService {
     private readonly subs: SubscriptionRegistryService,
     private readonly market: CompositeMarketDataAdapter,
     private readonly eventBuffer: RealtimeEventBufferService,
+    private readonly ltpCache: LtpCacheService,
   ) {
     this.logger.setContext(RealtimeAggregatorService.name);
     this.market.onTicks((ticks) => this.handleTicks(ticks));
@@ -122,7 +124,25 @@ export class RealtimeAggregatorService {
     this.logger.debug('getSnapshots', { userId, tenantId });
     const out: any = {};
     if (payload.watchlist && payload.watchlist.length > 0) {
+      // Upstream snapshot first (gets the structural rows the user is watching).
+      // Then layer the cross-pod LTP cache on top: any entry that was set by
+      // another pod since this user's last connect is reflected here.
       out.watchlist = await this.market.getSnapshot(payload.watchlist);
+      try {
+        const cachedLtps = await this.ltpCache.getMany(payload.watchlist);
+        if (cachedLtps.size > 0 && Array.isArray(out.watchlist)) {
+          for (const row of out.watchlist) {
+            const key = `${String(row.exchange ?? '').toUpperCase()}:${String(row.symbol ?? '').toUpperCase()}`;
+            const cached = cachedLtps.get(key);
+            if (cached) {
+              row.lastTradedPrice = cached.price;
+              row.priceTimestamp = new Date(cached.ts).toISOString();
+            }
+          }
+        }
+      } catch (e) {
+        this.logger.warn('ltp cache overlay failed', { error: (e as Error).message });
+      }
     }
     if (!tenantId) {
       if (payload.orders) out.orders = [];
