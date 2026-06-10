@@ -186,7 +186,7 @@ export class RealtimeOfflineFallbackService {
         | InstanceType<typeof NotificationService>
         | undefined;
       if (svc?.send) {
-        await svc.send({ userId, channel: 'inapp', title: eventName, body: JSON.stringify(data) });
+        await svc.send({ userId, type: eventName, channels: ['in-app'] as any, title: eventName, bodyTemplate: eventName, vars: { data: JSON.stringify(data) } });
       }
     } catch (err) {
       this.logger.debug('push notification dispatch failed (non-fatal)', {

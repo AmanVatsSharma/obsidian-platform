@@ -79,7 +79,9 @@ function getDevicePreference(request: NextRequest): 'desktop' | 'mobile' | null 
  * Get redirect response with optional cookie.
  */
 function createRedirect(url: string, preference?: 'desktop' | 'mobile'): Response {
-  const response = NextResponse.redirect(url);
+  // Next.js 15 requires absolute URLs for NextResponse.redirect
+  const absoluteUrl = url.startsWith('http') ? url : `https://obsidian.local${url}`;
+  const response = NextResponse.redirect(absoluteUrl);
 
   if (preference) {
     // Set cookie on redirect response
