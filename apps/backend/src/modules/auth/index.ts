@@ -13,3 +13,4 @@ export * from './controllers/admin-auth.controller';
 export * from './auth.resolver';
 export * from './entities/refresh-token.entity';
 export * from './guards/jwt-auth.guard';
+export * from './decorators/current-user.decorator';
