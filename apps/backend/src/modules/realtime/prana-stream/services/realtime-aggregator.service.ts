@@ -18,6 +18,7 @@ import { PositionLedgerEntryEntity } from '../../../accounts/entities/position-l
 import { CashLedgerEntryEntity } from '../../../accounts/entities/cash-ledger-entry.entity';
 import { HoldEntity } from '../../../accounts/entities/hold.entity';
 import { In, Repository } from 'typeorm';
+import { RealtimeEventBufferService } from './realtime-event-buffer.service';
 
 @Injectable()
 export class RealtimeAggregatorService {
@@ -41,6 +42,7 @@ export class RealtimeAggregatorService {
     private readonly logger: AppLoggerService,
     private readonly subs: SubscriptionRegistryService,
     private readonly market: CompositeMarketDataAdapter,
+    private readonly eventBuffer: RealtimeEventBufferService,
   ) {
     this.logger.setContext(RealtimeAggregatorService.name);
     this.market.onTicks((ticks) => this.handleTicks(ticks));
@@ -90,10 +92,14 @@ export class RealtimeAggregatorService {
     this.tickBuffers.set(userId, new Map());
     this.lastSentPrices.set(userId, last);
     if (changed.length === 0) return;
+    const seq = this.eventBuffer.record(userId, 'watchlist.ticks', {
+      type: 'watchlist.tick',
+      data: changed,
+    });
     this.server.to(`user:${userId}`).emit('watchlist.ticks', {
       type: 'watchlist.tick',
       userId,
-      seq: Date.now(),
+      seq,
       ts: new Date().toISOString(),
       data: changed,
       v: 1,
@@ -233,10 +239,11 @@ export class RealtimeAggregatorService {
   // Domain fan-in methods (to be called by OMS/Accounts services)
   publishOrderUpdate(userId: string, data: any) {
     if (!this.server) return;
+    const seq = this.eventBuffer.record(userId, 'order.updated', data);
     this.server.to(`user:${userId}`).emit('order.updated', {
       type: 'order.updated',
       userId,
-      seq: Date.now(),
+      seq,
       ts: new Date().toISOString(),
       data,
       v: 1,
@@ -245,10 +252,11 @@ export class RealtimeAggregatorService {
 
   publishPositionUpdate(userId: string, data: any) {
     if (!this.server) return;
+    const seq = this.eventBuffer.record(userId, 'position.updated', data);
     this.server.to(`user:${userId}`).emit('position.updated', {
       type: 'position.updated',
       userId,
-      seq: Date.now(),
+      seq,
       ts: new Date().toISOString(),
       data,
       v: 1,
@@ -257,10 +265,11 @@ export class RealtimeAggregatorService {
 
   publishAccountUpdate(userId: string, data: any) {
     if (!this.server) return;
+    const seq = this.eventBuffer.record(userId, 'account.updated', data);
     this.server.to(`user:${userId}`).emit('account.updated', {
       type: 'account.updated',
       userId,
-      seq: Date.now(),
+      seq,
       ts: new Date().toISOString(),
       data,
       v: 1,

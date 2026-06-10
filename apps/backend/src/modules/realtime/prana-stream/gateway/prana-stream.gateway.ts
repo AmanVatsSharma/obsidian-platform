@@ -23,6 +23,7 @@ import { WsJwtGuard } from '../guards/ws-jwt.guard';
 import { RealtimeAggregatorService } from '../services/realtime-aggregator.service';
 import { RealtimeScaleCoordinatorService } from '../services/realtime-scale-coordinator.service';
 import { RealtimeBackpressureService } from '../services/realtime-backpressure.service';
+import { RealtimeEventBufferService } from '../services/realtime-event-buffer.service';
 
 type SubscribePayload = {
   watchlist?: Array<{ exchange: string; symbol: string }>;
@@ -51,6 +52,7 @@ export class PranaStreamGateway
     private readonly aggregator: RealtimeAggregatorService,
     private readonly scaleCoordinator: RealtimeScaleCoordinatorService,
     private readonly backpressure: RealtimeBackpressureService,
+    private readonly eventBuffer: RealtimeEventBufferService,
   ) {
     this.logger.setContext(PranaStreamGateway.name);
   }
@@ -111,6 +113,42 @@ export class PranaStreamGateway
     const snapshots = await this.aggregator.getSnapshots(userId, tenantId, p);
     if (snapshots) client.emit('snapshot', snapshots);
     return { ok: true };
+  }
+
+  /**
+   * Reconnect resilience: client sends its last-seen seq to request replay of
+   * missed events. This is called on reconnect before the full subscribe flow, so they
+   * get order/position/account updates that occurred during the disconnect window.
+   */
+  @SubscribeMessage('resync')
+  async resync(
+    client: Socket,
+    @MessageBody() payload: { lastSeq: number },
+  ) {
+    const userId = (client.handshake.auth?.userId as string) || '';
+    if (!userId) return { ok: false, reason: 'unauthenticated' };
+    // Get buffered events newer than what the client last saw
+    const missed = this.eventBuffer.replay(userId, payload.lastSeq);
+    const latestSeq = this.eventBuffer.getLatestSeq(userId);
+    // Prune the buffer after serving: client got these, drop them locally so we don't
+    // hold onto them forever
+    if (missed.length > 0) {
+      this.eventBuffer.pruneOlderThan(userId, latestSeq);
+    }
+    this.logger.debug('resync', { userId, lastSeq: payload.lastSeq, latestSeq, count: missed.length });
+    // Also push via 'resync.ack' so clients receive the events as a single
+    // message on their dedicated socket (resolves even on broadcast / multi-pod setups).
+    client.emit('resync.ack', { latestSeq, events: missed });
+    return {
+      ok: true,
+      latestSeq,
+      events: missed,
+      // The client knows all events up to latestSeq now; we can skip sending
+      // a fresh snapshot because replay carries the same info (orders/positions/accounts are
+      // idempotent updates, not absolute snapshots). If the gap was large (> 100 events),
+      // we could additionally emit a snapshot. For now, the normal flow after resync
+      // will send it as part of the subscribe() response.
+    };
   }
 }
 

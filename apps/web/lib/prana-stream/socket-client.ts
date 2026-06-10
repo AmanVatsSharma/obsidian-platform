@@ -58,6 +58,14 @@ class PranaStreamClient {
   private currentTenantId: string | null = null;
   private currentUserId: string | null = null;
   private lastConnectError: string | null = null;
+  /**
+   * Highest seq the client has observed across all events. Persisted in
+   * sessionStorage so it survives page refreshes; on reconnect, the client
+   * emits `resync { lastSeq }` and the server replays any events newer
+   * than this number.
+   */
+  private lastSeqSeen = 0;
+  private readonly lastSeqKey = 'prana.lastSeqSeen';
 
   // ---------------------------------------------------------------------
   // Connection lifecycle
@@ -119,6 +127,12 @@ class PranaStreamClient {
       this.reconnectAttempts = 0;
       this.lastConnectError = null;
       this.setStatus('connected');
+      // Attempt resync if we had a previous seq (i.e., this is not the first connect)
+      const persisted = sessionStorage.getItem(this.lastSeqKey);
+      const lastSeq = persisted ? parseInt(persisted, 10) : 0;
+      if (lastSeq > 0) {
+        s.emit('resync', { lastSeq });
+      }
     });
 
     s.on('disconnect', (reason) => {
@@ -144,22 +158,46 @@ class PranaStreamClient {
       this.setStatus('error');
     });
 
+    // Server response to a `resync` request — apply missed events.
+    // The server returns a flat array of events with names — we re-emit each
+    // through the dispatch loop so existing listeners handle them.
+    s.on('resync.ack', (data: { latestSeq: number; events: RealtimeEvent<unknown>[] }) => {
+      this.lastSeqSeen = Math.max(this.lastSeqSeen, data.latestSeq);
+      try {
+        sessionStorage.setItem(this.lastSeqKey, String(this.lastSeqSeen));
+      } catch {
+        /* sessionStorage full / unavailable — non-fatal */
+      }
+      for (const ev of data.events ?? []) {
+        const eventName = (ev.type as PranaEventName) ?? null;
+        if (eventName) {
+          this.observeSeq(ev.seq);
+          this.dispatch(eventName, ev);
+        }
+      }
+    });
+
     // Forward PranaStream events to local listeners
-    s.on('watchlist.ticks', (data: RealtimeEvent<Tick[]>) =>
-      this.dispatch('watchlist.ticks', data),
-    );
-    s.on('order.updated', (data: RealtimeEvent<unknown>) =>
-      this.dispatch('order.updated', data),
-    );
-    s.on('position.updated', (data: RealtimeEvent<unknown>) =>
-      this.dispatch('position.updated', data),
-    );
-    s.on('account.updated', (data: RealtimeEvent<unknown>) =>
-      this.dispatch('account.updated', data),
-    );
-    s.on('orderbook.depth', (data: OrderBookFrame) =>
-      this.dispatch('orderbook.depth', data),
-    );
+    s.on('watchlist.ticks', (data: RealtimeEvent<Tick[]>) => {
+      this.observeSeq(data?.seq);
+      this.dispatch('watchlist.ticks', data);
+    });
+    s.on('order.updated', (data: RealtimeEvent<unknown>) => {
+      this.observeSeq(data?.seq);
+      this.dispatch('order.updated', data);
+    });
+    s.on('position.updated', (data: RealtimeEvent<unknown>) => {
+      this.observeSeq(data?.seq);
+      this.dispatch('position.updated', data);
+    });
+    s.on('account.updated', (data: RealtimeEvent<unknown>) => {
+      this.observeSeq(data?.seq);
+      this.dispatch('account.updated', data);
+    });
+    s.on('orderbook.depth', (data: OrderBookFrame) => {
+      // Order book frames don't carry a seq per-user (per-symbol), so skip
+      this.dispatch('orderbook.depth', data);
+    });
     s.on('snapshot', (data: unknown) => this.dispatch('snapshot', data));
     s.on('backpressure.slow', (data: unknown) => this.dispatch('backpressure.slow', data));
     s.on('backpressure.disconnect', (data: unknown) => this.dispatch('backpressure.disconnect', data));
@@ -255,6 +293,30 @@ class PranaStreamClient {
         // swallow — listener errors must not break the dispatch loop
       }
     }
+  }
+
+  /**
+   * Track the highest seq we've seen. Used to drive the resync handshake
+   * on reconnect. Bumped on every incoming event; persisted to sessionStorage
+   * so a page reload can also re-sync.
+   */
+  private observeSeq(seq: number | undefined): void {
+    if (typeof seq !== 'number' || seq <= 0) return;
+    if (seq <= this.lastSeqSeen) return;
+    this.lastSeqSeen = seq;
+    try {
+      sessionStorage.setItem(this.lastSeqKey, String(this.lastSeqSeen));
+    } catch {
+      /* sessionStorage unavailable — fine, in-memory still works for this session */
+    }
+  }
+
+  /**
+   * Read-only access to the highest seq seen this session — useful for
+   * debugging and for tests.
+   */
+  getLastSeqSeen(): number {
+    return this.lastSeqSeen;
   }
 
   // ---------------------------------------------------------------------

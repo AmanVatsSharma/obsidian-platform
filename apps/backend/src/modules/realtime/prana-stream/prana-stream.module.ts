@@ -49,6 +49,7 @@ import { RealtimeResolver } from './realtime.resolver';
 import { RealtimePublishOutboxHandler } from './outbox/realtime-publish-outbox.handler';
 import { OUTBOX_HANDLERS } from '../../../shared/outbox/outbox-worker.skeleton';
 import { RealtimeBackpressureService } from './services/realtime-backpressure.service';
+import { RealtimeEventBufferService } from './services/realtime-event-buffer.service';
 
 @Module({
   imports: [
@@ -78,6 +79,7 @@ import { RealtimeBackpressureService } from './services/realtime-backpressure.se
     WsJwtGuard,
     RealtimeResolver,
     RealtimeBackpressureService,
+    RealtimeEventBufferService,
     // Register the OMS/Accounts outbox → realtime bridge.
     // NestJS merges all providers with the OUTBOX_HANDLERS token into an array.
     RealtimePublishOutboxHandler,
@@ -91,6 +93,7 @@ import { RealtimeBackpressureService } from './services/realtime-backpressure.se
     RealtimePublisherService,
     RealtimePublishOutboxHandler,
     RealtimeBackpressureService,
+    RealtimeEventBufferService,
   ],
   controllers: [AdminPranaController],
 })
