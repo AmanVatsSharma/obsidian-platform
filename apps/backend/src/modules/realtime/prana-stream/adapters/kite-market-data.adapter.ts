@@ -38,6 +38,7 @@ import { AppLoggerService } from '../../../../shared/logger';
 import { MarketDataProvider, Tick } from './market-data.provider';
 import { KiteWebSocketService } from '../../../market/providers/kite/kite-websocket.service';
 import { InstrumentEntity } from '../../../market/entities/instrument.entity';
+import { LtpCacheService } from '../../../market/services/ltp-cache.service';
 
 @Injectable()
 export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestroy {
@@ -51,6 +52,7 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
     private readonly kiteWs: KiteWebSocketService,
     @InjectRepository(InstrumentEntity)
     private readonly instruments: Repository<InstrumentEntity>,
+    private readonly ltpCache: LtpCacheService,
   ) {
     this.logger.setContext(KiteMarketDataAdapter.name);
   }
@@ -185,7 +187,16 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
           price: kt.lastPrice ?? 0,
           ts: kt.timestamp ?? Date.now(),
         }));
-        if (ticks.length > 0) cb(ticks);
+        if (ticks.length > 0) {
+          // Write each tick to the Redis-backed LTP cache. This is fire-and-forget
+          // (we don't await) — cache misses break nothing.
+          for (const tick of ticks) {
+            this.ltpCache.set(tick.exchange, tick.symbol, tick.price, tick.ts).catch(
+              (e) => this.logger.debug('ltp cache set failed', { error: e }),
+            );
+          }
+          cb(ticks);
+        }
       });
   }
 

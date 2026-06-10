@@ -43,6 +43,7 @@ import { InstrumentsService } from './services/instruments.service';
 import { WatchlistsService } from './services/watchlists.service';
 import { PriceFeedService } from './services/price-feed.service';
 import { SegmentAccessService } from './services/segment-access.service';
+import { LtpCacheService } from './services/ltp-cache.service';
 import { InstrumentsController } from './controllers/instruments.controller';
 import { WatchlistsController } from './controllers/watchlists.controller';
 import { QuotesController } from './controllers/quotes.controller';
@@ -83,6 +84,7 @@ import { RbacModule } from '../rbac/rbac.module';
     WatchlistsService,
     PriceFeedService,
     SegmentAccessService,
+    LtpCacheService,
     DataProviderRegistry,
     GenericRestDataProviderAdapter,
     KiteDataProviderAdapter,
@@ -95,6 +97,7 @@ import { RbacModule } from '../rbac/rbac.module';
     WatchlistsService,
     PriceFeedService,
     SegmentAccessService,
+    LtpCacheService,
     KiteWebSocketService,
   ],
 })

@@ -19,6 +19,7 @@ export * from './services/instruments.service';
 export * from './services/watchlists.service';
 export * from './services/price-feed.service';
 export * from './services/segment-access.service';
+export * from './services/ltp-cache.service';
 export * from './entities/instrument.entity';
 export * from './entities/exchange.entity';
 export * from './entities/data-provider.entity';
