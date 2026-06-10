@@ -30,8 +30,28 @@ const TRADING_PATH_REGEX = /\/(orders|executions)(\/|$)/;
 
 @Injectable()
 export class TenantThrottlerGuard extends ThrottlerGuard {
+  /**
+   * Skip throttling for non-HTTP contexts (GraphQL, RPC). The base ThrottlerGuard
+   * expects a Request object with `req.ip` / `req.headers`; GraphQL contexts
+   * pass a GqlExecutionContext instead, which would crash.
+   *
+   * We rely on per-resolver and per-handler rate limiting (where needed) for
+   * GraphQL paths rather than this global guard.
+   */
+  protected shouldSkip(context: ExecutionContext): boolean {
+    const type = context.getType<'http' | 'graphql' | 'rpc' | string>();
+    if (type !== 'http') {
+      return true;
+    }
+    return super.shouldSkip(context);
+  }
+
   protected async getTracker(req: Record<string, any>): Promise<string> {
-    const tenantId = req.headers?.['x-tenant-id'] as string | undefined;
+    if (!req || typeof req !== 'object' || !req.headers) {
+      return 'unknown';
+    }
+
+    const tenantId = req.headers['x-tenant-id'] as string | undefined;
     const ip = (req.ip ?? req.connection?.remoteAddress ?? 'unknown') as string;
     const path: string = req.path ?? req.url ?? '';
 

@@ -34,12 +34,19 @@ export class GlobalHttpExceptionFilter implements ExceptionFilter {
     const stack = exception instanceof Error ? exception.stack : undefined;
     this.logger.error('Unhandled error', stack, 'GlobalHttpExceptionFilter');
 
-    response.status(status).json({
-      ...body,
-      path: request.url,
-      timestamp: new Date().toISOString(),
-      requestId: reqCtx?.requestId,
-    });
+    // For non-HTTP contexts (e.g., GraphQL, RPC), the response may not have .status()/.json().
+    // In those cases, let Apollo Server format the GraphQL error response.
+    if (typeof (response as any)?.status === 'function' && typeof (response as any)?.json === 'function') {
+      (response as any).status(status).json({
+        ...body,
+        path: request.url,
+        timestamp: new Date().toISOString(),
+        requestId: reqCtx?.requestId,
+      });
+    } else {
+      // Re-throw so the appropriate adapter (GraphQL/RPC) can format its own error response.
+      throw exception;
+    }
   }
 
   private mapException(exception: unknown): { status: number; body: any } {
