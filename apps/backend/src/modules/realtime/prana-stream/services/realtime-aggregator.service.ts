@@ -20,6 +20,7 @@ import { HoldEntity } from '../../../accounts/entities/hold.entity';
 import { In, Repository } from 'typeorm';
 import { RealtimeEventBufferService } from './realtime-event-buffer.service';
 import { LtpCacheService } from '../../../market/services/ltp-cache.service';
+import { RealtimeOfflineFallbackService } from './realtime-offline-fallback.service';
 
 @Injectable()
 export class RealtimeAggregatorService {
@@ -45,6 +46,7 @@ export class RealtimeAggregatorService {
     private readonly market: CompositeMarketDataAdapter,
     private readonly eventBuffer: RealtimeEventBufferService,
     private readonly ltpCache: LtpCacheService,
+    private readonly offlineFallback: RealtimeOfflineFallbackService,
   ) {
     this.logger.setContext(RealtimeAggregatorService.name);
     this.market.onTicks((ticks) => this.handleTicks(ticks));
@@ -268,6 +270,14 @@ export class RealtimeAggregatorService {
       data,
       v: 1,
     });
+    // Slow-path: if the user is offline, record the event so they can
+    // see it on reconnect. Critical events (fills) also trigger push.
+    void this.offlineFallback
+      .isUserOnline(userId)
+      .then((online) => {
+        if (!online) this.offlineFallback.recordMissed(userId, 'order.updated', data, seq);
+      })
+      .catch(() => undefined);
   }
 
   publishPositionUpdate(userId: string, data: any) {
@@ -281,6 +291,12 @@ export class RealtimeAggregatorService {
       data,
       v: 1,
     });
+    void this.offlineFallback
+      .isUserOnline(userId)
+      .then((online) => {
+        if (!online) this.offlineFallback.recordMissed(userId, 'position.updated', data, seq);
+      })
+      .catch(() => undefined);
   }
 
   publishAccountUpdate(userId: string, data: any) {
@@ -294,6 +310,12 @@ export class RealtimeAggregatorService {
       data,
       v: 1,
     });
+    void this.offlineFallback
+      .isUserOnline(userId)
+      .then((online) => {
+        if (!online) this.offlineFallback.recordMissed(userId, 'account.updated', data, seq);
+      })
+      .catch(() => undefined);
   }
 
   /**

@@ -214,6 +214,26 @@ export class RealtimeScaleCoordinatorService
     }
   }
 
+  /**
+   * Return the hostname of the instance that owns this user (if any).
+   * Returns null if the user is not registered in Redis (offline for >5 min).
+   */
+  async getOwningInstance(userId: string): Promise<string | null> {
+    const client = this.redisService.getClient();
+    if (!client) return this.hostname; // single-pod fallback
+
+    try {
+      const owner = await client.get(USER_INSTANCE_KEY(userId));
+      return owner ?? null;
+    } catch (e) {
+      this.logger.warn(
+        'getOwningInstance failed',
+        `userId=${userId} err=${(e as Error)?.message}`,
+      );
+      return null;
+    }
+  }
+
   private async refreshLocalSessions(): Promise<void> {
     const client = this.redisService.getClient();
     if (!client) return;

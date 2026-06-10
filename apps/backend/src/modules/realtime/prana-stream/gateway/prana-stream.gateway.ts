@@ -24,6 +24,7 @@ import { RealtimeAggregatorService } from '../services/realtime-aggregator.servi
 import { RealtimeScaleCoordinatorService } from '../services/realtime-scale-coordinator.service';
 import { RealtimeBackpressureService } from '../services/realtime-backpressure.service';
 import { RealtimeEventBufferService } from '../services/realtime-event-buffer.service';
+import { RealtimeOfflineFallbackService } from '../services/realtime-offline-fallback.service';
 
 type SubscribePayload = {
   watchlist?: Array<{ exchange: string; symbol: string }>;
@@ -53,6 +54,7 @@ export class PranaStreamGateway
     private readonly scaleCoordinator: RealtimeScaleCoordinatorService,
     private readonly backpressure: RealtimeBackpressureService,
     private readonly eventBuffer: RealtimeEventBufferService,
+    private readonly offlineFallback: RealtimeOfflineFallbackService,
   ) {
     this.logger.setContext(PranaStreamGateway.name);
   }
@@ -127,27 +129,51 @@ export class PranaStreamGateway
   ) {
     const userId = (client.handshake.auth?.userId as string) || '';
     if (!userId) return { ok: false, reason: 'unauthenticated' };
-    // Get buffered events newer than what the client last saw
+    // 1. Get buffered events newer than what the client last saw (fast path)
     const missed = this.eventBuffer.replay(userId, payload.lastSeq);
     const latestSeq = this.eventBuffer.getLatestSeq(userId);
-    // Prune the buffer after serving: client got these, drop them locally so we don't
-    // hold onto them forever
     if (missed.length > 0) {
       this.eventBuffer.pruneOlderThan(userId, latestSeq);
     }
-    this.logger.debug('resync', { userId, lastSeq: payload.lastSeq, latestSeq, count: missed.length });
-    // Also push via 'resync.ack' so clients receive the events as a single
-    // message on their dedicated socket (resolves even on broadcast / multi-pod setups).
-    client.emit('resync.ack', { latestSeq, events: missed });
+    // 2. Also pick up any events that were recorded while the user was
+    //    fully offline (slow path). The user is now reconnecting, so we
+    //    deliver the missed-events log so they don't miss the gaps that
+    //    occurred during extended outages.
+    const offlineEvents = await this.offlineFallback.flushMissedEvents(userId);
+    if (offlineEvents.length > 0) {
+      await this.offlineFallback.clearMissed(userId);
+    }
+    // Merge both — fast-path takes precedence (it has proper seq numbers)
+    const seen = new Set(missed.map((e) => `${e.eventName}:${e.seq}`));
+    const allEvents = [
+      ...missed,
+      ...offlineEvents
+        .filter((e) => !seen.has(`${e.eventName}:${e.seq}`))
+        .map((e) => ({
+          userId,
+          eventName: e.eventName as
+            | 'order.updated'
+            | 'position.updated'
+            | 'account.updated'
+            | 'orderbook.depth'
+            | 'watchlist.ticks',
+          data: e.data,
+          seq: e.seq ?? 0,
+          ts: e.ts,
+        })),
+    ];
+    this.logger.debug('resync', {
+      userId,
+      lastSeq: payload.lastSeq,
+      latestSeq,
+      bufferedCount: missed.length,
+      offlineCount: offlineEvents.length,
+    });
+    client.emit('resync.ack', { latestSeq, events: allEvents });
     return {
       ok: true,
       latestSeq,
-      events: missed,
-      // The client knows all events up to latestSeq now; we can skip sending
-      // a fresh snapshot because replay carries the same info (orders/positions/accounts are
-      // idempotent updates, not absolute snapshots). If the gap was large (> 100 events),
-      // we could additionally emit a snapshot. For now, the normal flow after resync
-      // will send it as part of the subscribe() response.
+      events: allEvents,
     };
   }
 }
