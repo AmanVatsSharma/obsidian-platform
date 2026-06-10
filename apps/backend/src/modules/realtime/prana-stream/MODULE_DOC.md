@@ -64,16 +64,19 @@ Events:
 - `order.updated`, `position.updated`, `account.updated`
 
 ## Adapters
-- Main provider (primary)
+- Main provider (default primary)
 - Vortex provider (fallback)
-- Mock provider (tests/dev)
-- Composite adapter selects first healthy provider, falls back on error
+- Mock provider (tests/dev — always wired)
+- Kite provider (push-based live ticks for NSE/BSE/MCX)
+- Composite adapter selects the configured primary via `MARKET_DATA_PROVIDER`; falls back to vortex on connect failure
 
 Env:
 - `PRANA_TICK_THROTTLE_MS=1000` (default)
 - `REDIS_URL=redis://localhost:6379` (Socket.IO scaling)
-- `MARKET_DATA_URL=http://market-data-api:3000` (primary live data API)
-- `MARKET_DATA_FALLBACK_URL=http://market-data-fallback:3001` (optional fallback API)
+- `MARKET_DATA_PROVIDER=kite` (primary provider — `kite|main|vortex|mock`; defaults to `main`)
+- `MARKET_DATA_URL=http://market-data-api:3000` (used by main provider)
+- `MARKET_DATA_FALLBACK_URL=http://market-data-fallback:3001` (used by vortex provider)
+- `KITE_API_KEY` / `KITE_ACCESS_TOKEN` — required when `MARKET_DATA_PROVIDER=kite`
 
 Tick throttling semantics:
 - The server buffers per-user ticks and emits at most once every 1s.
@@ -83,5 +86,6 @@ Tick throttling semantics:
 - 2025-09-24: Initial scaffold approved by SonuRam ji
 - 2026-02-17: Added DB-backed snapshot baseline for orders/positions/accounts and wired main/vortex adapters to live batch quote APIs with polling fallback.
 - 2026-02-19: Added RealtimeScaleCoordinatorService stub for horizontal scale coordination (registerInstance, unregisterInstance, shouldHandleUser).
+- 2026-06-10: KiteMarketDataAdapter wired into CompositeMarketDataAdapter. Primary provider now configurable via MARKET_DATA_PROVIDER env (kite|main|vortex|mock). Token resolution via InstrumentEntity.providerToken.
 
 

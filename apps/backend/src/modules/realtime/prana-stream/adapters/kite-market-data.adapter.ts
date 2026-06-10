@@ -7,24 +7,37 @@
  * Exports:
  *   - KiteMarketDataAdapter — implements MarketDataProvider
  *
+ * Depends on:
+ *   - KiteWebSocketService — primary live data feed (push-based)
+ *   - InstrumentEntity     — providerToken lookup (numeric Kite token)
+ *
+ * Side-effects:
+ *   - Subscribes to Kite WebSocket for instrument tokens
+ *   - Forwards live ticks to PranaStream RealtimeAggregatorService
+ *
  * Key invariants:
  *   - Implements MarketDataProvider interface
- *   - Delegates to KiteWebSocketService for live data
- *   - Falls back to REST if WebSocket unavailable
+ *   - Maps (exchange, symbol) → numeric Kite providerToken via InstrumentEntity
+ *   - One healthy provider per composite chain (picked by CompositeMarketDataAdapter)
+ *
+ * Read order:
+ *   1. connect()      — readiness check against KiteWebSocketService
+ *   2. subscribeTicks  — token resolution + WS subscribe
+ *   3. onTicks        — Kite tick stream → Tick[]
  *
  * Author:      BharatERP
  * Last-updated: 2026-06-10
  */
 
 import { Injectable, OnModuleDestroy } from '@nestjs/common';
-import { Inject } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
+import { In, Repository } from 'typeorm';
 import { Subject } from 'rxjs';
 import { takeUntil } from 'rxjs/operators';
 import { AppLoggerService } from '../../../../shared/logger';
-import { MarketDataProvider, Tick, MarketDataProviderRegistry } from './market-data.provider';
+import { MarketDataProvider, Tick } from './market-data.provider';
 import { KiteWebSocketService } from '../../../market/providers/kite/kite-websocket.service';
-import { DataProviderEntity, ProviderStatus } from '../../../market/entities/data-provider.entity';
+import { InstrumentEntity } from '../../../market/entities/instrument.entity';
 
 @Injectable()
 export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestroy {
@@ -36,17 +49,19 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
   constructor(
     private readonly logger: AppLoggerService,
     private readonly kiteWs: KiteWebSocketService,
+    @InjectRepository(InstrumentEntity)
+    private readonly instruments: Repository<InstrumentEntity>,
   ) {
     this.logger.setContext(KiteMarketDataAdapter.name);
   }
 
   async connect(): Promise<void> {
-    this.logger.info('connecting to Kite data feed');
+    this.logger.log('connecting to Kite data feed');
     try {
       const status = this.kiteWs.getStatus();
       if (status.connected) {
         this.healthy = true;
-        this.logger.info('Kite MarketDataAdapter connected');
+        this.logger.log('Kite MarketDataAdapter connected');
       } else {
         this.logger.warn('Kite WebSocket not connected - will retry on first subscribe');
         this.healthy = false;
@@ -58,8 +73,11 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
   }
 
   async disconnect(): Promise<void> {
-    this.logger.info('disconnecting Kite data feed');
+    this.logger.log('disconnecting Kite data feed');
     this.healthy = false;
+  }
+
+  onModuleDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
   }
@@ -70,17 +88,25 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
   ): Promise<void> {
     this.logger.debug('subscribeTicks', { subscriberId, count: symbols.length });
 
-    // Store subscription for later reference
+    // Track the subscription so we can resolve on unsubscribe
     this.subscriptions.set(subscriberId, symbols);
 
-    // Map to provider tokens - for now just store exchange:symbol
-    const providerSymbols = symbols.map(s => `${s.exchange}:${s.symbol}`);
+    if (symbols.length === 0) return;
 
-    // Subscribe via Kite WebSocket
-    // Note: KiteWsService expects tokens (exchange:symbol format)
+    // Resolve (exchange, symbol) → numeric Kite providerToken via the instruments table
+    const tokens = await this.resolveTokens(symbols);
+
+    if (tokens.length === 0) {
+      this.logger.warn(
+        'no Kite providerTokens found for requested symbols — instruments must be synced first',
+        { count: symbols.length },
+      );
+      return;
+    }
+
     try {
-      await this.kiteWs.subscribe(providerSymbols as any);
-      this.healthy = true;
+      await this.kiteWs.subscribe(tokens);
+      this.healthy = this.kiteWs.getStatus().connected || this.healthy;
     } catch (e) {
       this.logger.error('subscribe failed', (e as Error).message);
     }
@@ -90,27 +116,49 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
     subscriberId: string,
     symbols?: Array<{ exchange: string; symbol: string }>,
   ): Promise<void> {
-    this.logger.debug('unsubscribeTicks', { subscriberId, symbols });
+    this.logger.debug('unsubscribeTicks', { subscriberId, count: symbols?.length ?? 'all' });
 
-    if (symbols) {
-      const providerSymbols = symbols.map(s => `${s.exchange}:${s.symbol}`);
-      this.kiteWs.unsubscribe(providerSymbols as any);
-    } else {
-      // Unsubscribe all for this subscriber
-      const subs = this.subscriptions.get(subscriberId);
-      if (subs) {
-        const providerSymbols = subs.map(s => `${s.exchange}:${s.symbol}`);
-        this.kiteWs.unsubscribe(providerSymbols as any);
-        this.subscriptions.delete(subscriberId);
-      }
+    if (!symbols) {
+      // Drop the subscriber record; keep WS subscriptions intact so other watchers still receive ticks
+      this.subscriptions.delete(subscriberId);
+      return;
     }
+
+    // For partial unsubscribe, resolve tokens and ask KiteWs to unsubscribe
+    const tokens = await this.resolveTokens(symbols);
+    if (tokens.length > 0) {
+      this.kiteWs.unsubscribe(tokens);
+    }
+  }
+
+  /**
+   * Resolve (exchange, symbol) pairs to numeric Kite providerTokens via the instruments table.
+   * Symbols with no providerToken (e.g. not yet synced from Kite) are silently skipped.
+   */
+  private async resolveTokens(
+    symbols: Array<{ exchange: string; symbol: string }>,
+  ): Promise<number[]> {
+    if (symbols.length === 0) return [];
+    const exchanges = Array.from(new Set(symbols.map((s) => s.exchange)));
+    const symList = Array.from(new Set(symbols.map((s) => s.symbol)));
+
+    const rows = await this.instruments.find({
+      where: {
+        providerCode: 'KITE',
+        exchangeCode: In(exchanges),
+        symbol: In(symList),
+      },
+    });
+
+    return rows
+      .map((r) => (r.providerToken ? parseInt(r.providerToken, 10) : NaN))
+      .filter((t) => Number.isFinite(t) && t > 0);
   }
 
   async getSnapshot(
     symbols: Array<{ exchange: string; symbol: string }>,
   ): Promise<Tick[]> {
     const ticks: Tick[] = [];
-
     for (const sym of symbols) {
       const ltp = this.kiteWs.getLtp(sym.symbol, sym.exchange);
       if (ltp !== null) {
@@ -122,13 +170,13 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
         });
       }
     }
-
     return ticks;
   }
 
   onTicks(cb: (ticks: Tick[]) => void): void {
-    // Wire Kite ticks through to PranaStream
-    this.kiteWs.onTicks$()
+    // Wire Kite ticks through to PranaStream. Each KiteTick[] becomes a Tick[] batch.
+    this.kiteWs
+      .onTicks$()
       .pipe(takeUntil(this.destroy$))
       .subscribe((kiteTicks) => {
         const ticks: Tick[] = kiteTicks.map((kt) => ({
@@ -137,22 +185,11 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
           price: kt.lastPrice ?? 0,
           ts: kt.timestamp ?? Date.now(),
         }));
-        cb(ticks);
+        if (ticks.length > 0) cb(ticks);
       });
   }
 
   isHealthy(): boolean {
     return this.healthy;
   }
-}
-
-/**
- * Registry helper — marks this adapter as available.
- * Add to MarketDataProviderRegistry in prana-stream.module.ts
- */
-export function registerKiteMarketDataAdapter() {
-  return {
-    provide: 'KITE_MARKET_DATA_ADAPTER',
-    useClass: KiteMarketDataAdapter,
-  };
 }

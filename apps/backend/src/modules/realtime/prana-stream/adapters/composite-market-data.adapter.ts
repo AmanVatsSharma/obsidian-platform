@@ -1,9 +1,13 @@
 /**
  * @file src/modules/realtime/prana-stream/adapters/composite-market-data.adapter.ts
  * @module realtime/prana-stream
- * @description Composite adapter: prefer main, fallback to vortex; mock is always connected for tests
+ * @description Composite adapter: picks the primary provider by env (MARKET_DATA_PROVIDER),
+ *              with main → vortex → kite as the default fallback chain. Mock is always
+ *              wired for tests/dev. Setting MARKET_DATA_PROVIDER=kite makes Kite the
+ *              primary, e.g. for Indian markets (NSE/BSE/MCX).
  * @author BharatERP
  * @created 2025-09-24
+ * @last-updated 2026-06-10
  */
 
 import { Injectable } from '@nestjs/common';
@@ -12,6 +16,7 @@ import { MarketDataProvider, Tick } from './market-data.provider';
 import { MainMarketDataAdapter } from './main-market-data.adapter';
 import { VortexMarketDataAdapter } from './vortex-market-data.adapter';
 import { MockMarketDataAdapter } from './mock-market-data.adapter';
+import { KiteMarketDataAdapter } from './kite-market-data.adapter';
 
 @Injectable()
 export class CompositeMarketDataAdapter implements MarketDataProvider {
@@ -24,12 +29,31 @@ export class CompositeMarketDataAdapter implements MarketDataProvider {
     private readonly main: MainMarketDataAdapter,
     private readonly vortex: VortexMarketDataAdapter,
     private readonly mock: MockMarketDataAdapter,
+    private readonly kite: KiteMarketDataAdapter,
   ) {
     this.logger.setContext(CompositeMarketDataAdapter.name);
-    this.current = this.main;
+    // Pick the configured primary; default to main if env is unset/unknown
+    this.current = this.selectPrimary();
+    this.logger.log('composite adapter initialised', { primary: this.current.name });
     this.main.onTicks((t) => this.forward(t, 'main'));
     this.vortex.onTicks((t) => this.forward(t, 'vortex'));
     this.mock.onTicks((t) => this.forward(t, 'mock'));
+    this.kite.onTicks((t) => this.forward(t, 'kite'));
+  }
+
+  private selectPrimary(): MarketDataProvider {
+    const preferred = (process.env.MARKET_DATA_PROVIDER ?? 'main').toLowerCase();
+    switch (preferred) {
+      case 'kite':
+        return this.kite;
+      case 'vortex':
+        return this.vortex;
+      case 'mock':
+        return this.mock;
+      case 'main':
+      default:
+        return this.main;
+    }
   }
 
   private forward(ticks: Tick[], source: string) {
@@ -38,11 +62,10 @@ export class CompositeMarketDataAdapter implements MarketDataProvider {
 
   async connect(): Promise<void> {
     try {
-      await this.main.connect();
-      this.current = this.main;
-      this.logger.debug('connected to main provider');
+      await this.current.connect();
+      this.logger.debug(`connected to ${this.current.name} provider`);
     } catch (e) {
-      this.logger.warn('main connect failed; falling back to vortex');
+      this.logger.warn(`${this.current.name} connect failed; falling back to vortex`);
       await this.vortex.connect();
       this.current = this.vortex;
     }
