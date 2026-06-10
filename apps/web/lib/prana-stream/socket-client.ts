@@ -183,6 +183,31 @@ class PranaStreamClient {
     this.socket.emit('subscribe', payload);
   }
 
+  /**
+   * Subscribe to live ticks for a single (exchange, symbol) pair.
+   * Used by the symbol-search overlay to fetch a live LTP for the
+   * row the user is hovering on. Subscription is server-scoped, so
+   * multiple clients in the same pod share one upstream feed.
+   */
+  subscribeWatchlist(
+    items: Array<{ exchange: string; symbol: string }>,
+  ): void {
+    if (!this.socket?.connected || items.length === 0) return;
+    this.socket.emit('subscribe', { watchlist: items });
+  }
+
+  /**
+   * Unsubscribe from live ticks for a single (exchange, symbol) pair.
+   * Mirrors subscribeWatchlist so callers can release a slot the user
+   * is no longer looking at.
+   */
+  unsubscribeWatchlist(
+    items: Array<{ exchange: string; symbol: string }>,
+  ): void {
+    if (!this.socket?.connected || items.length === 0) return;
+    this.socket.emit('unsubscribe', { watchlist: items });
+  }
+
   subscribeOrderBook(exchange: string, symbol: string): void {
     if (!this.socket?.connected) return;
     this.socket.emit('subscribe', {

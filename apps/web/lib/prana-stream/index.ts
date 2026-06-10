@@ -21,6 +21,7 @@ export { usePositionUpdates } from './hooks/use-position-updates';
 export { useAccountUpdates } from './hooks/use-account-updates';
 export { useOrderBookDepth } from './hooks/use-orderbook-depth';
 export { useBackpressure } from './hooks/use-backpressure';
+export { useSymbolSearch } from './hooks/use-symbol-search';
 export { decodeJwtClaims } from './jwt-decode';
 export type {
   Tick,
@@ -38,3 +39,7 @@ export type {
 } from './types';
 export type { JwtClaims as JwtClaimsType } from './jwt-decode';
 export type { BackpressureState } from './hooks/use-backpressure';
+export type {
+  SymbolSearchResult,
+  SymbolSearchOptions,
+} from './hooks/use-symbol-search';
