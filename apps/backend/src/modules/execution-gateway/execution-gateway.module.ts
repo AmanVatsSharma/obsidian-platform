@@ -23,9 +23,10 @@ import { ExecutionConnectorEntity } from './entities/execution-connector.entity'
 import { ExecutionGatewayService } from './services/execution-gateway.service';
 import { ExecutionGatewayResolver } from './execution-gateway.resolver';
 import { MarketModule } from '../market/market.module';
+import { DataProviderEntity } from '../market/entities/data-provider.entity';
 
 @Module({
-  imports: [SharedModule, RbacModule, MarketModule, TypeOrmModule.forFeature([ExecutionConnectorEntity])],
+  imports: [SharedModule, RbacModule, MarketModule, TypeOrmModule.forFeature([ExecutionConnectorEntity, DataProviderEntity])],
   controllers: [ExecutionGatewayController],
   providers: [
     ExecutionGatewayService,

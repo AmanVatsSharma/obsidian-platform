@@ -137,7 +137,7 @@ export class KiteExecutionConnector
     if (provider) {
       this.apiKey = provider.apiKey;
       this.accessToken = provider.accessToken;
-      this.logger.info('Kite execution connector initialized');
+      this.logger.log('Kite execution connector initialized');
     }
   }
 
@@ -145,7 +145,7 @@ export class KiteExecutionConnector
   updateCredentials(apiKey: string, accessToken: string): void {
     this.apiKey = apiKey;
     this.accessToken = accessToken;
-    this.logger.info('Kite execution credentials updated');
+    this.logger.log('Kite execution credentials updated');
   }
 
   private buildAuthHeader(): string {
@@ -159,52 +159,50 @@ export class KiteExecutionConnector
    * Place order on Kite.
    * Supports regular, bracket (BO), and cover (CO) orders.
    */
-  async placeOrder(input: KitePlaceOrderInput): Promise<KiteOrderResponse> {
+  private async kitePlaceOrder(input: KitePlaceOrderInput): Promise<KiteOrderResponse> {
     this.logger.debug('Kite placeOrder', input as any);
 
-    return circuitBreaker(
-      'kite.placeOrder',
-      () => retryWrapper(
-        async () => {
-          const url = `${KITE_BASE}/orders/regular`;
+    const breaker = new CircuitBreaker('kite.placeOrder');
+    return withRetry(
+      () => breaker.execute(async () => {
+        const url = `${KITE_BASE}/orders/regular`;
 
-          const body = new URLSearchParams();
-          body.set('tradingsymbol', input.tradingsymbol);
-          body.set('exchange', input.exchange);
-          body.set('transaction_type', input.transactionType);
-          body.set('order_type', input.orderType);
-          body.set('product', input.product);
-          body.set('quantity', String(input.quantity));
+        const body = new URLSearchParams();
+        body.set('tradingsymbol', input.tradingsymbol);
+        body.set('exchange', input.exchange);
+        body.set('transaction_type', input.transactionType);
+        body.set('order_type', input.orderType);
+        body.set('product', input.product);
+        body.set('quantity', String(input.quantity));
 
-          if (input.price !== undefined) body.set('price', String(input.price));
-          if (input.triggerPrice !== undefined) body.set('trigger_price', String(input.triggerPrice));
-          if (input.tag) body.set('tag', input.tag);
-          if (input.validity) body.set('validity', input.validity);
-          if (input.disclosedQuantity !== undefined) {
-            body.set('disclosed_quantity', String(input.disclosedQuantity));
-          }
+        if (input.price !== undefined) body.set('price', String(input.price));
+        if (input.triggerPrice !== undefined) body.set('trigger_price', String(input.triggerPrice));
+        if (input.tag) body.set('tag', input.tag);
+        if (input.validity) body.set('validity', input.validity);
+        if (input.disclosedQuantity !== undefined) {
+          body.set('disclosed_quantity', String(input.disclosedQuantity));
+        }
 
-          const res = await fetch(url, {
-            method: 'POST',
-            headers: {
-              Authorization: this.buildAuthHeader(),
-              'X-Kite-Version': '3',
-              'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: body.toString(),
-          });
+        const res = await fetch(url, {
+          method: 'POST',
+          headers: {
+            Authorization: this.buildAuthHeader(),
+            'X-Kite-Version': '3',
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: body.toString(),
+        });
 
-          if (!res.ok) {
-            const errorText = await res.text();
-            this.logger.error('Kite placeOrder failed', undefined, { status: res.status, error: errorText });
-            throw new AppError('ORDER_FAILED', `Kite order failed: ${errorText}`);
-          }
+        if (!res.ok) {
+          const errorText = await res.text();
+          this.logger.error(`Kite placeOrder failed: status=${res.status} body=${errorText}`);
+          throw new AppError('ORDER_FAILED', `Kite order failed: ${errorText}`);
+        }
 
-          const data = await res.json() as { data: { order_id: string } };
-          return { orderId: data.data.order_id };
-        },
-        { maxRetries: 2, retryDelay: 500 },
-      ),
+        const data = await res.json() as { data: { order_id: string } };
+        return { orderId: data.data.order_id };
+      }),
+      { maxAttempts: 3, baseDelayMs: 500, backoffMultiplier: 2 },
     );
   }
 
@@ -212,7 +210,7 @@ export class KiteExecutionConnector
    * Modify an existing order.
    * Can change: quantity, price, trigger_price, order_type, validity
    */
-  async modifyOrder(orderId: string, changes: {
+  private async kiteModifyOrder(orderId: string, changes: {
     quantity?: number;
     price?: number;
     triggerPrice?: number;
@@ -251,7 +249,7 @@ export class KiteExecutionConnector
   /**
    * Cancel an order.
    */
-  async cancelOrder(orderId: string): Promise<KiteOrderResponse> {
+  private async kiteCancelOrder(orderId: string): Promise<KiteOrderResponse> {
     this.logger.debug('Kite cancelOrder', { orderId });
 
     const url = `${KITE_BASE}/orders/regular/${orderId}`;
@@ -275,7 +273,7 @@ export class KiteExecutionConnector
   /**
    * Get all orders for the day.
    */
-  async getOrders(): Promise<KiteOrder[]> {
+  async kiteGetOrders(): Promise<KiteOrder[]> {
     const url = `${KITE_BASE}/orders`;
 
     const res = await fetch(url, {
@@ -296,7 +294,7 @@ export class KiteExecutionConnector
   /**
    * Get net positions.
    */
-  async getPositions(): Promise<{
+  async kiteGetPositions(): Promise<{
     net: KiteOrder[];
     day: KiteOrder[];
   }> {
@@ -320,7 +318,7 @@ export class KiteExecutionConnector
   /**
    * Get holdings.
    */
-  async getHoldings(): Promise<unknown[]> {
+  async kiteGetHoldings(): Promise<unknown[]> {
     const url = `${KITE_BASE}/portfolio/holdings`;
 
     const res = await fetch(url, {
@@ -341,7 +339,7 @@ export class KiteExecutionConnector
   /**
    * Convert position from MIS to CNC (or vice versa).
    */
-  async convertPosition(input: {
+  async kiteConvertPosition(input: {
     tradingsymbol: string;
     exchange: KiteExchange;
     transactionType: KiteTransactionType;
@@ -400,35 +398,40 @@ export class KiteExecutionConnector
 
   // ─── BaseExecutionConnector Contract Methods ─────────────────────────────
 
-  async placeOrder(request: GatewayOrderRequest): Promise<GatewayOrderResponse> {
+  /**
+   * Gateway contract — Kite is currently data-only (execution via internal B-book).
+   * Override falls back to base behavior; the kite* helpers above remain the
+   * direct Kite API surface for any future re-enablement.
+   */
+  override async placeOrder(request: GatewayOrderRequest): Promise<GatewayOrderResponse> {
     return super.placeOrder(request);
   }
 
-  async modifyOrder(request: GatewayModifyOrderRequest): Promise<GatewayOrderResponse> {
+  override async modifyOrder(request: GatewayModifyOrderRequest): Promise<GatewayOrderResponse> {
     return super.modifyOrder(request);
   }
 
-  async cancelOrder(request: GatewayCancelOrderRequest): Promise<GatewayOrderResponse> {
+  override async cancelOrder(request: GatewayCancelOrderRequest): Promise<GatewayOrderResponse> {
     return super.cancelOrder(request);
   }
 
-  async getPositions(tenantId: string, accountId: string): Promise<PositionSnapshot[]> {
-    return super.getPositions(tenantId, accountId);
+  override async getPositions(_tenantId: string, _accountId: string): Promise<PositionSnapshot[]> {
+    return super.getPositions(_tenantId, _accountId);
   }
 
-  async getBalances(tenantId: string, accountId: string): Promise<BalanceSnapshot[]> {
-    return super.getBalances(tenantId, accountId);
+  override async getBalances(_tenantId: string, _accountId: string): Promise<BalanceSnapshot[]> {
+    return super.getBalances(_tenantId, _accountId);
   }
 
-  async listSymbols(): Promise<SymbolDefinition[]> {
+  override async listSymbols(): Promise<SymbolDefinition[]> {
     return super.listSymbols();
   }
 
-  async getSession(): Promise<SessionState> {
+  override async getSession(): Promise<SessionState> {
     return super.getSession();
   }
 
-  async handleWebhook(payload: WebhookEnvelope): Promise<void> {
+  override async handleWebhook(payload: WebhookEnvelope): Promise<void> {
     return super.handleWebhook(payload);
   }
 }

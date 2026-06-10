@@ -128,8 +128,8 @@ export class MarketResolver {
   ): Promise<InstrumentDto[]> {
     const ctx = getRequestContext();
     this.logger.debug('instruments:start', { requestId: ctx?.requestId, exchangeCode, type, q });
-    const entities = await this.instrumentsService.listInstruments({ exchangeCode, type, q });
-    return entities.map(this._instrumentDto);
+    const result = await this.instrumentsService.listInstruments({ exchangeCode, type, q });
+    return result.instruments.map(this._instrumentDto);
   }
 
   @Query(() => InstrumentDto, { nullable: true })
@@ -176,7 +176,7 @@ export class MarketResolver {
   ): Promise<InstrumentDto> {
     const ctx = getRequestContext();
     this.logger.debug('upsertInstrument:start', { requestId: ctx?.requestId, id, status });
-    const entity = await this.instrumentsService.updateInstrument(id, { status });
+    const entity = await this.instrumentsService.updateInstrument(id, { status: status as any });
     return this._instrumentDto(entity);
   }
 
