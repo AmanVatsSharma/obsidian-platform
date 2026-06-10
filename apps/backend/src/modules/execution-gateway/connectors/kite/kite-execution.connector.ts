@@ -39,8 +39,8 @@ import { Injectable, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { AppLoggerService } from '../../../../shared/logger';
-import { circuitBreaker } from '../../../../shared/resilience/circuit-breaker.wrapper';
-import { retryWrapper } from '../../../../shared/resilience/retry.wrapper';
+import { CircuitBreaker } from '../../../../shared/resilience/circuit-breaker.wrapper';
+import { withRetry } from '../../../../shared/resilience/retry.wrapper';
 import { AppError } from '../../../../common/errors/app-error';
 import { BaseExecutionConnector } from '../base/base-execution.connector';
 import {
