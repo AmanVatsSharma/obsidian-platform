@@ -45,6 +45,8 @@ import { OrderEntity } from '../../oms/entities/order.entity';
 import { PositionLedgerEntryEntity } from '../../accounts/entities/position-ledger-entry.entity';
 import { CashLedgerEntryEntity } from '../../accounts/entities/cash-ledger-entry.entity';
 import { HoldEntity } from '../../accounts/entities/hold.entity';
+import { InstrumentEntity } from '../../market/entities/instrument.entity';
+import { DataProviderEntity } from '../../market/entities/data-provider.entity';
 import { RealtimeResolver } from './realtime.resolver';
 import { RealtimePublishOutboxHandler } from './outbox/realtime-publish-outbox.handler';
 import { OUTBOX_HANDLERS } from '../../../shared/outbox/outbox-worker.skeleton';
@@ -64,6 +66,8 @@ import { RealtimeOfflineFallbackService } from './services/realtime-offline-fall
       PositionLedgerEntryEntity,
       CashLedgerEntryEntity,
       HoldEntity,
+      InstrumentEntity,
+      DataProviderEntity,
     ]),
   ],
   providers: [

@@ -31,7 +31,7 @@ import { Repository, In } from 'typeorm';
 import { AppLoggerService } from '../../../shared/logger';
 import { AppError } from '../../../common/errors/app-error';
 import { UserSegmentAccessEntity } from '../entities/user-segment-access.entity';
-import { InstrumentEntity, InstrumentSegment, InstrumentType } from '../entities/instrument.entity';
+import { InstrumentEntity, InstrumentSegment, InstrumentType, InstrumentStatus } from '../entities/instrument.entity';
 import { InstrumentSegment as SegmentEnum } from '../entities/instrument.entity';
 
 export interface SegmentAccessInfo {
@@ -101,7 +101,7 @@ export class SegmentAccessService {
       throw new AppError('INSTRUMENT_NOT_FOUND', 'Instrument not found');
     }
 
-    if (instrument.status !== 'ACTIVE' || !instrument.isTradingEnabled) {
+    if (instrument.status !== InstrumentStatus.ACTIVE || !instrument.isTradingEnabled) {
       return false;
     }
 

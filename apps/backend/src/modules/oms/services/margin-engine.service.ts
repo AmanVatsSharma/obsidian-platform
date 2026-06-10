@@ -15,6 +15,7 @@ import { BuyingPowerRuleEntity } from '../entities/buying-power-rule.entity';
 import { UserLeverageOverrideEntity } from '../entities/user-leverage-override.entity';
 import { BrokerageRuleEntity } from '../entities/brokerage-rule.entity';
 import { InstrumentsService } from '../../market/services/instruments.service';
+import { InstrumentType } from '../../market/entities/instrument.entity';
 
 export type MarginEstimateInput = {
   accountId: string;
@@ -60,7 +61,7 @@ export class MarginEngineService {
 
     // Instrument for segment/product awareness
     const inst = (await this.instruments.listByIds([input.instrumentId]))[0];
-    const segment = inst?.type === 'FNO' ? 'FNO' : (inst?.type as any) || 'EQUITY';
+    const segment = inst?.type === InstrumentType.FUTURE || inst?.type === InstrumentType.OPTION ? 'FNO' : 'EQUITY';
 
     // Buying power rule
     const bpRule = await this.buyingPowerRules.findOne({
@@ -100,10 +101,10 @@ export class MarginEngineService {
         initial = notion * 0.1;
         maintenance = notion * 0.08;
       }
-    } else if (segment === 'FOREX') {
+    } else if ((segment as string) === 'FOREX') {
       initial = notion * 0.05;
       maintenance = notion * 0.03;
-    } else if (segment === 'CRYPTO') {
+    } else if ((segment as string) === 'CRYPTO') {
       initial = notion * 0.1;
       maintenance = notion * 0.08;
     } else {
