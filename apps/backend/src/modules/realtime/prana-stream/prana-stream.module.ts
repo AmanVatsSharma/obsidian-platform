@@ -1,9 +1,25 @@
 /**
- * @file src/modules/realtime/prana-stream/prana-stream.module.ts
- * @module realtime/prana-stream
- * @description Nest module bundling gateway, services, and adapters for unified realtime stream
- * @author BharatERP
- * @created 2025-09-24
+ * File:        apps/backend/src/modules/realtime/prana-stream/prana-stream.module.ts
+ * Module:      realtime/prana-stream
+ * Purpose:     Nest module bundling gateway, services, adapters, and the
+ *              transactional-outbox → realtime bridge for the unified
+ *              PranaStream WebSocket gateway.
+ *
+ * Exports:
+ *   - RealtimeAggregatorService, RealtimePublisherService  (legacy direct-publish facade)
+ *
+ * Depends on:
+ *   - SharedModule, RbacModule, MarketModule
+ *   - OutboxModule            — provides OUTBOX_HANDLERS multi-provider
+ *   - RealtimePublishOutboxHandler — registered as a local outbox handler
+ *
+ * Side-effects:
+ *   - Registers RealtimePublishOutboxHandler under OUTBOX_HANDLERS so the
+ *     OutboxWorkerSkeleton dispatches OMS/Accounts outbox rows to the
+ *     aggregator instead of an external broker.
+ *
+ * Author:      BharatERP
+ * Last-updated: 2026-06-10
  */
 
 import { Module } from '@nestjs/common';
@@ -30,6 +46,8 @@ import { PositionLedgerEntryEntity } from '../../accounts/entities/position-ledg
 import { CashLedgerEntryEntity } from '../../accounts/entities/cash-ledger-entry.entity';
 import { HoldEntity } from '../../accounts/entities/hold.entity';
 import { RealtimeResolver } from './realtime.resolver';
+import { RealtimePublishOutboxHandler } from './outbox/realtime-publish-outbox.handler';
+import { OUTBOX_HANDLERS } from '../../../shared/outbox/outbox-worker.skeleton';
 
 @Module({
   imports: [
@@ -58,8 +76,19 @@ import { RealtimeResolver } from './realtime.resolver';
     KiteMarketDataAdapter,
     WsJwtGuard,
     RealtimeResolver,
+    // Register the OMS/Accounts outbox → realtime bridge.
+    // NestJS merges all providers with the OUTBOX_HANDLERS token into an array.
+    RealtimePublishOutboxHandler,
+    {
+      provide: OUTBOX_HANDLERS,
+      useExisting: RealtimePublishOutboxHandler,
+    },
   ],
-  exports: [RealtimeAggregatorService, RealtimePublisherService],
+  exports: [
+    RealtimeAggregatorService,
+    RealtimePublisherService,
+    RealtimePublishOutboxHandler,
+  ],
   controllers: [AdminPranaController],
 })
 export class PranaStreamModule {}

@@ -46,6 +46,7 @@ import { ObsidianProvider, ToastProvider } from '@obsidian/obsidian-ui';
 import { AuthProvider } from '@/shared/providers/auth-provider';
 import { BrandProvider } from '../lib/brand-provider';
 import { ApolloProviderWrapper } from '@/gql/client/apollo-provider';
+import { PranaProviderClient } from '../lib/prana-stream/prana-provider-client';
 
 const syne = Syne({
   subsets: ['latin'],
@@ -85,7 +86,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <ToastProvider>
             <AuthProvider>
               <ApolloProviderWrapper>
-                <BrandProvider>{children}</BrandProvider>
+                <BrandProvider>
+                  <PranaProviderClient>{children}</PranaProviderClient>
+                </BrandProvider>
               </ApolloProviderWrapper>
             </AuthProvider>
           </ToastProvider>

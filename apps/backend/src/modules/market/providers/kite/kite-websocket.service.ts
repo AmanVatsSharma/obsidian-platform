@@ -333,14 +333,12 @@ export class KiteWebSocketService implements OnModuleInit, OnModuleDestroy {
   }
 
   private modeToCode(mode: KiteWsMode): string {
-    switch (mode) {
-      case 'ltp':
-        return 'subscribe';
-      case 'quote':
-        return 'subscribe';
-      case 'full':
-        return 'subscribe';
-    }
+    // Kite wire format expects the mode name as the action code for subscribe:
+    //   'ltp'   → mode "One"   (LTP only)
+    //   'quote' → mode "Two"   (LTP + quote)
+    //   'full'  → mode "Three" (LTP + quote + depth)
+    // See https://kite.trade/docs/connect/v3/websocket
+    return mode;
   }
 
   private scheduleReconnect(): void {

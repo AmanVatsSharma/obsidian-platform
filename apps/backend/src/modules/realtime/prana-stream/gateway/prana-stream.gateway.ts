@@ -20,6 +20,7 @@ import { AppLoggerService } from '../../../../shared/logger';
 import { SubscriptionRegistryService } from '../services/subscription-registry.service';
 import { WsJwtGuard } from '../guards/ws-jwt.guard';
 import { RealtimeAggregatorService } from '../services/realtime-aggregator.service';
+import { RealtimeScaleCoordinatorService } from '../services/realtime-scale-coordinator.service';
 
 type SubscribePayload = {
   watchlist?: Array<{ exchange: string; symbol: string }>;
@@ -46,6 +47,7 @@ export class PranaStreamGateway
     private readonly logger: AppLoggerService,
     private readonly subs: SubscriptionRegistryService,
     private readonly aggregator: RealtimeAggregatorService,
+    private readonly scaleCoordinator: RealtimeScaleCoordinatorService,
   ) {
     this.logger.setContext(PranaStreamGateway.name);
   }
@@ -55,12 +57,16 @@ export class PranaStreamGateway
     client.join(`user:${userId}`);
     this.logger.debug('client connected', { userId, id: client.id });
     this.aggregator.bindServer(this.server);
+    // Register the session with the scale coordinator so outbox events
+    // for this userId are routed to this pod.
+    void this.scaleCoordinator.registerInstance(userId, client.id);
     this.aggregator.recomputeMarketSubscriptions().catch(() => undefined);
   }
 
   handleDisconnect(client: Socket): void {
     const userId = (client.handshake.auth?.userId as string) || '';
     this.subs.removeAll(client.id);
+    void this.scaleCoordinator.unregisterInstance(userId, client.id);
     this.logger.debug('client disconnected', { userId, id: client.id });
     this.aggregator.recomputeMarketSubscriptions().catch(() => undefined);
   }
