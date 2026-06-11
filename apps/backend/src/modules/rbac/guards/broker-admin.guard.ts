@@ -31,6 +31,7 @@
 import { CanActivate, ExecutionContext, Injectable } from '@nestjs/common';
 import { AppError } from '../../../common/errors/app-error';
 import { RbacService } from '../rbac.service';
+import { ROLE } from '../constants/role.constants';
 
 const PLATFORM_TENANT_CODE = 'platform';
 
@@ -63,7 +64,7 @@ export class BrokerAdminGuard implements CanActivate {
     const hasRole = await this.rbac.userHasAnyRole(
       user.tenantId,
       user.userId,
-      ['BROKER_ADMIN'],
+      [ROLE.BROKER_ADMIN],
     );
 
     if (!hasRole) {

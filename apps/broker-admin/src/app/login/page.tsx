@@ -88,7 +88,7 @@ async function devLogin(tenantCode: string, mobile: string): Promise<{ accessTok
     method: 'POST',
     headers: { 'content-type': 'application/json', 'x-tenant-id': tenantCode },
     credentials: 'include',
-    body: JSON.stringify({ tenantId: tenantCode, mobileE164: mobile, password: 'platform123' }),
+    body: JSON.stringify({ tenantId: tenantCode, mobileE164: mobile, password: 'platform123', role: 'admin' }),
   });
   if (!res.ok) {
     const body = await res.json().catch(() => ({}));

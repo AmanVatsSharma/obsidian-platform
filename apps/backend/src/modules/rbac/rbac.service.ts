@@ -8,7 +8,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { RoleEntity } from './entities/role.entity';
 import { PermissionEntity } from './entities/permission.entity';
 import { UserRoleEntity } from './entities/user-role.entity';
@@ -164,12 +164,12 @@ export class RbacService {
   ): Promise<boolean> {
     if (roleNames.length === 0) return true;
     const roles = await this.roles.find({
-      where: roleNames.map((n) => ({ tenantId, name: n })),
+      where: { tenantId, name: In(roleNames) },
     });
     if (roles.length === 0) return false;
     const roleIds = roles.map((r) => r.id);
     const count = await this.userRoles.count({
-      where: { tenantId, userId, roleId: roleIds as any },
+      where: { tenantId, userId, roleId: In(roleIds) },
     });
     return count > 0;
   }
@@ -188,7 +188,7 @@ export class RbacService {
     const roleIds = userRoleRows.map((ur) => ur.roleId);
     // Find permission ids for given names
     const perms = await this.perms.find({
-      where: permissionNames.map((n) => ({ tenantId, name: n })),
+      where: { tenantId, name: In(permissionNames) },
     });
     if (perms.length < permissionNames.length) return false;
     const permIds = perms.map((p) => p.id);

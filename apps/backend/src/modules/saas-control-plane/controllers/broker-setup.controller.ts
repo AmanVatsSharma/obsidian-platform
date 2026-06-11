@@ -45,6 +45,7 @@ import { UpsertBrandConfigDto } from '../../tenancy/dtos/upsert-brand-config.dto
 import { CreateBranchDto } from '../../broker-hierarchy/dtos/create-branch.dto';
 import { CreateDeskDto } from '../../broker-hierarchy/dtos/create-desk.dto';
 import { TenantStatus } from '../../tenancy/entities/tenant.entity';
+import { AppLoggerService } from '../../../shared/logger';
 
 interface SetupStatus {
   tenantId: string;       // UUID (resolved from slug by BrokerAdminGuard)
@@ -69,6 +70,7 @@ export class BrokerSetupController {
     private readonly tenancy: TenancyService,
     private readonly brokerHierarchy: BrokerHierarchyService,
     private readonly onboarding: BrokerOnboardingService,
+    private readonly logger: AppLoggerService,
   ) {}
 
   /** GET /broker-setup/status
@@ -150,14 +152,24 @@ export class BrokerSetupController {
     const tenant = await this.tenancy.findByCode(tenantSlug);
     if (!tenant) throw new HttpException('Tenant not found', 404);
 
-    // Resolve broker ID for this tenant
-    const broker = await this.brokerHierarchy.findBrokerByCode(tenant.id, tenantSlug);
-    if (!broker) throw new HttpException('Broker entity not found — contact support', 404);
+    // Resolve broker ID for this tenant (lazily create if missing)
+    let broker = await this.brokerHierarchy.findBrokerByCode(tenant.id, tenantSlug);
+    if (!broker) {
+      this.logger.log(
+        `Auto-creating broker entity for tenant ${tenant.code} (${tenant.id})`,
+      );
+      broker = await this.brokerHierarchy.createBroker({
+        tenantId: tenant.id,
+        brokerCode: tenantSlug,
+        displayName: tenant.displayName ?? tenantSlug,
+      });
+    }
 
     const branch = await this.brokerHierarchy.createBranch({
       ...dto,
       brokerId: broker.id,
-    });
+      tenantId: tenant.id,
+    } as any);
     return branch;
   }
 
@@ -170,7 +182,14 @@ export class BrokerSetupController {
     @Req() req: BrokerAdminRequest,
     @Body() dto: CreateDeskDto,
   ) {
-    return this.brokerHierarchy.createDesk(dto);
+    const tenantSlug = (req.user as { tenantId: string }).tenantId;
+    const tenant = await this.tenancy.findByCode(tenantSlug);
+    if (!tenant) throw new HttpException('Tenant not found', 404);
+
+    return this.brokerHierarchy.createDesk({
+      ...dto,
+      tenantId: tenant.id,
+    } as any);
   }
 
   /** POST /broker-setup/advance

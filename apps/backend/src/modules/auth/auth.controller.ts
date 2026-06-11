@@ -24,17 +24,30 @@ import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { TotpEnableDto, TotpVerifyDto } from './dto/totp.dto';
 import { HistorySessionsDto } from './dto/list-sessions.dto';
 import { AppError } from '../../common/errors/app-error';
+import { TenancyService } from '../tenancy/services/tenancy.service';
+import { RbacService } from '../rbac/rbac.service';
+import { ROLE } from '../rbac/constants/role.constants';
+import { ModuleRef } from '@nestjs/core';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly auth: AuthService) {}
+  constructor(
+    private readonly auth: AuthService,
+    private readonly rbac: RbacService,
+    private readonly moduleRef: ModuleRef,
+  ) {}
 
-  // DEV ONLY: Direct login bypass for platform owner
+  /** Lazy TenancyService — avoids eager module-resolution cycle on AuthModule. */
+  private async getTenancy(): Promise<TenancyService> {
+    return this.moduleRef.get(TenancyService, { strict: false });
+  }
+
+  // DEV ONLY: Direct login bypass for platform owner or broker admin
   // TODO: Remove this before production!
   @Post('dev/login')
   async devLogin(
-    @Body() dto: { tenantId: string; mobileE164: string; password?: string },
+    @Body() dto: { tenantId: string; mobileE164: string; password?: string; role?: 'platform_owner' | 'admin' },
   ) {
     if (process.env.NODE_ENV === 'production') {
       throw new AppError('FORBIDDEN', 'Dev login disabled in production');
@@ -42,6 +55,11 @@ export class AuthController {
     // Accept any password in dev, or use default dev password
     if (dto.password && dto.password !== 'platform123') {
       throw new AppError('UNAUTHORIZED', 'Invalid password');
+    }
+    // Default role
+    const role = dto.role || 'platform_owner';
+    if (!['platform_owner', 'admin'].includes(role)) {
+      throw new AppError('UNAUTHORIZED', 'Invalid role. Use platform_owner or admin');
     }
     // Find or create user
     let user;
@@ -52,14 +70,38 @@ export class AuthController {
       user = await (this.auth as any).users.create({
         tenantId: dto.tenantId,
         mobileE164: dto.mobileE164,
-        name: 'Platform Owner',
+        name: role === 'admin' ? 'Broker Admin' : 'Platform Owner',
       });
+    }
+    // Dev: ensure tenant exists, role exists, user has role (idempotent for repeated logins)
+    try {
+      const tenancy = await this.getTenancy();
+      let tenant = (await tenancy.listTenants()).find((t) => t.code === dto.tenantId);
+      if (!tenant) {
+        tenant = await tenancy.createTenant({
+          code: dto.tenantId,
+          displayName: dto.tenantId,
+          timezone: 'Asia/Kolkata',
+          jurisdictionProfile: 'GLOBAL',
+          status: 'ACTIVE',
+        });
+      }
+      if (role === 'admin') {
+        await this.rbac.ensureRole(dto.tenantId, ROLE.BROKER_ADMIN, 'Broker Admin');
+        await this.rbac.assignRoleToUser(dto.tenantId, user.id, ROLE.BROKER_ADMIN);
+      } else {
+        await this.rbac.ensureRole(dto.tenantId, ROLE.PLATFORM_OWNER, 'Platform Owner');
+        await this.rbac.assignRoleToUser(dto.tenantId, user.id, ROLE.PLATFORM_OWNER);
+      }
+    } catch (err) {
+      // Non-fatal — log and continue
+      console.warn('[devLogin] tenant/role seed warning:', (err as Error).message);
     }
     // Generate tokens
     const tokenId = require('crypto').randomUUID();
     const jwt = require('@nestjs/jwt');
     const accessToken = await (this.auth as any).jwt.signAsync(
-      { sub: user.id, tid: dto.tenantId, role: 'platform_owner' },
+      { sub: user.id, tid: dto.tenantId, role },
       { secret: process.env.JWT_ACCESS_SECRET, expiresIn: '24h' },
     );
     const refreshToken = await (this.auth as any).jwt.signAsync(
