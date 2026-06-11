@@ -6,6 +6,7 @@ type AuthContextValue = {
   tokenId: string | null;
   requestOtp: (tenantId: string, mobileE164: string) => Promise<void>;
   verifyOtp: (payload: { tenantId: string; mobileE164: string; otp: string; totpCode?: string; deviceInfo?: string }) => Promise<void>;
+  devLogin: (tenantId: string, mobileE164: string) => Promise<void>;
   refresh: () => Promise<void>;
   logout: () => void;
 };
@@ -63,6 +64,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch {}
   }, [apiFetch]);
 
+  const devLogin = useCallback(async (tenantId: string, mobileE164: string) => {
+    // DEV ONLY: one-tap sign-in that bypasses the OTP step. Backend will reject
+    // in production via NODE_ENV check, so this is safe to leave in the client.
+    const data = await apiFetch('/auth/dev/login', {
+      method: 'POST',
+      headers: { 'x-tenant-id': tenantId },
+      body: JSON.stringify({ tenantId, mobileE164, password: 'platform123' }),
+    });
+    const at = data.accessToken || null;
+    const tid = data.tokenId || null;
+    setAccessToken(at);
+    setTokenId(tid);
+    try {
+      if (tid) localStorage.setItem('tokenId', tid);
+    } catch {}
+  }, [apiFetch]);
+
   const doRefresh = useCallback(async () => {
     if (!tokenId) return;
     const p = (async () => {
@@ -103,7 +121,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('focus', onFocus);
   }, [refresh, tokenId]);
 
-  const value: AuthContextValue = useMemo(() => ({ accessToken, tokenId, requestOtp, verifyOtp, refresh, logout }), [accessToken, tokenId, requestOtp, verifyOtp, refresh, logout]);
+  const value: AuthContextValue = useMemo(() => ({ accessToken, tokenId, requestOtp, verifyOtp, devLogin, refresh, logout }), [accessToken, tokenId, requestOtp, verifyOtp, devLogin, refresh, logout]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }

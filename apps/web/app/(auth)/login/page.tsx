@@ -40,7 +40,7 @@ interface Country {
 
 export default function LoginPage() {
   const router = useRouter();
-  const { requestOtp, verifyOtp } = useAuth();
+  const { requestOtp, verifyOtp, devLogin } = useAuth();
 
   // Static fallback for SSR / missing browser context
   const defaultFallbackCountry = (): Country => ({ code: 'IN', name: 'India', dialCode: '+91' });
@@ -112,6 +112,23 @@ export default function LoginPage() {
     }
   }
 
+  async function handleDevLogin() {
+    setError('');
+    setLoading(true);
+    try {
+      await devLogin(TENANT_ID, fullMobile || '+919999999999');
+      router.replace('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Dev login failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+    } finally {
+      setLoading(false);
+    }
+  }
+
   function handleOtpChange(value: string) {
     setOtp(value);
   }
@@ -173,6 +190,29 @@ export default function LoginPage() {
             <PrimaryButton onClick={handleRequestOtp} disabled={loading || !mobile.trim()}>
               {loading ? 'Sending…' : <>Request OTP {AuthIcons.arrowRight}</>}
             </PrimaryButton>
+
+            {process.env.NODE_ENV !== 'production' && (
+              <button
+                type="button"
+                onClick={handleDevLogin}
+                disabled={loading}
+                style={{
+                  background: 'transparent',
+                  border: '1px dashed var(--accent)',
+                  color: 'var(--accent)',
+                  padding: '10px 14px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                  marginTop: '4px',
+                }}
+              >
+                Dev: One-tap sign-in (skip OTP)
+              </button>
+            )}
           </div>
         </FormCard>
       </AuthShell>
@@ -233,6 +273,29 @@ export default function LoginPage() {
           <PrimaryButton onClick={handleVerifyOtp} disabled={loading || otp.length < 6}>
             {loading ? 'Verifying…' : <>Verify & enter terminal {AuthIcons.arrowRight}</>}
           </PrimaryButton>
+
+          {process.env.NODE_ENV !== 'production' && (
+            <button
+              type="button"
+              onClick={handleDevLogin}
+              disabled={loading}
+              style={{
+                background: 'transparent',
+                border: '1px dashed var(--accent)',
+                color: 'var(--accent)',
+                padding: '10px 14px',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                letterSpacing: '0.08em',
+                textTransform: 'uppercase',
+                cursor: 'pointer',
+                borderRadius: '4px',
+                marginTop: '4px',
+              }}
+            >
+              Dev: One-tap sign-in (skip OTP)
+            </button>
+          )}
 
           <div style={{
             padding: '10px 14px', background: 'var(--bg-panel)',

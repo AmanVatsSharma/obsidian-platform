@@ -16,15 +16,17 @@
  *
  * Side-effects:
  *   - Calls POST /auth/otp/request and POST /auth/otp/verify on the backend
+ *   - Calls POST /auth/dev/login in development for one-tap sign-in
  *   - Calls GET /tenancy/brand-config?slug={tenantCode} (public, no auth required)
  *
  * Key invariants:
  *   - 'use client' — OTP flow, state, router navigation
  *   - If brand config fetch fails (network down / tenant not found), silently falls back to defaults
  *   - Successful OTP verify stores token via auth-context and redirects to /dashboard
+ *   - Dev login button is rendered only when `process.env.NODE_ENV !== 'production'`
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-09
+ * Last-updated: 2026-06-11
  */
 
 'use client';
@@ -81,6 +83,20 @@ async function verifyOtp(
   return res.json();
 }
 
+async function devLogin(tenantCode: string, mobile: string): Promise<{ accessToken: string }> {
+  const res = await fetch('/api/auth/dev/login', {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', 'x-tenant-id': tenantCode },
+    credentials: 'include',
+    body: JSON.stringify({ tenantId: tenantCode, mobileE164: mobile, password: 'platform123' }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.message ?? `HTTP ${res.status}`);
+  }
+  return res.json();
+}
+
 export default function LoginPage() {
   const { tenantCode } = useTenant();
   const { isAuthenticated, login } = useAuth();
@@ -129,6 +145,25 @@ export default function LoginPage() {
       router.replace('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleDevLogin() {
+    if (!tenantCode) {
+      setError('Tenant not resolved. Set NEXT_PUBLIC_DEFAULT_TENANT or use a subdomain like demo-broker.localhost:4500');
+      return;
+    }
+    const devMobile = mobile.trim() || '+919999999999';
+    setError('');
+    setLoading(true);
+    try {
+      const { accessToken } = await devLogin(tenantCode, devMobile);
+      login(accessToken, devMobile);
+      router.replace('/dashboard');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Dev login failed');
     } finally {
       setLoading(false);
     }
@@ -211,6 +246,29 @@ export default function LoginPage() {
             >
               {loading ? 'Sending…' : <>Send OTP {AuthIcons.arrowRight}</>}
             </PrimaryButton>
+
+            {process.env.NODE_ENV !== 'production' && (
+              <button
+                type="button"
+                onClick={handleDevLogin}
+                disabled={loading}
+                style={{
+                  marginTop: '12px',
+                  background: 'transparent',
+                  border: '1px dashed var(--accent)',
+                  color: 'var(--accent)',
+                  padding: '10px 14px',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: '11px',
+                  letterSpacing: '0.08em',
+                  textTransform: 'uppercase',
+                  cursor: 'pointer',
+                  borderRadius: '4px',
+                }}
+              >
+                Dev: One-tap sign-in (skip OTP)
+              </button>
+            )}
           </div>
         </FormCard>
       </AuthShell>
