@@ -35,7 +35,7 @@ export function StatusBarTrading({
   mobileHref,
 }: {
   ping: number;
-  account: AccountSnapshot;
+  account: AccountSnapshot | null;
   mobileHref?: string;
 }) {
   const now = new Date();
@@ -47,7 +47,7 @@ export function StatusBarTrading({
       </div>
       <div className="statusbar-item">
         <Wifi size={10} />
-        <span>{account.server}</span>
+        <span>{account?.server ?? '—'}</span>
       </div>
       <div className="statusbar-item">
         <Zap size={10} />
@@ -55,7 +55,7 @@ export function StatusBarTrading({
       </div>
       <div className="statusbar-item">
         <Database size={10} />
-        <span>{account.accountType} · {account.leverage}</span>
+        <span>{account?.accountType ?? '—'} · {account?.leverage ?? '—'}</span>
       </div>
       <div className="statusbar-item">
         <span>v2.4.1</span>

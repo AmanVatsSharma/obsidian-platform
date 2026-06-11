@@ -31,7 +31,7 @@ import { usePathname } from 'next/navigation';
 import {
   Activity, AlertTriangle, BarChart2, Bell, BookOpen, Bot, Briefcase,
   ChevronRight, ChevronsLeft, ChevronsRight, ClipboardList, Code,
-  Database, DollarSign, FileText, Filter, Layers, LayoutDashboard, Link2,
+  Database, DollarSign, FileText, Filter, Key, Layers, LayoutDashboard, Link2,
   Megaphone, PieChart, Shield, TrendingUp, Users, Users2, UserCheck,
   Wallet, Webhook, Zap, Settings, RefreshCw, UserCog,
 } from 'lucide-react';

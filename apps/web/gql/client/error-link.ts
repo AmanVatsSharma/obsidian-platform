@@ -13,30 +13,37 @@
  * Depends on:
  *   - @apollo/client     — ApolloLink, onError, FetchResult
  *   - next/navigation    — redirect utility (client-side navigation)
- *   - next/dist/lib/toast — design-system toast (with try/catch fallback for SSR safety)
  *
  * Side-effects:
  *   - HTTP 401: navigates to /login
- *   - HTTP 403/500+: shows toast notification
+ *   - HTTP 403/500+: shows toast notification (console.warn fallback)
  *   - HTTP 400: errors are kept in Apollo cache for field-level display
  *
  * Key invariants:
- *   - next/dist/lib/toast may not exist in all app shells — try/catch fallback is
- *     intentional and prevents SSR crashes when the toast module is not yet loaded.
- *   - Error link MUST be AFTER HttpLink in the link chain — HttpLink dispatches the
- *     request and produces errors that error-link consumes.
  *   - Errors are NOT re-thrown after logging — they propagate to React error boundaries.
  *
  * Read order:
  *   1. createErrorLink — factory function, returns configured ApolloLink
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-22
+ * Last-updated: 2026-06-11
  */
 
 import { ApolloLink } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
 import { redirect } from 'next/navigation';
+
+/**
+ * Lightweight console-based toast fallback. The design system exposes a real toast
+ * via `useToast` in browser-only contexts; we don't import it here to keep the
+ * error link SSR-safe and free of circular imports.
+ */
+function showToast(message: string): void {
+  if (typeof window !== 'undefined' && typeof console !== 'undefined') {
+    // Replace with a real toast (e.g., sonner, react-hot-toast) when integrated.
+    console.warn(`[toast] ${message}`);
+  }
+}
 
 function createErrorLink(): ApolloLink {
   return onError(({ graphQLErrors, networkError, response }) => {
@@ -52,43 +59,21 @@ function createErrorLink(): ApolloLink {
         }
 
         if (statusCode === 403) {
-          let toast: { error: (msg: string) => void } | null = null;
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            toast = require('next/dist/lib/toast') as { error: (msg: string) => void };
-          } catch {
-            // toast module not available in this app shell — skip
-          }
-          toast?.error('Access denied. You do not have permission.');
+          showToast('Access denied. You do not have permission.');
           return;
         }
 
         // 400 field validation errors — let them propagate to component
         // 500+ server errors
         if (statusCode === 500 || statusCode === 503) {
-          let toast: { error: (msg: string) => void } | null = null;
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-var-requires
-            toast = require('next/dist/lib/toast') as { error: (msg: string) => void };
-          } catch {
-            // skip
-          }
-          toast?.error('Server error. Please try again later.');
+          showToast('Server error. Please try again later.');
           return;
         }
       }
     }
 
     if (networkError) {
-      // Network-level errors (DNS failure, connection refused, timeout)
-      let toast: { error: (msg: string) => void } | null = null;
-      try {
-        // eslint-disable-next-line @typescript-eslint/no-var-requires
-        toast = require('next/dist/lib/toast') as { error: (msg: string) => void };
-      } catch {
-        // skip
-      }
-      toast?.error('Network error. Check your connection and retry.');
+      showToast('Network error. Check your connection and retry.');
     }
   });
 }

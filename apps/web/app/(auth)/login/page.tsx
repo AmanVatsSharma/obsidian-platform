@@ -42,8 +42,15 @@ export default function LoginPage() {
   const router = useRouter();
   const { requestOtp, verifyOtp } = useAuth();
 
+  // Static fallback for SSR / missing browser context
+  const defaultFallbackCountry = (): Country => ({ code: 'IN', name: 'India', dialCode: '+91' });
+
   // Determine default country from browser locale or saved preference
   const getDefaultCountry = (): Country => {
+    // Guard for SSR — localStorage only exists in the browser
+    if (typeof window === 'undefined') {
+      return defaultFallbackCountry();
+    }
     const savedCountry = localStorage.getItem('preferred-country');
     if (savedCountry) {
       const parsed = JSON.parse(savedCountry);
@@ -63,7 +70,7 @@ export default function LoginPage() {
       'FR': { code: 'FR', name: 'France', dialCode: '+33' },
       'JP': { code: 'JP', name: 'Japan', dialCode: '+81' },
       'AE': { code: 'AE', name: 'UAE', dialCode: '+971' },
-    }[locale] || { code: 'IN', name: 'India', dialCode: '+91' };
+    }[locale] || defaultFallbackCountry();
 
     return defaultCountry;
   };

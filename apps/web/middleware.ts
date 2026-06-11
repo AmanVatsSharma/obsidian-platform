@@ -78,9 +78,13 @@ function getDevicePreference(request: NextRequest): 'desktop' | 'mobile' | null 
 /**
  * Get redirect response with optional cookie.
  */
-function createRedirect(url: string, preference?: 'desktop' | 'mobile'): Response {
-  // Next.js 15 requires absolute URLs for NextResponse.redirect
-  const absoluteUrl = url.startsWith('http') ? url : `https://obsidian.local${url}`;
+function createRedirect(request: NextRequest, url: string, preference?: 'desktop' | 'mobile'): Response {
+  // Next.js 15 requires absolute URLs for NextResponse.redirect.
+  // Build the absolute URL from the incoming request's origin so dev (localhost) and
+  // production hosts both work without hardcoding a domain.
+  const absoluteUrl = url.startsWith('http')
+    ? url
+    : new URL(url, request.nextUrl.origin).toString();
   const response = NextResponse.redirect(absoluteUrl);
 
   if (preference) {
@@ -131,7 +135,7 @@ export function middleware(request: NextRequest) {
     finalPreference = undefined;
   }
 
-  return createRedirect(target, finalPreference);
+  return createRedirect(request, target, finalPreference);
 }
 
 // Configure which routes this middleware runs on

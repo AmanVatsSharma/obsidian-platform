@@ -28,7 +28,7 @@ export function TradingTopBar({
   activeInstrument: Instrument | null;
   prices: PriceMap;
   onSymbolClick: (i: Instrument) => void;
-  account: AccountSnapshot;
+  account: AccountSnapshot | null;
   pinned: Instrument[];
 }) {
   return (
@@ -102,10 +102,10 @@ export function TradingTopBar({
         aria-label="Open account console"
         style={{ textDecoration: 'none', color: 'inherit' }}
       >
-        <div className="account-avatar">{account.name.slice(0, 2).toUpperCase()}</div>
+        <div className="account-avatar">{(account?.name ?? '—').slice(0, 2).toUpperCase()}</div>
         <div>
           <div className="account-chip-label">Balance</div>
-          <div className="account-chip-balance">${fmt(account.balance)}</div>
+          <div className="account-chip-balance">${fmt(account?.balance ?? 0)}</div>
         </div>
         <ChevronDown size={12} style={{ color: 'var(--text-muted)' }} />
       </Link>
