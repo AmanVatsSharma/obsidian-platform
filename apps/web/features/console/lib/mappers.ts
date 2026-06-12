@@ -6,8 +6,9 @@
  *              Apollo, no I/O — fully unit-testable.
  *
  * Exports:
- *   - mapProfileToConsoleUser(profile, accounts, fallback) → ConsoleUser
- *   - deriveKycState(profile, accounts) → KycState
+ *   - mapProfileToConsoleUser(profile, accounts) → ConsoleUser
+ *   - emptyConsoleUser() → ConsoleUser
+ *   - deriveKycState(profile) → KycState
  *   - deriveTier(kycLevel) → AccountTier
  *   - toTradingAccount(backendAccount) → TradingAccount
  *
@@ -123,9 +124,10 @@ export function deriveTier(kycLevel: 0 | 1 | 2 | 3): AccountTier {
 }
 
 /** Format a Date/string as the YYYY-MM-DD style the shell expects. */
-function formatDate(d: string | Date): string {
+function formatDate(d: string | Date | null | undefined): string {
+  if (d == null) return '';
   const date = typeof d === 'string' ? new Date(d) : d;
-  if (isNaN(date.getTime())) return '—';
+  if (isNaN(date.getTime())) return '';
   return date.toISOString().slice(0, 10);
 }
 
@@ -145,14 +147,50 @@ function deriveInitials(name: string | null, fallback: string): string {
  * back to the seed value. This keeps sections from breaking on partial data
  * (e.g., a network blip on a single query).
  */
+/**
+ * Strictly empty ConsoleUser — used when the user is unauthenticated.
+ * Every field is an honest empty sentinel; no persona, no fake IBANs, no fake devices.
+ */
+export function emptyConsoleUser(): ConsoleUser {
+  return {
+    id: '',
+    name: '',
+    initials: '',
+    email: '',
+    phone: '',
+    country: '',
+    city: '',
+    address: '',
+    dob: '',
+    lang: '',
+    timezone: '',
+    joined: '',
+    tier: 'unverified',
+    kycState: 'todo',
+    kycLevel: 0,
+    referrer: '',
+    ibCode: null,
+    accounts: [],
+    balanceTotal: 0,
+    equityTotal: 0,
+    pnlMTD: 0,
+    pnlYTD: 0,
+    twoFA: { app: false, sms: false, email: false },
+    apiKeys: [],
+    devices: [],
+    loginHistory: [],
+    paymentMethods: [],
+    transactions: [],
+  };
+}
+
 export function mapProfileToConsoleUser(
   profile: BackendUserProfile | null,
   accounts: ReadonlyArray<BackendAccount>,
-  fallback: ConsoleUser,
 ): ConsoleUser {
-  // If we have neither profile nor accounts, return the seed verbatim.
+  // Unauthenticated: return strictly empty shape — no fake persona.
   if (!profile && accounts.length === 0) {
-    return fallback;
+    return emptyConsoleUser();
   }
 
   const kycState: KycState = deriveKycState(profile);
@@ -161,59 +199,50 @@ export function mapProfileToConsoleUser(
     kycState === 'approved' ? 2 : kycState === 'pending' ? 1 : 0;
   const tier = deriveTier(kycLevel);
 
-  const tradingAccounts: ReadonlyArray<TradingAccount> =
-    accounts.length > 0 ? accounts.map(toTradingAccount) : fallback.accounts;
+  const tradingAccounts: ReadonlyArray<TradingAccount> = accounts.map(toTradingAccount);
 
-  // 2FA isn't exposed by the backend yet — keep seed values until the
-  // security-settings endpoint is wired. We still surface email-verify
+  // 2FA isn't exposed by the backend yet — default all channels to false until
+  // the security-settings endpoint is wired. We still surface email-verify
   // as a proxy signal.
   const twoFA: TwoFAState = {
-    app: fallback.twoFA.app,
-    sms: fallback.twoFA.sms,
-    email: profile?.isEmailVerified ?? fallback.twoFA.email,
+    app: false,
+    sms: false,
+    email: !!profile?.isEmailVerified,
   };
 
   // Build the contact name / display fields. Phone is mandatory on backend,
-  // email is optional — fall back to seed when missing.
-  const displayName = profile?.name ?? fallback.name;
-  const initials = deriveInitials(profile?.name, fallback.initials);
-
-  // Empty stand-ins for fields that aren't on the backend yet. Sections that
-  // need them (devices, API keys, transactions) keep working off the seed.
-  const emptyDevices: ReadonlyArray<Device> = [];
-  const emptyApiKeys: ReadonlyArray<ApiKey> = [];
-  const emptyLogin: ReadonlyArray<LoginEvent> = [];
-  const emptyPayments: ReadonlyArray<PaymentMethod> = [];
-  const emptyTx: ReadonlyArray<Transaction> = [];
+  // email is optional — empty string when missing (NEVER the seed persona).
+  const displayName = profile?.name ?? '';
+  const initials = deriveInitials(profile?.name ?? null, '');
 
   return {
-    id: profile?.id ?? fallback.id,
+    id: profile?.id ?? '',
     name: displayName,
     initials,
-    email: profile?.email ?? fallback.email,
-    phone: profile?.mobileE164 ?? fallback.phone,
-    country: profile?.countryCode ?? fallback.country,
-    city: fallback.city, // Not exposed yet
-    address: fallback.address,
-    dob: fallback.dob,
-    lang: fallback.lang,
-    timezone: fallback.timezone,
-    joined: formatDate(profile?.createdAt ?? fallback.joined),
+    email: profile?.email ?? '',
+    phone: profile?.mobileE164 ?? '',
+    country: profile?.countryCode ?? '',
+    city: '', // Not exposed yet
+    address: '', // Not exposed yet
+    dob: '', // Not exposed yet
+    lang: '', // Not exposed yet
+    timezone: '', // Not exposed yet
+    joined: formatDate(profile?.createdAt),
     tier,
     kycState,
     kycLevel,
-    referrer: fallback.referrer,
-    ibCode: fallback.ibCode,
+    referrer: '',
+    ibCode: null,
     accounts: tradingAccounts,
-    balanceTotal: fallback.balanceTotal, // Computed from accountBalance — not in accounts[]
-    equityTotal: fallback.equityTotal,
-    pnlMTD: fallback.pnlMTD,
-    pnlYTD: fallback.pnlYTD,
+    balanceTotal: 0, // TODO: computed from accountBalance once endpoint exists
+    equityTotal: 0,
+    pnlMTD: 0,
+    pnlYTD: 0,
     twoFA,
-    apiKeys: emptyApiKeys,
-    devices: emptyDevices,
-    loginHistory: emptyLogin,
-    paymentMethods: emptyPayments,
-    transactions: emptyTx,
+    apiKeys: [],
+    devices: [],
+    loginHistory: [],
+    paymentMethods: [],
+    transactions: [],
   };
 }

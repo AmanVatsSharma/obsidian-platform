@@ -13,10 +13,11 @@ import {
   deriveKycState,
   deriveTier,
   mapProfileToConsoleUser,
+  emptyConsoleUser,
   type BackendUserProfile,
   type BackendAccount,
 } from './mappers';
-import { SEED_USER, type ConsoleUser } from './seed-data';
+import { type ConsoleUser } from './seed-data';
 
 describe('mappers', () => {
   describe('toTradingAccount', () => {
@@ -156,13 +157,23 @@ describe('mappers', () => {
   });
 
   describe('mapProfileToConsoleUser', () => {
-    it('returns seed when profile and accounts are empty', () => {
-      const result = mapProfileToConsoleUser(null, [], SEED_USER);
+    it('returns empty shape when profile and accounts are missing', () => {
+      const result = mapProfileToConsoleUser(null, []);
 
-      expect(result).toEqual(SEED_USER);
+      // Strictly empty: no fake persona, no fake IBANs, no fake devices.
+      expect(result.id).toBe('');
+      expect(result.name).toBe('');
+      expect(result.email).toBe('');
+      expect(result.phone).toBe('');
+      expect(result.country).toBe('');
+      expect(result.accounts).toEqual([]);
+      expect(result.apiKeys).toEqual([]);
+      expect(result.devices).toEqual([]);
+      expect(result.transactions).toEqual([]);
+      expect(result.balanceTotal).toBe(0);
     });
 
-    it('merges profile data with seed fallback', () => {
+    it('merges profile data with no seed fallback', () => {
       const profile: BackendUserProfile = {
         id: 'u-new',
         tenantId: 't1',
@@ -176,11 +187,13 @@ describe('mappers', () => {
         createdAt: '2024-01-01',
       };
 
-      const result = mapProfileToConsoleUser(profile, [], SEED_USER);
+      const result = mapProfileToConsoleUser(profile, []);
 
       expect(result.id).toBe('u-new');
       expect(result.name).toBe('New Name');
       expect(result.email).toBe('new@test.com');
+      // Phone comes from the profile (mobileE164), not the seed.
+      expect(result.phone).toBe('+111');
     });
 
     it('maps accounts array', () => {
@@ -195,7 +208,7 @@ describe('mappers', () => {
         },
       ];
 
-      const result = mapProfileToConsoleUser(null, accounts, SEED_USER);
+      const result = mapProfileToConsoleUser(null, accounts);
 
       expect(result.accounts).toHaveLength(1);
       expect(result.accounts[0].id).toBe('ML-1');
@@ -207,7 +220,7 @@ describe('mappers', () => {
         name: 'Alice',
       };
 
-      const result = mapProfileToConsoleUser(singleName, [], SEED_USER);
+      const result = mapProfileToConsoleUser(singleName, []);
 
       expect(result.initials).toBe('AL');
     });
@@ -218,7 +231,7 @@ describe('mappers', () => {
         name: 'Bob Smith',
       };
 
-      const result = mapProfileToConsoleUser(fullName, [], SEED_USER);
+      const result = mapProfileToConsoleUser(fullName, []);
 
       expect(result.initials).toBe('BS');
     });
@@ -230,9 +243,40 @@ describe('mappers', () => {
         isMobileVerified: true,
       };
 
-      const result = mapProfileToConsoleUser(verifiedProfile, [], SEED_USER);
+      const result = mapProfileToConsoleUser(verifiedProfile, []);
 
       expect(result.kycState).toBe('approved');
+    });
+  });
+
+  describe('emptyConsoleUser', () => {
+    it('returns a strictly empty shape', () => {
+      const u = emptyConsoleUser();
+      expect(u.id).toBe('');
+      expect(u.name).toBe('');
+      expect(u.initials).toBe('');
+      expect(u.email).toBe('');
+      expect(u.phone).toBe('');
+      expect(u.country).toBe('');
+      expect(u.city).toBe('');
+      expect(u.address).toBe('');
+      expect(u.dob).toBe('');
+      expect(u.accounts).toEqual([]);
+      expect(u.apiKeys).toEqual([]);
+      expect(u.devices).toEqual([]);
+      expect(u.loginHistory).toEqual([]);
+      expect(u.paymentMethods).toEqual([]);
+      expect(u.transactions).toEqual([]);
+      expect(u.balanceTotal).toBe(0);
+      expect(u.equityTotal).toBe(0);
+      expect(u.pnlMTD).toBe(0);
+      expect(u.pnlYTD).toBe(0);
+      expect(u.tier).toBe('unverified');
+      expect(u.kycState).toBe('todo');
+      expect(u.kycLevel).toBe(0);
+      expect(u.twoFA.app).toBe(false);
+      expect(u.twoFA.sms).toBe(false);
+      expect(u.twoFA.email).toBe(false);
     });
   });
 });

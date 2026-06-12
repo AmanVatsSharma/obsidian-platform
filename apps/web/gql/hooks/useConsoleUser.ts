@@ -43,9 +43,10 @@ import {
   // the result to the mapper's expected shape.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
 } from '../generated/hooks';
-import { SEED_USER, type ConsoleUser } from '@/features/console/lib/seed-data';
+import type { ConsoleUser } from '@/features/console/lib/seed-data';
 import {
   mapProfileToConsoleUser,
+  emptyConsoleUser,
   type BackendUserProfile,
   type BackendAccount,
 } from '@/features/console/lib/mappers';
@@ -172,18 +173,19 @@ function useProfileAndAccounts(hasToken: boolean): {
 // ─────────────────────────────────────────────────────────────────────────────
 
 /**
- * Console user data. The returned object is always fully shaped — if the
- * backend is unreachable, fields fall back to SEED_USER values. Use
- * useConsoleUserStatus() to detect loading/error/refetch.
+ * Console user data. Unauthenticated → returns emptyConsoleUser() (no fake
+ * persona, no leaked IBANs). Authenticated with backend fields missing →
+ * returns empty sentinels (NEVER the seed persona). Use useConsoleUserStatus()
+ * to detect loading/error/refetch.
  */
 export function useConsoleUser(): ConsoleUser {
   const hasToken = useIsAuthenticated();
   const { profile, accounts } = useProfileAndAccounts(hasToken);
 
-  return useMemo(
-    () => mapProfileToConsoleUser(profile, accounts, SEED_USER),
-    [profile, accounts],
-  );
+  return useMemo(() => {
+    if (!hasToken) return emptyConsoleUser();
+    return mapProfileToConsoleUser(profile, accounts);
+  }, [hasToken, profile, accounts]);
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

@@ -24,9 +24,10 @@ const config: Config = {
     '<rootDir>/lib/**/*.spec.ts',
     '<rootDir>/lib/**/*.spec.tsx',
   ],
-  // Use babel to handle JSX - ts-jest only handles .ts files
+  // Use ts-jest for TypeScript and JS transformation (includes JSX).
+  // It's more reliable than babel-jest for mixed TypeScript/JSX files.
   transform: {
-    '^.+\\.tsx?$': ['babel-jest', { rootMode: 'upward' }],
+    '^.+\\.(ts|tsx)$': 'ts-jest',
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {

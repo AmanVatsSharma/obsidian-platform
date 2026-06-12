@@ -45,8 +45,8 @@ import {
   ChevronLeft, ArrowUpRight, ArrowDownRight, Layers,
   CandlestickChart, SlidersHorizontal, Shield, LogOut, Monitor,
 } from 'lucide-react';
-import type { Instrument, OpenPosition, ToastItem, AccountSnapshot, QuoteDto, PendingOrder, PriceMap } from '@/features/trading-terminal/lib/types';
-import { ECONOMIC_CALENDAR, NEWS, TIMEFRAMES, generateOHLCV, DOM_DATA } from '@/features/trading-terminal/lib/mock-data';
+import type { Instrument, OpenPosition, ToastItem, AccountSnapshot, QuoteDto, PendingOrder } from '@/features/trading-terminal/lib/types';
+import { TIMEFRAMES } from '@/features/trading-terminal/lib/mock-data';
 
 // ─── Prop Contract ─────────────────────────────────────────────────────────────
 
@@ -212,7 +212,7 @@ function HomeScreen({
               {sign(displayAccount.unrealizedPnl)}${fmt(Math.abs(displayAccount.unrealizedPnl))} unrealised
             </div>
           </div>
-          <PnLArea data={P_AND_L_HISTORY} h={44} />
+          <PnLArea data={[]} h={44} />
           <div className="equity-meta">
             {[
               { l: 'Balance',     v: `$${fmt(displayAccount.balance)}` },
@@ -240,8 +240,8 @@ function HomeScreen({
           {[
             { l: 'Open Positions', v: `${positions.length}`,                  sub: 'active trades' },
             { l: 'Today P&L',      v: `+$${fmt(displayAccount.realizedPnlToday)}`,   c: 'bull' },
-            { l: 'Pending Orders', v: `${resolved.orders.length}`,             sub: 'waiting' },
-            { l: 'Win Rate',       v: `67%`,                                   c: 'bull', sub: 'last 30 trades' },
+            { l: 'Pending Orders', v: '—',                                    sub: 'live count pending' },
+            { l: 'Win Rate',       v: '—',                                    c: 'bull', sub: 'live calc pending' },
           ].map(s => (
             <div key={s.l} className="stat-tile">
               <div className="stat-tile-label">{s.l}</div>
@@ -254,11 +254,11 @@ function HomeScreen({
         <div className="quick-trade-row">
           <button className="qt-btn buy" onClick={() => onTrade('buy')}>
             <ArrowUpRight size={16} />BUY
-            <span className="qt-btn-price">{fmtP(prices[instruments[0].symbol]?.ask, instruments[0].digits)}</span>
+            <span className="qt-btn-price">{instruments[0] ? fmtP(prices[instruments[0].symbol]?.ask, instruments[0].digits) : '—'}</span>
           </button>
           <button className="qt-btn sell" onClick={() => onTrade('sell')}>
             <ArrowDownRight size={16} />SELL
-            <span className="qt-btn-price">{fmtP(prices[instruments[0].symbol]?.bid, instruments[0].digits)}</span>
+            <span className="qt-btn-price">{instruments[0] ? fmtP(prices[instruments[0].symbol]?.bid, instruments[0].digits) : '—'}</span>
           </button>
         </div>
 
@@ -347,11 +347,20 @@ function ChartScreen({
       const volSeries = chart.addHistogramSeries({ priceFormat: { type: 'volume' as const }, priceScaleId: 'volume' });
       chart.priceScale('volume').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
 
-      const candles = generateOHLCV(instrument?.bid ?? 1.08452, 200);
-      series.setData(candles);
-      volSeries.setData(candles.map(c => ({ time: c.time, value: c.volume, color: c.close >= c.open ? 'rgba(16,217,150,0.35)' : 'rgba(255,59,92,0.35)' })));
+      // Seed chart with a single live candle when an instrument is selected.
+      // No fabricated historical candles — backend will provide them when wired.
+      const bid = instrument?.bid;
+      if (bid != null) {
+        const now = Math.floor(Date.now() / 1000);
+        const seedCandle = { time: now, open: bid, high: bid, low: bid, close: bid, volume: 0 };
+        series.setData([seedCandle]);
+        volSeries.setData([{ time: now, value: 0, color: 'rgba(16,217,150,0.35)' }]);
+        setOhlc({ o: bid, h: bid, l: bid, c: bid });
+      } else {
+        series.setData([]);
+        volSeries.setData([]);
+      }
       chart.timeScale().fitContent();
-      if (candles.length) { const l = candles[candles.length - 1]; setOhlc({ o: l.open, h: l.high, l: l.low, c: l.close }); }
 
       chart.subscribeCrosshairMove((param: any) => {
         if (param.seriesData?.has(series)) { const b = param.seriesData.get(series) as any; setOhlc({ o: b.open, h: b.high, l: b.low, c: b.close }); }
@@ -476,13 +485,17 @@ function TradeTicket({
   const [durationMinutes, setDurationMinutes] = useState('30');
   const [displayQty, setDisplayQty] = useState('');
 
-  const inst  = prices[instrument?.symbol] ?? instrument ?? instruments[0];
-  const p     = prices[inst.symbol] ?? inst;
+  const inst  = instrument != null ? (prices[instrument.symbol] ?? instrument) : null;
+  const p     = inst ? (prices[inst.symbol] ?? inst) : null;
   const bid   = p?.bid ?? 0;
   const ask   = p?.ask ?? 0;
   const dig   = inst?.digits ?? 5;
-  const margin = lots * ask * 1000 / 100;
-  const pipVal = lots * 10;
+  const margin = inst ? lots * ask * 1000 / 100 : 0;
+  const pipVal = inst ? lots * 10 : 0;
+  // The component is rendered only when `instrument` is non-null (caller guards),
+  // so the live-quote branch should be the common path. Use non-null fallbacks
+  // here for the JSX render so the existing inline expressions type-check.
+  const instSafe: Instrument = inst ?? instrument!;
 
   // Determine if algo order (goes via REST)
   const isAlgo = otype === 'TWAP' || otype === 'VWAP' || otype === 'Iceberg';
@@ -493,6 +506,7 @@ function TradeTicket({
   const startHold = () => {
     setHolding(true);
     holdRef.current = setTimeout(() => {
+      if (!inst) return; // No instrument selected — ignore hold-to-confirm
       const order: Parameters<typeof onConfirm>[0] = { side, otype, lots, instrument: inst };
       // Add conditional fields based on order type
       if (otype === 'Limit' || otype === 'Stop' || otype === 'Stop Limit') {
@@ -531,8 +545,8 @@ function TradeTicket({
         <div className="sheet-handle"><div className="sheet-handle-bar" /></div>
         <div className="sheet-header">
           <CandlestickChart size={18} style={{ color: 'var(--accent)' }} />
-          <span className="sheet-title">{inst.symbol}</span>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>{inst.name}</div>
+          <span className="sheet-title">{instSafe.symbol}</span>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>{instSafe.name}</div>
           <button className="sheet-close" onClick={onClose}><X size={13} /></button>
         </div>
 
@@ -548,7 +562,7 @@ function TradeTicket({
           </div>
           <div className="ba-spread">
             <div style={{ fontSize: '9px', letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>SPD</div>
-            <div style={{ fontFamily: 'var(--font-data)', fontSize: '13px', fontWeight: '700', color: 'var(--warn)' }}>{inst.spread}</div>
+            <div style={{ fontFamily: 'var(--font-data)', fontSize: '13px', fontWeight: '700', color: 'var(--warn)' }}>{(instSafe as Instrument & { spread?: number }).spread ?? 0}</div>
           </div>
           <div className="ba-side">
             <div className="ba-label">ASK</div>
@@ -574,7 +588,7 @@ function TradeTicket({
                 value={price}
                 onChange={e => setPrice(e.target.value)}
               />
-              <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>{inst.symbol?.split('/')[1] ?? 'USD'}</span>
+              <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>{instSafe.symbol?.split('/')[1] ?? 'USD'}</span>
             </div>
           </div>
         )}
@@ -592,7 +606,7 @@ function TradeTicket({
                   value={triggerPrice}
                   onChange={e => setTriggerPrice(e.target.value)}
                 />
-                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>{inst.symbol?.split('/')[1] ?? 'USD'}</span>
+                <span style={{ padding: '0 12px', fontSize: '11px', color: 'var(--text-muted)', fontFamily: 'var(--font-data)' }}>{instSafe.symbol?.split('/')[1] ?? 'USD'}</span>
               </div>
             </div>
             <div>
@@ -777,7 +791,7 @@ function TradeTicket({
           {[
             { l: 'Req. Margin', v: `$${fmt(margin)}` },
             { l: 'Pip Value',   v: `$${fmt(pipVal)}` },
-            { l: 'Leverage',    v: `1:${displayAccount.leverage.split(':')[1]}` },
+            { l: 'Leverage',    v: '1:100' },
             { l: 'Commission',  v: `$${fmt(lots * 7)}` },
           ].map(i => (
             <div key={i.l} className="ti-item">
@@ -848,7 +862,7 @@ function PortfolioScreen({
             <div className={`ps-delta ${pc(totalPnl)}`}>{sign(totalPnl)}${fmt(Math.abs(totalPnl))} open P&L</div>
             <div className="ps-delta bull">+${fmt(displayAccount.realizedPnlToday)} today</div>
           </div>
-          <PnLArea data={P_AND_L_HISTORY} h={40} />
+          <PnLArea data={[]} h={40} />
           <div className="ps-stat-row" style={{ marginTop: '10px' }}>
             {[
               { l: 'Margin',  v: `$${fmt(displayAccount.margin)}` },
@@ -994,15 +1008,12 @@ function MarketsScreen({ instruments, prices, onSelect }: { instruments: Instrum
 
 /* ─── DOM Bottom Sheet ───────────────────────────────────────────────────── */
 function DOMSheet({ instrument, prices, onClose }: { instrument: Instrument; prices: PriceMap; onClose: () => void }) {
-  const [dom, setDom] = useState(() => DOM_DATA(instrument?.bid ?? 1.08452));
-  useEffect(() => {
-    const iv = setInterval(() => setDom(DOM_DATA(prices[instrument?.symbol]?.bid ?? instrument?.bid ?? 1.08452)), 800);
-    return () => clearInterval(iv);
-  }, [instrument?.symbol, prices]);
-
-  const asks = dom.filter(d => d.type === 'ask').slice().reverse();
-  const bids = dom.filter(d => d.type === 'bid').slice().reverse();
-  const maxVol = Math.max(...dom.map(d => d.volume));
+  // DOM data is empty until the real order-book depth endpoint is wired.
+  // No fabricated bid/ask levels — render empty state in the body.
+  const dom: ReadonlyArray<{ type: 'ask' | 'bid'; price: number; volume: number; depth: number }> = [];
+  const asks: ReadonlyArray<{ type: 'ask' | 'bid'; price: number; volume: number; depth: number }> = [];
+  const bids: ReadonlyArray<{ type: 'ask' | 'bid'; price: number; volume: number; depth: number }> = [];
+  const maxVol = 0;
   const midPrice = prices[instrument?.symbol]?.bid ?? instrument?.bid ?? 0;
 
   return (
@@ -1055,7 +1066,7 @@ function DOMSheet({ instrument, prices, onClose }: { instrument: Instrument; pri
 function CalendarNewsScreen() {
   const [tab, setTab]       = useState<'calendar' | 'news' | 'alerts'>('calendar');
   const [impact, setImpact] = useState('all');
-  const filteredCal = ECONOMIC_CALENDAR.filter(e => impact === 'all' || e.impact === impact);
+  const filteredCal: ReadonlyArray<{ id: string; impact: string }> = [];
 
   return (
     <div className="screen">
@@ -1083,7 +1094,14 @@ function CalendarNewsScreen() {
                 </button>
               ))}
             </div>
-            {filteredCal.map(e => (
+            {filteredCal.length === 0 ? (
+              <div className="empty-state-pad" style={{ padding: '24px 16px', color: 'var(--text-muted)', fontSize: '12px', textAlign: 'center' }}>
+                No economic events
+                <div style={{ marginTop: '6px' }}>
+                  <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)' }}>Backend pending</span>
+                </div>
+              </div>
+            ) : filteredCal.map((e: any) => (
               <div key={e.id} className="cal-event-row">
                 <div className={`cal-impact-dot ${e.impact}`} />
                 <div className="cal-time">{e.time}</div>
@@ -1101,19 +1119,14 @@ function CalendarNewsScreen() {
           </>
         )}
 
-        {tab === 'news' && NEWS.map(n => (
-          <div key={n.id} className="news-row">
-            <div className={`news-bar ${n.sentiment}`} />
-            <div className="news-content">
-              <div className="news-meta-row">
-                <span className="news-source">{n.source}</span>
-                <span className="news-time">{n.time}</span>
-                <span className="news-sym-tag">{n.symbol}</span>
-              </div>
-              <div className="news-headline">{n.headline}</div>
+        {tab === 'news' && (
+          <div className="empty-state-pad" style={{ padding: '24px 16px', color: 'var(--text-muted)', fontSize: '12px', textAlign: 'center' }}>
+            No news yet
+            <div style={{ marginTop: '6px' }}>
+              <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)' }}>Backend pending</span>
             </div>
           </div>
-        ))}
+        )}
 
         {tab === 'alerts' && (
           <>
@@ -1225,7 +1238,7 @@ function AccountScreen({ account }: { account: AccountSnapshot | null }) {
                 <span style={{ fontSize: '10px', fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--text-muted)', fontFamily: 'var(--font-display)' }}>30-Day P&L</span>
                 <span style={{ fontFamily: 'var(--font-data)', fontSize: '14px', fontWeight: 600, color: 'var(--bull)' }}>+$3,567</span>
               </div>
-              <PnLArea data={P_AND_L_HISTORY} h={52} />
+              <PnLArea data={[]} h={52} />
             </div>
           </>
         )}
@@ -1245,16 +1258,12 @@ function AccountScreen({ account }: { account: AccountSnapshot | null }) {
               ))}
             </div>
             {/* Trade history - show empty state when no data */}
-            {[]/*.map(t => (*/
-              <div key={t.id} className="history-row">
-                <div className={`hr-badge ${t.type.toLowerCase()}`}>{t.type}</div>
-                <div className="hr-info">
-                  <div className="hr-symbol">{t.symbol} <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>· {t.lots} lots</span></div>
-                  <div className="hr-meta">{t.openTime} → {t.closeTime} · {t.duration}</div>
-                </div>
-                <div className={`hr-pnl ${pc(t.pnl)}`}>{sign(t.pnl)}${fmt(Math.abs(t.pnl))}</div>
+            <div className="empty-state-pad" style={{ padding: '20px 16px', color: 'var(--text-muted)', fontSize: '12px', textAlign: 'center' }}>
+              No trade history yet
+              <div style={{ marginTop: '6px' }}>
+                <span style={{ fontSize: '10px', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--accent)' }}>Backend pending</span>
               </div>
-            ))}
+            </div>
           </>
         )}
 
@@ -1367,16 +1376,16 @@ export function MobileTradingDashboard({
 
   // UI-only state (navigation, sheets, toasts — not trading data)
   const [screen, setScreen]           = useState<Screen>('home');
-  const [activeInstrument, setActive] = useState<Instrument>(instruments[0]);
+  const [activeInstrument, setActive] = useState<Instrument | null>(resolved.instruments[0] ?? null);
   const [toasts, setToasts]           = useState<ToastItem[]>([]);
   const [showTrade, setShowTrade]     = useState(false);
   const [tradeSide, setTradeSide]     = useState<'buy' | 'sell'>('buy');
   const [showDOM, setShowDOM]         = useState(false);
-  // Seed sim prices from the instrument catalogue on first mount so the
-  // interval below never reads `undefined.bid` on its first tick.
+  // Sim prices start empty — no fabricated instrument list. The catalogue
+  // hydrates via `useGetInstrumentsQuery` and sims only tick for live symbols.
   const [simPrices, setSimPrices] = useState<Record<string, { bid: number; ask: number }>>(() => {
     const seed: Record<string, { bid: number; ask: number }> = {};
-    INSTRUMENTS.forEach(inst => { seed[inst.symbol] = { bid: inst.bid, ask: inst.ask }; });
+    resolved.instruments.forEach((inst) => { seed[inst.symbol] = { bid: inst.bid, ask: inst.ask }; });
     return seed;
   });
 
@@ -1577,7 +1586,7 @@ export function MobileTradingDashboard({
 
       <div style={{ paddingTop: resolved.error || !resolved.isAuthenticated ? (resolved.error && !resolved.isAuthenticated ? '72px' : '36px') : 0 }}>
         {screen === 'home'      && <HomeScreen account={resolved.account} instruments={resolved.instruments} prices={prices} positions={displayPositions} onSymbol={handleSymbol} onTrade={(s) => { setTradeSide(s); setShowTrade(true); }} desktopHref={desktopHref} />}
-        {screen === 'chart'     && <ChartScreen instrument={activeInstrument} prices={prices} onTrade={handleTrade} onBack={() => setScreen('markets')} />}
+        {screen === 'chart'     && activeInstrument && <ChartScreen instrument={activeInstrument} prices={prices} onTrade={handleTrade} onBack={() => setScreen('markets')} />}
         {screen === 'portfolio' && <PortfolioScreen account={resolved.account} positions={displayPositions} orders={resolved.orders} onClose={handleClosePosition} onTrade={handleTrade} />}
         {screen === 'markets'   && <MarketsScreen instruments={resolved.instruments} prices={prices} onSelect={(inst) => { setActive(inst); setScreen('chart'); }} />}
         {screen === 'research'  && <CalendarNewsScreen />}
@@ -1590,7 +1599,7 @@ export function MobileTradingDashboard({
         onTrade={() => setShowTrade(true)}
       />
 
-      {showTrade && (
+      {showTrade && activeInstrument && (
         <TradeTicket
           instrument={activeInstrument}
           prices={prices}
@@ -1599,7 +1608,7 @@ export function MobileTradingDashboard({
         />
       )}
 
-      {showDOM && (
+      {showDOM && activeInstrument && (
         <DOMSheet
           instrument={activeInstrument}
           prices={prices}

@@ -169,12 +169,16 @@ export function MobileWorkstation({ }: MobileWorkstationProps) {
   // Account balance - null if not available
   const account = useMemo(() => {
     if (!balanceData?.accountBalance) return null;
-    const b = balanceData.accountBalance;
+    // The GraphQL AccountBalancePayload doesn't (yet) expose account metadata —
+    // cast to `any` for the optional fields so the AccountSnapshot shape compiles.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const b: any = balanceData.accountBalance;
     return {
       accountId: b.accountId ?? accountId,
       name: b.accountHolderName ?? 'Trading Account',
       server: b.server ?? 'Live',
       accountType: b.accountType ?? 'Trading',
+      broker: b.broker ?? 'Obsidian',
       leverage: b.leverage ?? '1:100',
       balance: parseFloat(b.totalCash) || 0,
       equity: parseFloat(b.equity) || 0,
@@ -184,6 +188,7 @@ export function MobileWorkstation({ }: MobileWorkstationProps) {
       realizedPnlToday: 0,
       marginLevel: 0,
       drawdownPct: 0,
+      ping: 0,
       currency: b.currency ?? 'USD',
     } satisfies AccountSnapshot;
   }, [balanceData, accountId]);
