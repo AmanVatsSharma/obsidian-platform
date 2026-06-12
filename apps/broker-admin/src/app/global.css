@@ -40,7 +40,7 @@
 @layer components {
   /* ─── KPI CARDS ─────────────────────────────────────────── */
   .kpi-card {
-    @apply relative cursor-pointer overflow-hidden rounded-r-lg border border-[var(--border)] bg-[var(--bg-panel)] p-4 transition-colors duration-[120ms] hover:border-[var(--border-md)] hover:bg-[var(--bg-elevated)];
+    @apply relative cursor-pointer overflow-hidden rounded-lg border border-[var(--border)] bg-[var(--bg-panel)] p-4 transition-colors duration-[120ms] hover:border-[var(--border-md)] hover:bg-[var(--bg-elevated)];
   }
   .kpi-label {
     @apply font-display text-[9px] font-semibold tracking-[0.12em] text-fg3 uppercase;
@@ -73,7 +73,7 @@
 
   /* ─── CARDS ─────────────────────────────────────────────── */
   .card {
-    @apply rounded-r-lg border border-[var(--border)] bg-[var(--bg-panel)];
+    @apply rounded-lg border border-[var(--border)] bg-[var(--bg-panel)];
   }
   .card-header {
     @apply flex items-center justify-between border-b border-[var(--border)] px-4 py-3;
@@ -133,7 +133,7 @@
 
   /* ─── BUTTONS ────────────────────────────────────────────── */
   .btn {
-    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-r-md font-sans text-[12px] font-medium transition-colors duration-[120ms] disabled:cursor-not-allowed disabled:opacity-40;
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-md font-sans text-[12px] font-medium transition-colors duration-[120ms] disabled:cursor-not-allowed disabled:opacity-40;
   }
   .btn-primary {
     @apply btn bg-accent px-3 py-1.5 text-white hover:bg-accent/90;
@@ -152,16 +152,16 @@
 
   /* ─── INPUTS ─────────────────────────────────────────────── */
   .input {
-    @apply h-8 w-full rounded-r-md border border-[var(--border)] bg-[var(--bg-elevated)] px-3 font-sans text-[12px] text-fg1 placeholder:text-fg3 outline-none transition-colors focus:border-accent/50 focus:ring-1 focus:ring-accent/20;
+    @apply h-8 w-full rounded-md border border-[var(--border)] bg-[var(--bg-elevated)] px-3 font-sans text-[12px] text-fg1 placeholder:text-fg3 outline-none transition-colors focus:border-accent/50 focus:ring-1 focus:ring-accent/20;
   }
   .input-sm { @apply h-7 text-[11px] px-2.5; }
 
   /* ─── CHART TABS ─────────────────────────────────────────── */
   .chart-tabs {
-    @apply flex gap-1 p-1 rounded-r-md bg-[var(--bg-elevated)] border border-[var(--border)] w-fit;
+    @apply flex gap-1 p-1 rounded-md bg-[var(--bg-elevated)] border border-[var(--border)] w-fit;
   }
   .chart-tab {
-    @apply rounded-r-sm px-2.5 py-1 font-sans text-[11px] text-fg3 transition-colors hover:text-fg2 cursor-pointer;
+    @apply rounded-sm px-2.5 py-1 font-sans text-[11px] text-fg3 transition-colors hover:text-fg2 cursor-pointer;
   }
   .chart-tab.active {
     @apply bg-[var(--bg-panel)] text-fg1 border border-[var(--border-md)];

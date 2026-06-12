@@ -178,7 +178,7 @@ export function OtpInput({
   );
 
   // Common styles
-  const inputStyle: React.CSSProperties = {
+  const getInputStyle = (index: number): React.CSSProperties => ({
     width: 48,
     height: 56,
     display: 'flex',
@@ -206,7 +206,7 @@ export function OtpInput({
       : 'none',
     textAlign: 'center',
     transition: 'all 150ms var(--ease)',
-  };
+  });
 
   const inputInnerStyle: React.CSSProperties = {
     width: '100%',
@@ -237,7 +237,7 @@ export function OtpInput({
       onPaste={handlePaste}
     >
       {digits.map((digit, index) => (
-        <div key={index} style={inputStyle}>
+        <div key={index} style={getInputStyle(index)}>
           <input
             ref={el => {
               inputRefs.current[index] = el;

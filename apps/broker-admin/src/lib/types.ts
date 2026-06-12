@@ -235,7 +235,7 @@ export interface Instrument {
   expiryLabel?: string;
   // Meta
   tickSize?: string;
-  contractSize?: string;
+  contractSize?: number;
   // Stats
   openPositions: number;
   volumeToday: number;

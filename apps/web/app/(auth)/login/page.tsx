@@ -124,10 +124,6 @@ export default function LoginPage() {
       setLoading(false);
     }
   }
-    } finally {
-      setLoading(false);
-    }
-  }
 
   function handleOtpChange(value: string) {
     setOtp(value);

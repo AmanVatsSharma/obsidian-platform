@@ -32,11 +32,19 @@ const MOCK_USERS = [
   { id: 'user4', name: 'Alice User', email: 'alice@example.com', role: 'user', avatar: 'AU' },
 ];
 
-const MOCK_SEGMENT_ACCESS = [
-  { id: 'access1', userId: 'user1', segment: 'EQ', allowedTypes: ['EQUITY'], maxOrderValue: 500000, maxDailyTrades: 10 },
-  { id: 'access2', userId: 'user1', segment: 'FNO', allowedTypes: ['FUTURE', 'OPTION'], maxOrderValue: 1000000, maxDailyTrades: 5 },
-  { id: 'access3', userId: 'user2', segment: 'EQ', allowedTypes: ['EQUITY'], maxOrderValue: 1000000, maxDailyTrades: 5 },
-  { id: 'access4', userId: 'user3', segment: 'COM', allowedTypes: ['FUTURE'], maxOrderValue: 2000000, maxDailyTrades: 10 },
+const MOCK_SEGMENT_ACCESS: Array<{
+  id: string;
+  userId: string;
+  segment: InstrumentSegment;
+  allowedTypes: InstrumentType[];
+  maxOrderValue?: number;
+  maxDailyTrades?: number;
+  maxOpenPositions?: number;
+}> = [
+  { id: 'access1', userId: 'user1', segment: 'EQ', allowedTypes: ['EQUITY'], maxOrderValue: 500000, maxDailyTrades: 10, maxOpenPositions: 50 },
+  { id: 'access2', userId: 'user1', segment: 'FNO', allowedTypes: ['FUTURE', 'OPTION'], maxOrderValue: 1000000, maxDailyTrades: 5, maxOpenPositions: 20 },
+  { id: 'access3', userId: 'user2', segment: 'EQ', allowedTypes: ['EQUITY'], maxOrderValue: 1000000, maxDailyTrades: 5, maxOpenPositions: 30 },
+  { id: 'access4', userId: 'user3', segment: 'COM', allowedTypes: ['FUTURE'], maxOrderValue: 2000000, maxDailyTrades: 10, maxOpenPositions: 100 },
 ];
 
 const SEGMENT_INFO: Record<InstrumentSegment, { name: string; color: string; icon: any }> = {
