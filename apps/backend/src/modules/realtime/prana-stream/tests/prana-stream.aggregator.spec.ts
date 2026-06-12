@@ -4,6 +4,7 @@
  * @description Tests for RealtimeAggregatorService throttling and diffing
  * @author BharatERP
  * @created 2025-09-24
+ * @last-updated 2026-06-10
  */
 
 import { RealtimeAggregatorService } from '../services/realtime-aggregator.service';
@@ -20,15 +21,21 @@ describe('RealtimeAggregatorService', () => {
       onTicks: () => undefined,
       getSnapshot: async () => [],
     } as unknown as CompositeMarketDataAdapter;
+    const ltpCache = { getMany: async () => new Map() } as any;
+    const eventBuffer = { record: () => 1 } as any;
+    const offlineFallback = { isUserOnline: async () => true, recordMissed: async () => undefined } as any;
     const svc = new RealtimeAggregatorService(
-      noopRepo,
-      noopRepo,
-      noopRepo,
-      noopRepo,
-      noopRepo,
+      noopRepo, // accountsRepo
+      noopRepo, // ordersRepo
+      noopRepo, // positionsRepo
+      noopRepo, // cashRepo
+      noopRepo, // holdsRepo
       logger,
       subs,
       market,
+      eventBuffer,
+      ltpCache,
+      offlineFallback,
     );
     expect(svc).toBeTruthy();
   });
