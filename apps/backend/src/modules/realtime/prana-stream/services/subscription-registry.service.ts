@@ -1,9 +1,13 @@
 /**
  * @file src/modules/realtime/prana-stream/services/subscription-registry.service.ts
  * @module realtime/prana-stream
- * @description Tracks per-client and per-user subscriptions for realtime streams
+ * @description Tracks per-client and per-user subscriptions for realtime streams.
+ *              Emits a `change` callback whenever the local subscription set
+ *              changes, so listeners (e.g. the tick fan-out service) can
+ *              re-subscribe to Redis channels.
  * @author BharatERP
  * @created 2025-09-24
+ * @last-updated 2026-06-10
  */
 
 import { Injectable } from '@nestjs/common';
@@ -21,9 +25,36 @@ export class SubscriptionRegistryService {
   private readonly clientToUser: Map<string, string> = new Map();
   private readonly clientSubs: Map<string, SubscriptionPayload> = new Map();
   private readonly symbolWatchers: Map<string, Set<string>> = new Map(); // key: exch:symbol -> set of userIds
+  /**
+   * Listeners notified when the symbol-watcher set changes.
+   * Used by the tick fan-out service to subscribe/unsubscribe Redis channels.
+   */
+  private readonly changeListeners: Set<() => void> = new Set();
 
   constructor(private readonly logger: AppLoggerService) {
     this.logger.setContext(SubscriptionRegistryService.name);
+  }
+
+  /**
+   * Register a listener that fires whenever the local subscription set changes.
+   * Returns an unsubscribe function. The fan-out service uses this to know
+   * when to re-subscribe to Redis channels.
+   */
+  onChange(listener: () => void): () => void {
+    this.changeListeners.add(listener);
+    return () => this.changeListeners.delete(listener);
+  }
+
+  private notifyChange() {
+    for (const fn of this.changeListeners) {
+      try {
+        fn();
+      } catch (e) {
+        this.logger.debug('subscription change listener failed', {
+          error: (e as Error).message,
+        });
+      }
+    }
   }
 
   async apply(clientId: string, userId: string, payload: SubscriptionPayload) {
@@ -34,6 +65,7 @@ export class SubscriptionRegistryService {
     this.clientSubs.set(clientId, payload);
     if (payload.watchlist) this.updateWatchers(userId, payload.watchlist, true);
     this.logger.debug('subscriptions applied', { clientId, userId });
+    this.notifyChange();
   }
 
   async remove(clientId: string, payload?: SubscriptionPayload) {
@@ -41,6 +73,7 @@ export class SubscriptionRegistryService {
       this.clientSubs.delete(clientId);
       const userId = this.clientToUser.get(clientId);
       if (userId) this.clearUserWatchers(userId);
+      this.notifyChange();
       return;
     }
     const existing = this.clientSubs.get(clientId) || {};
@@ -52,6 +85,7 @@ export class SubscriptionRegistryService {
     });
     const userId = this.clientToUser.get(clientId);
     if (userId && existing.watchlist) this.updateWatchers(userId, existing.watchlist, false);
+    this.notifyChange();
   }
 
   removeAll(clientId: string) {
@@ -60,6 +94,7 @@ export class SubscriptionRegistryService {
     const userId = this.clientToUser.get(clientId);
     if (userId && prev?.watchlist) this.updateWatchers(userId, prev.watchlist, false);
     this.clientSubs.delete(clientId);
+    this.notifyChange();
   }
 
   getUserId(clientId: string): string | undefined {
