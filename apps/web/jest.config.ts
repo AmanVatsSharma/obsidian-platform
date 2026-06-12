@@ -21,10 +21,12 @@ const config: Config = {
     '<rootDir>/shared/**/*.spec.tsx',
     '<rootDir>/app/**/*.spec.ts',
     '<rootDir>/app/**/*.spec.tsx',
+    '<rootDir>/lib/**/*.spec.ts',
+    '<rootDir>/lib/**/*.spec.tsx',
   ],
   // Use babel to handle JSX - ts-jest only handles .ts files
   transform: {
-    '^.+\\.tsx?$': ['babel-jest', { configFile: './babel.config.js' }],
+    '^.+\\.tsx?$': ['babel-jest', { rootMode: 'upward' }],
   },
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
@@ -34,6 +36,8 @@ const config: Config = {
     '^@/shared$': '<rootDir>/shared',
     '^@/gql/(.*)$': '<rootDir>/gql/$1',
     '^@/gql$': '<rootDir>/gql',
+    '^@/lib/(.*)$': '<rootDir>/lib/$1',
+    '^@/lib$': '<rootDir>/lib',
     '^next/navigation$': '<rootDir>/jest.env-mocks.ts',
     '^next/dynamic$': '<rootDir>/jest.env-mocks.ts',
     '^next/font$': '<rootDir>/jest.env-mocks.ts',
