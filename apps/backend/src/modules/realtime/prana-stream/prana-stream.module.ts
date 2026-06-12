@@ -53,6 +53,7 @@ import { OUTBOX_HANDLERS } from '../../../shared/outbox/outbox-worker.skeleton';
 import { RealtimeBackpressureService } from './services/realtime-backpressure.service';
 import { RealtimeEventBufferService } from './services/realtime-event-buffer.service';
 import { RealtimeOfflineFallbackService } from './services/realtime-offline-fallback.service';
+import { RealtimeTickFanoutService } from './services/realtime-tick-fanout.service';
 
 @Module({
   imports: [
@@ -101,6 +102,7 @@ import { RealtimeOfflineFallbackService } from './services/realtime-offline-fall
     RealtimeBackpressureService,
     RealtimeEventBufferService,
     RealtimeOfflineFallbackService,
+    RealtimeTickFanoutService,
   ],
   controllers: [AdminPranaController],
 })
