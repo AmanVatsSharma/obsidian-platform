@@ -42,7 +42,8 @@ export type BufferedRealtimeEvent = {
     | 'position.updated'
     | 'account.updated'
     | 'orderbook.depth'
-    | 'watchlist.ticks';
+    | 'watchlist.ticks'
+    | 'margin.breach';
   data: unknown;
   seq: number;
   ts: string;

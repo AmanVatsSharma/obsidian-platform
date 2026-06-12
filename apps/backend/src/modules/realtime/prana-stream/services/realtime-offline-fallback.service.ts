@@ -48,6 +48,7 @@ const CRITICAL_EVENTS = new Set([
   'order.updated', // could be a fill
   'position.updated', // could be a stop-out
   'account.updated', // could be a margin call
+  'margin.breach', // critical — client should block order entry
 ]);
 
 export type MissedEvent = {
