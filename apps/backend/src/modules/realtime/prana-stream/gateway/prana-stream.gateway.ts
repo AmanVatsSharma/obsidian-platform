@@ -25,6 +25,7 @@ import { RealtimeScaleCoordinatorService } from '../services/realtime-scale-coor
 import { RealtimeBackpressureService } from '../services/realtime-backpressure.service';
 import { RealtimeEventBufferService } from '../services/realtime-event-buffer.service';
 import { RealtimeOfflineFallbackService } from '../services/realtime-offline-fallback.service';
+import { RealtimeTickFanoutService } from '../services/realtime-tick-fanout.service';
 
 type SubscribePayload = {
   watchlist?: Array<{ exchange: string; symbol: string }>;
@@ -55,6 +56,7 @@ export class PranaStreamGateway
     private readonly backpressure: RealtimeBackpressureService,
     private readonly eventBuffer: RealtimeEventBufferService,
     private readonly offlineFallback: RealtimeOfflineFallbackService,
+    private readonly tickFanout: RealtimeTickFanoutService,
   ) {
     this.logger.setContext(PranaStreamGateway.name);
   }
@@ -65,6 +67,9 @@ export class PranaStreamGateway
     // force-disconnects sockets whose transport buffer is full.
     this.backpressure.attachToServer(this.server);
     this.logger.debug('Backpressure service attached to server');
+    // Bridge subscription changes → tick fan-out (re-subscribe Redis
+    // channels when local watchers appear/disappear).
+    this.subs.onChange(() => this.tickFanout.onSubscriptionsChanged());
   }
 
   handleConnection(client: Socket): void {

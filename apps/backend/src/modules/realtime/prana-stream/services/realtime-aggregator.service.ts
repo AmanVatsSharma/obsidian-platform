@@ -62,7 +62,21 @@ export class RealtimeAggregatorService {
 
   private handleTicks(ticks: Tick[]) {
     if (!this.server || ticks.length === 0) return;
-    // For each tick, buffer per-user and schedule throttled flush
+    this.ingestTicks(ticks);
+  }
+
+  /**
+   * Public entry point for ticks received via Redis pub/sub fan-out
+   * (or any other non-upstream source). Skips the local watch check
+   * (we already filtered for local watchers in the fanout service).
+   * Buffers per user and schedules throttled flush.
+   */
+  ingestExternalTicks(ticks: Tick[]) {
+    if (!this.server || ticks.length === 0) return;
+    this.ingestTicks(ticks);
+  }
+
+  private ingestTicks(ticks: Tick[]) {
     for (const t of ticks) {
       const watchers = this.subs.getWatchersFor(t.exchange, t.symbol);
       const key = `${t.exchange}:${t.symbol}`;
@@ -314,6 +328,35 @@ export class RealtimeAggregatorService {
       .isUserOnline(userId)
       .then((online) => {
         if (!online) this.offlineFallback.recordMissed(userId, 'account.updated', data, seq);
+      })
+      .catch(() => undefined);
+  }
+
+  /**
+   * Publish a margin breach event. Emitted on the `margin.breach` channel
+   * scoped to the user's room. The client renders a blocking modal in
+   * 'critical'/'breach' severity, or a non-blocking toast in 'warning'.
+   *
+   * Severities:
+   *   - 'warning'  — short of required margin, no positions at risk
+   *   - 'critical' — short by a small amount, may be auto-liquidated
+   *   - 'breach'   — available cash is zero or negative, square-off is active
+   */
+  publishMarginBreach(userId: string, data: any) {
+    if (!this.server) return;
+    const seq = this.eventBuffer.record(userId, 'margin.breach', data);
+    this.server.to(`user:${userId}`).emit('margin.breach', {
+      type: 'margin.breach',
+      userId,
+      seq,
+      ts: new Date().toISOString(),
+      data,
+      v: 1,
+    });
+    void this.offlineFallback
+      .isUserOnline(userId)
+      .then((online) => {
+        if (!online) this.offlineFallback.recordMissed(userId, 'margin.breach', data, seq);
       })
       .catch(() => undefined);
   }
