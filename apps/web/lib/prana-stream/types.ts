@@ -36,13 +36,32 @@ export type Tick = {
 };
 
 export type RealtimeEvent<T> = {
-  type: 'watchlist.tick' | 'order.updated' | 'position.updated' | 'account.updated';
+  type:
+    | 'watchlist.tick'
+    | 'order.updated'
+    | 'position.updated'
+    | 'account.updated'
+    | 'margin.breach';
   userId: string;
   requestId?: string;
   seq: number;
   ts: string;
   data: T;
   v: 1;
+};
+
+/**
+ * Margin breach payload — emitted when account falls below required margin.
+ * The client renders a blocking modal (critical/breach) or toast (warning).
+ */
+export type MarginBreachPayload = {
+  accountId: string;
+  requiredMargin: string;
+  availableCash: string;
+  shortfall: string;
+  severity: 'warning' | 'critical' | 'breach';
+  triggeredBy?: { kind: 'order' | 'position'; id: string };
+  ts: string;
 };
 
 export type SubscribePayload = {
@@ -128,4 +147,5 @@ export type PranaEventName =
   | 'orderbook.depth'
   | 'snapshot'
   | 'backpressure.slow'
-  | 'backpressure.disconnect';
+  | 'backpressure.disconnect'
+  | 'margin.breach';
