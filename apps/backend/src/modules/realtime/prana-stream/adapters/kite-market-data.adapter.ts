@@ -39,6 +39,7 @@ import { MarketDataProvider, Tick } from './market-data.provider';
 import { KiteWebSocketService } from '../../../market/providers/kite/kite-websocket.service';
 import { InstrumentEntity } from '../../../market/entities/instrument.entity';
 import { LtpCacheService } from '../../../market/services/ltp-cache.service';
+import { RealtimeTickFanoutService } from '../services/realtime-tick-fanout.service';
 
 @Injectable()
 export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestroy {
@@ -53,6 +54,7 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
     @InjectRepository(InstrumentEntity)
     private readonly instruments: Repository<InstrumentEntity>,
     private readonly ltpCache: LtpCacheService,
+    private readonly tickFanout: RealtimeTickFanoutService,
   ) {
     this.logger.setContext(KiteMarketDataAdapter.name);
   }
@@ -193,6 +195,10 @@ export class KiteMarketDataAdapter implements MarketDataProvider, OnModuleDestro
           for (const tick of ticks) {
             this.ltpCache.set(tick.exchange, tick.symbol, tick.price, tick.ts).catch(
               (e) => this.logger.debug('ltp cache set failed', { error: e }),
+            );
+            // Publish to Redis for cross-pod fan-out (fire-and-forget)
+            this.tickFanout.publishTick(tick).catch((e) =>
+              this.logger.debug('tick fan-out publish failed', { error: e }),
             );
           }
           cb(ticks);
