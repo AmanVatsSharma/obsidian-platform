@@ -14,6 +14,7 @@ import { CreateAccountDto } from '../dtos/create-account.dto';
 import { AppLoggerService } from '../../../shared/logger';
 import { getRequestContext } from '../../../shared/request-context';
 import { RealtimePublisherService } from '../../realtime/prana-stream/services/realtime-publisher.service';
+import { OutboxService } from '../../../shared/outbox/outbox.service';
 
 @Injectable()
 export class AccountsService {
@@ -22,6 +23,7 @@ export class AccountsService {
     private readonly accounts: Repository<AccountEntity>,
     private readonly logger: AppLoggerService,
     private readonly realtime: RealtimePublisherService,
+    private readonly outboxService: OutboxService,
   ) {
     this.logger.setContext(AccountsService.name);
   }
@@ -37,7 +39,13 @@ export class AccountsService {
     });
     this.logger.debug('Persisting new account', entity);
     const saved = await this.accounts.save(entity);
-    this.realtime.publishAccountUpdate(dto.userId, { account: saved });
+    // C1: realtime push via non-tx outbox. Account creation is non-tx, so this
+    // append is non-atomic, but it's safe because the consumer reconciles on userId.
+    await this.outboxService.append(
+      'oms.account.updated',
+      { userId: dto.userId, account: saved },
+      saved.tenantId,
+    );
     return saved;
   }
 

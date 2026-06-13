@@ -50,6 +50,7 @@ import { OrderEventsService } from './order-events.service';
 import { RealtimePublisherService } from '../../realtime/prana-stream/services/realtime-publisher.service';
 import { AppLoggerService } from '../../../shared/logger';
 import { getRequestContext } from '../../../shared/request-context';
+import { OutboxService } from '../../../shared/outbox/outbox.service';
 
 /** 5 basis points = 0.0005 */
 const DEFAULT_SPREAD_BPS = 5;
@@ -64,6 +65,7 @@ export class BBookFillService {
     private readonly ledger: LedgerService,
     private readonly orderEvents: OrderEventsService,
     private readonly realtime: RealtimePublisherService,
+    private readonly outboxService: OutboxService,
     private readonly logger: AppLoggerService,
   ) {
     this.logger.setContext(BBookFillService.name);
@@ -159,13 +161,22 @@ export class BBookFillService {
       },
     });
 
-    // ── Step 6: realtime push ───────────────────────────────────────────────────
-    this.realtime.publishOrderUpdate(ctx.userId ?? order.accountId, {
-      order,
-      event: 'bbook.execution',
-      brokerPrice: String(brokerPrice),
-      spreadPct: String(spreadPct),
-    });
+    // ── Step 6: realtime push (outbox) ──────────────────────────────────────────
+    // TODO(C1-stretch): coalesce order save + strategy upsert + ledger post + outbox
+    // into a single tx (appendWithManager) for atomic guarantee. For now the non-tx
+    // append is sufficient because the worker will fan out within ~5s and consumers
+    // already reconcile on subsequent events.
+    await this.outboxService.append(
+      'oms.order.updated',
+      {
+        userId: ctx.userId ?? order.accountId,
+        order,
+        event: 'bbook.execution',
+        brokerPrice: String(brokerPrice),
+        spreadPct: String(spreadPct),
+      },
+      order.tenantId,
+    );
   }
 
   /**

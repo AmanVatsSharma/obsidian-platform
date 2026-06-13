@@ -368,9 +368,14 @@ export class OrderService {
         manager.getRepository(OrderAuditEntity).create({ tenantId: ctx.tenantId, orderId: saved.id, action: 'PLACE', data: dto as any }),
       );
       this.orderEvents.publish({ type: 'order.placed', payload: saved });
-      this.realtime.publishOrderUpdate(ctx.userId ?? saved.accountId, {
-        order: saved,
-      });
+      // C1: realtime push via transactional outbox — atomically commits with the
+      // order write, then the worker dispatches to PranaStream via the handler.
+      await this.outboxService.appendWithManager(
+        manager,
+        'oms.order.updated',
+        { userId: ctx.userId ?? saved.accountId, order: saved },
+        ctx.tenantId,
+      );
       return { ok: true, order: saved };
     });
   }
@@ -532,10 +537,18 @@ export class OrderService {
       );
 
       this.orderEvents.publish({ type: 'order.bracket.placed', payload: results });
-      this.realtime.publishOrderUpdate(ctx.userId ?? savedPrimary.accountId, {
-        order: savedPrimary,
-        bracket: { takeProfit: results.takeProfit, stopLoss: results.stopLoss },
-      });
+      // C1: realtime push via transactional outbox — atomically commits with the
+      // bracket order write, then the worker dispatches to PranaStream via the handler.
+      await this.outboxService.appendWithManager(
+        manager,
+        'oms.order.updated',
+        {
+          userId: ctx.userId ?? savedPrimary.accountId,
+          order: savedPrimary,
+          bracket: { takeProfit: results.takeProfit, stopLoss: results.stopLoss },
+        },
+        ctx.tenantId,
+      );
 
       return { ok: true, ...results };
     });
@@ -665,10 +678,18 @@ export class OrderService {
           );
 
           this.orderEvents.publish({ type: 'order.algo.placed', payload: saved });
-          this.realtime.publishOrderUpdate(ctx.userId ?? saved.accountId, {
-            order: saved,
-            algo: { algoType: dto.algoType, algoMeta },
-          });
+          // C1: realtime push via transactional outbox — atomically commits with the
+          // algo order write, then the worker dispatches to PranaStream via the handler.
+          await this.outboxService.appendWithManager(
+            manager,
+            'oms.order.updated',
+            {
+              userId: ctx.userId ?? saved.accountId,
+              order: saved,
+              algo: { algoType: dto.algoType, algoMeta },
+            },
+            ctx.tenantId,
+          );
           return { ok: true, order: saved };
         }),
       { maxAttempts: 3, baseDelayMs: 250, isRetryable: (err) => err instanceof AppError === false },
@@ -697,7 +718,14 @@ export class OrderService {
 
     await this.audits.save(this.audits.create({ tenantId: ctx.tenantId, orderId: order.id, action: 'CANCEL', data: dto as any }));
     this.orderEvents.publish({ type: 'order.cancelled', payload: order });
-    this.realtime.publishOrderUpdate(ctx.userId ?? order.accountId, { order });
+    // C1: realtime push via outbox — cancel/modify are not transactional single-shot
+    // (no aggregate guard), so non-tx append is sufficient. The worker will fan out
+    // via the realtime handler within ~5s.
+    await this.outboxService.append(
+      'oms.order.updated',
+      { userId: ctx.userId ?? order.accountId, order },
+      ctx.tenantId,
+    );
     return order;
   }
 
@@ -735,7 +763,14 @@ export class OrderService {
       }),
     );
     this.orderEvents.publish({ type: 'order.modified', payload: order });
-    this.realtime.publishOrderUpdate(ctx.userId ?? order.accountId, { order });
+    // C1: realtime push via outbox — cancel/modify are not transactional single-shot
+    // (no aggregate guard), so non-tx append is sufficient. The worker will fan out
+    // via the realtime handler within ~5s.
+    await this.outboxService.append(
+      'oms.order.updated',
+      { userId: ctx.userId ?? order.accountId, order },
+      ctx.tenantId,
+    );
     return order;
   }
 
@@ -829,10 +864,14 @@ export class OrderService {
       }
       this.orderEvents.publish({ type: 'execution.added', payload: { execution: saved, orderId: dto.orderId } });
       if (order) {
-        this.realtime.publishOrderUpdate(ctx.userId ?? order.accountId, {
-          order,
-          execution: saved,
-        });
+        // C1: execution.added uses its own outbox topic: workers translate to
+        // 'oms.order.updated' to publish real-time via AggregatorService.
+        await this.outboxService.appendWithManager(
+          manager,
+          'oms.execution.added',
+          { userId: ctx.userId ?? order.accountId, order, execution: saved },
+          ctx.tenantId,
+        );
       }
       if (order && order.status !== 'REJECTED') {
         await this.notifications.send({
@@ -910,7 +949,14 @@ export class OrderService {
       }));
 
       this.orderEvents.publish({ type: 'order.placed', payload: child });
-      this.realtime.publishOrderUpdate(ctx.userId ?? child.accountId, { order: child });
+      // C1: realtime push via outbox — child activation is per-child independent.
+      // We don't span a single tx across multiple exchange round-trips, so
+      // non-tx append is fine: the worker will fan out within ~5s.
+      await this.outboxService.append(
+        'oms.order.updated',
+        { userId: ctx.userId ?? child.accountId, order: child },
+        ctx.tenantId,
+      );
     }
   }
 
@@ -944,7 +990,13 @@ export class OrderService {
       }));
 
       this.orderEvents.publish({ type: 'order.cancelled', payload: child });
-      this.realtime.publishOrderUpdate(ctx.userId ?? child.accountId, { order: child });
+      // C1: realtime push via outbox — child cancellation is per-child independent.
+      // Non-tx append is fine: the worker will fan out within ~5s.
+      await this.outboxService.append(
+        'oms.order.updated',
+        { userId: ctx.userId ?? child.accountId, order: child },
+        ctx.tenantId,
+      );
     }
   }
 

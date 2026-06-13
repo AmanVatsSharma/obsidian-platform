@@ -22,6 +22,7 @@ import { DemoAccountOperationError } from '../../../common/errors/domain.errors'
 import { PositionLedgerEntryEntity } from '../entities/position-ledger-entry.entity';
 import { RealtimePublisherService } from '../../realtime/prana-stream/services/realtime-publisher.service';
 import { AccountsService } from './accounts.service';
+import { OutboxService } from '../../../shared/outbox/outbox.service';
 
 function lockKey(tenantId: string, accountId: string): number {
   // simple hash, collision risk acceptable within 32-bit advisory locks; avoid crypto for perf
@@ -48,6 +49,7 @@ export class LedgerService {
     private readonly logger: AppLoggerService,
     private readonly realtime: RealtimePublisherService,
     private readonly accountsService: AccountsService,
+    private readonly outboxService: OutboxService,
   ) {
     this.logger.setContext(LedgerService.name);
   }
@@ -94,7 +96,14 @@ export class LedgerService {
         meta: dto.meta ?? null,
       });
       const saved = await manager.getRepository(CashLedgerEntryEntity).save(entry);
-      this.realtime.publishAccountUpdate(ctx.userId ?? accountId, { cash: saved });
+      // C1: realtime push via transactional outbox — atomically commits with the
+      // ledger write, then the worker dispatches to PranaStream via the handler.
+      await this.outboxService.appendWithManager(
+        manager,
+        'oms.account.updated',
+        { userId: ctx.userId ?? accountId, cash: saved },
+        ctx.tenantId,
+      );
       return saved;
     });
   }
@@ -148,10 +157,13 @@ export class LedgerService {
       });
       const cashSaved = await manager.getRepository(CashLedgerEntryEntity).save(cash);
       const holdSaved = await manager.getRepository(HoldEntity).save(hold);
-      this.realtime.publishAccountUpdate(ctx.userId ?? accountId, {
-        hold: holdSaved,
-        cash: cashSaved,
-      });
+      // C1: realtime push via transactional outbox.
+      await this.outboxService.appendWithManager(
+        manager,
+        'oms.account.updated',
+        { userId: ctx.userId ?? accountId, hold: holdSaved, cash: cashSaved },
+        ctx.tenantId,
+      );
       return holdSaved;
     });
   }
@@ -189,10 +201,13 @@ export class LedgerService {
         meta: { via: 'hold-release' },
       });
       const cashSaved = await manager.getRepository(CashLedgerEntryEntity).save(cash);
-      this.realtime.publishAccountUpdate(ctx.userId ?? accountId, {
-        hold,
-        cash: cashSaved,
-      });
+      // C1: realtime push via transactional outbox.
+      await this.outboxService.appendWithManager(
+        manager,
+        'oms.account.updated',
+        { userId: ctx.userId ?? accountId, hold, cash: cashSaved },
+        ctx.tenantId,
+      );
       return hold;
     });
   }
@@ -250,9 +265,14 @@ export class LedgerService {
         meta: payload.meta ?? null,
       });
       const saved = await manager.getRepository(PositionLedgerEntryEntity).save(entry);
-      this.realtime.publishPositionUpdate(ctx.userId ?? accountId, {
-        position: saved,
-      });
+      // C1: realtime push via transactional outbox — position updates are
+      // sensitive to ordering, so this MUST be in the same tx as the ledger write.
+      await this.outboxService.appendWithManager(
+        manager,
+        'oms.position.updated',
+        { userId: ctx.userId ?? accountId, position: saved },
+        ctx.tenantId,
+      );
       return saved;
     });
   }
