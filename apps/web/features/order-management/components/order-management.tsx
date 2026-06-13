@@ -2,29 +2,100 @@
  * @file order-management.tsx
  * @module web
  * @description Tabbed order management view with pending orders and history.
+ *              Pending orders are sourced live from PranaStream via useOpenOrders.
+ *              Order history comes from the same order stream, filtered to terminal statuses.
  * @author BharatERP
  * @created 2026-04-16
+ * @last-updated 2026-06-12
  */
 
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@obsidian/obsidian-ui';
+import { useOpenOrders, useOrderUpdates } from '@/lib/prana-stream';
 import type { PendingOrder } from '../../trading-terminal/lib/types';
-import { PENDING_ORDERS } from '../../trading-terminal/lib/mock-data';
-import { ORDER_HISTORY } from '../lib/mock-data';
-import { PendingOrdersTable } from './pending-orders-table';
 import { OrderHistoryTable } from './order-history-table';
+import { PendingOrdersTable } from './pending-orders-table';
 
 type Tab = 'pending' | 'history';
 
+const TERMINAL_STATUSES = new Set(['FILLED', 'CANCELED', 'CANCELLED', 'REJECTED', 'EXPIRED']);
+
+/**
+ * Map a PranaStream OrderUpdatePayload → PendingOrder shape expected by
+ * PendingOrdersTable. The OMS side doesn't currently ship SL/TP on the live
+ * stream, so we backfill with safe defaults (0) and a "no expiry" string.
+ */
+function toPendingOrder(o: {
+  id: string;
+  accountId: string;
+  instrumentId: string;
+  side: string;
+  type: string;
+  quantity: string;
+  price?: string;
+  status: string;
+  createdAt: string;
+}): PendingOrder {
+  return {
+    id: o.id,
+    symbol: o.instrumentId,
+    type: o.type as PendingOrder['type'],
+    orderRole: null,
+    parentOrderId: null,
+    side: o.side === 'BUY' ? 'BUY' : 'SELL',
+    lots: parseFloat(o.quantity) || 0,
+    price: parseFloat(o.price ?? '0') || 0,
+    distance: 0,
+    sl: 0,
+    tp: 0,
+    status: o.status,
+    created: o.createdAt,
+    expiry: undefined,
+    algoMeta: undefined,
+  };
+}
+
 export function OrderManagement() {
   const [tab, setTab] = useState<Tab>('pending');
-  const [pendingOrders, setPendingOrders] = useState<PendingOrder[]>(PENDING_ORDERS);
   const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID ?? '';
 
+  // ── Live PranaStream data ─────────────────────────────────────────────
+  // Open orders — filtered to working statuses, optionally narrowed by account
+  const openOrders = useOpenOrders(
+    accountId ? { accountId } : {},
+  );
+
+  // All orders — for the history tab (terminal-status filter applied below)
+  const allOrders = useOrderUpdates();
+
+  // Map open orders → PendingOrder shape. Sorted newest first by useOpenOrders.
+  const pendingOrders: PendingOrder[] = useMemo(
+    () => openOrders.map(toPendingOrder),
+    [openOrders],
+  );
+
+  // History = all orders whose status is terminal (FILLED / CANCELED / REJECTED / EXPIRED).
+  // Sorted newest first; the table itself only needs the basic order fields.
+  const orderHistory = useMemo(
+    () =>
+      Array.from(allOrders.values())
+        .filter((o) => TERMINAL_STATUSES.has(o.status))
+        .sort((a, b) =>
+          b.createdAt > a.createdAt ? 1 : b.createdAt < a.createdAt ? -1 : 0,
+        )
+        .map(toPendingOrder),
+    [allOrders],
+  );
+
   const handleCancel = useCallback((id: string) => {
-    setPendingOrders((prev) => prev.filter((o) => o.id !== id));
+    // Cancellation is server-driven: send a cancelOrder mutation here.
+    // For now this is a no-op (no mock) — the order will disappear from the
+    // table when the server's `order.updated` event with status=CANCELLED
+    // arrives (since CANCELLED is in TERMINAL_STATUSES, useOpenOrders drops it).
+    // TODO: wire to useCancelOrderMutation once the cancel hook lands.
+    void id;
   }, []);
 
   return (
@@ -54,22 +125,20 @@ export function OrderManagement() {
                     : 'text-obsidian-secondary hover:text-obsidian-primary'
                 }`}
               >
-                History ({ORDER_HISTORY.length})
+                History ({orderHistory.length})
               </button>
             </div>
           </div>
         </CardHeader>
         <CardContent>
           {tab === 'pending' ? (
-            // When accountId is available, PendingOrdersTable fetches pending orders
-            // internally via useOrders. Otherwise it falls back to external mock orders.
             <PendingOrdersTable
               accountId={accountId || undefined}
-              orders={!accountId ? pendingOrders : undefined}
+              orders={pendingOrders}
               onCancel={handleCancel}
             />
           ) : (
-            <OrderHistoryTable orders={ORDER_HISTORY} />
+            <OrderHistoryTable orders={orderHistory} />
           )}
         </CardContent>
       </Card>
