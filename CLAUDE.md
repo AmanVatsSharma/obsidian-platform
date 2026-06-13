@@ -276,6 +276,61 @@ Routing selects the connector by asset class. Contract tests verify each integra
 - Use small typed frame DTOs — never broadcast unbounded payloads.
 - Respect the optional Socket.IO Redis adapter for horizontal scaling.
 
+### 4.9 PranaStream — full realtime architecture (load-bearing for the whole platform)
+
+PranaStream is the **single live-update channel** for the trader terminal, mobile, broker admin, and dealer surfaces. Everything that says "live" goes through it. Don't build a parallel polling/SSE/Apollo-subscribe path — extend PranaStream.
+
+**Backend — `apps/backend/src/modules/realtime/prana-stream/`:**
+- `gateway/` — Socket.IO gateway; JWT auth at handshake; per-tenant/per-user rooms; frame DTOs in `dtos/`
+- `services/realtime-publisher.service.ts` — single fan-out entry point. **Always** invoked from the OMS/Accounts `RealtimePublishOutboxHandler` (transactional outbox) — never call the gateway directly from a service.
+- `services/realtime-scale-coordinator.service.ts` — Redis Lua script that elects one instance per (tenant, instrument) so tick fan-out doesn't duplicate
+- `services/realtime-tick-fanout.service.ts` — broadcast ticks to subscribers of an instrument
+- `services/realtime-event-buffer.service.ts` — per-user ring buffer with monotonic `seq` numbers; supports `resync { lastSeq }` after reconnect
+- `services/realtime-backpressure.service.ts` — drops / coalesces per-client when queue depth exceeds threshold
+- `services/realtime-offline-fallback.service.ts` — synthesizes a synthetic snapshot when client was offline too long
+- `services/ltp-cache.service.ts` (in `market/`) — Redis-backed last-trade-price cache; key for symbol search w/ live prices
+- `services/subscription-registry.service.ts` — tracks which user/tenant rooms exist
+- `outbox/` — `RealtimePublishOutboxHandler` (subscribes to `outbox_events`) and `OutboxService.appendWithManager(...)` — the **only** way domain services should emit realtime frames
+- `events/` — typed event names + payload interfaces; `RealtimeEvent<T>` envelope carries `{ type, seq, ts, tenantId, payload }`
+- `realtime.resolver.ts` — GraphQL `subscribe` mirror for clients that prefer it (orders, positions, account)
+
+**Writing a new live update (canonical 3-step):**
+1. In the domain service, after the DB write, call `outboxService.appendWithManager(mgr, { eventName, payload })` inside the same transaction.
+2. `RealtimePublishOutboxHandler` polls outbox → resolves the routing key from the event name → `realtimePublisher.publish(...)` → gateway emits to the right rooms.
+3. FE subscribes via the matching `useXxxUpdates()` hook from `apps/web/lib/prana-stream/hooks/`.
+
+**Frontend — `apps/web/lib/prana-stream/`:**
+- `socket-client.ts` — singleton Socket.IO client; auto-reconnect w/ exp-backoff (100ms→30s, jitter 0.5); heartbeat 20s/10s; resyncs via `lastSeq` in sessionStorage
+- `prana-provider.tsx` / `prana-provider-client.tsx` — context provider wired in `apps/web/app/layout.tsx`; exposes `usePranaStream()` returning `{ client, isReady, status }`
+- `jwt-decode.ts` — extracts `tenantId`/`userId` from the httpOnly `access_token` cookie (avoids extra /me round-trip)
+- `hooks/`:
+  - `use-watchlist-ticks(symbols)` — Map<symbol, Tick> (live LTP updates)
+  - `use-order-updates()` — Map<orderId, OrderUpdatePayload> + reconciles `optimistic-orders` store
+  - `use-position-updates()` — Map<positionId, PositionUpdatePayload>
+  - `use-account-updates()` — Map<accountId, AccountUpdatePayload>
+  - `use-orderbook-depth(symbol)` — order-book frame (bids/asks ladder)
+  - `use-symbol-search({ query })` — symbol search w/ auto-subscribe top-N results for live prices
+  - `use-margin-breach()` — push-driven margin-call banner
+  - `use-backpressure()` — server-pushed backpressure signal (drop ticks, coalesce renders)
+  - `use-place-order-optimistic()` — writes the order optimistically; reconciles against server `order.updated`; surfaces failures
+- `stores/optimistic-orders.ts` — Zustand store keyed by clientOrderId; `applyServerUpdate` always wins
+- `types.ts` — `Tick`, `OrderUpdatePayload`, `PositionUpdatePayload`, `AccountUpdatePayload`, `OrderBookFrame`, `RealtimeEvent<T>`, `ConnectionStatus`, `PranaEventName`
+
+**WebSocket URL:** `process.env.NEXT_PUBLIC_PRANA_WS_URL ?? 'ws://localhost:3000/ws/prana'`
+
+### 4.10 Kite (Zerodha) data-only integration — and B-book discipline
+
+**Kite is read-only.** It is used **only** for market data (NSE/BSE/MCX instruments, ticks, LTP). Order routing is **never** sent to Kite. The platform is a B-book broker: orders are filled internally by the OMS risk engine. This is a hard architectural rule — do not add a "send to Kite" code path.
+
+- `apps/backend/src/modules/market/services/kite-websocket.service.ts` — Kite WebSocket adapter
+- `apps/backend/src/modules/market/services/kite-market-data.adapter.ts` — implements the `MarketDataProvider` interface; selected by `MARKET_DATA_PROVIDER=kite` env
+- `apps/backend/src/modules/market/services/composite-market-data.adapter.ts` — wraps Kite + Vortex; selection via `MARKET_DATA_PROVIDER`
+- `apps/backend/src/modules/market/entities/data-provider.entity.ts` + `instrument.entity.ts` — stores Kite tokens, segment access
+- `apps/backend/src/modules/market/services/segment-access.service.ts` — broker/tier → exchange whitelist
+- Admin UI: `apps/broker-admin/.../market-providers/*` for Kite OAuth login + credential management
+
+If you ever need to route an order to a real exchange, that goes through `execution-gateway/connectors/*` — **never** through Kite.
+
 ---
 
 ## 5 · The 7 load-bearing patterns (NEVER violate)
@@ -442,6 +497,43 @@ Implementation: `libs/obsidian-ui/src/styles/tokens.css` · `libs/obsidian-ui/sr
 - Path aliases: `@/features/*` · `@/shared/*` (in `apps/web/tsconfig.json`).
 - **If you move where `app/` lives, delete `apps/web/.next` before rebuilding** — stale cache produces confusing errors.
 
+### 13.1 Web app route groups
+
+The web app has **two parallel UIs** sharing the same `(auth)` group, auto-routed by device:
+
+| Route group | Purpose | Layout |
+|---|---|---|
+| `app/(auth)/` | login, OTP, country selector | centered card layout |
+| `app/(trader)/` | trader terminal (desktop-class layout) | top bar + side nav |
+| `app/(workstation)/` | the actual trading workstation (`workstation/page.tsx`) | full-bleed panels |
+| `app/(mobile)/` | mobile shell (overlaps with trader when on mobile) | bottom tabs |
+| `app/console/...` | back-office / KYC / settings | left rail |
+
+- `apps/web/middleware.ts` runs the device-detection → swaps the user between `(trader)` and `(mobile)` automatically. **Don't** fork the component code — fork the route group.
+- A feature under `apps/web/features/<name>/` is consumed by multiple route groups. Keep it presentational + `useXxx()`-hook based; never reach into a different route group.
+- `apps/web/app/layout.tsx` wires the global providers: `<PranaProvider>` → `<ApolloProvider>` → `<AuthProvider>` → `<ThemeProvider>`. Order matters — PranaStream must be ready before children subscribe.
+
+### 13.2 GraphQL codegen — handling pre-codegen and post-codegen states
+
+Backend emits `apps/backend/src/generated/schema.gql` at startup. `npm run codegen:web` produces `apps/web/gql/generated/{graphql.ts, hooks.ts}`. Both must run before a feature can compile against the generated types.
+
+- **Hooks that consume a future schema** (e.g. `useGetUserProfileQuery`) must be **dynamically required** with a `try/catch` returning a no-op default. This keeps the build green before the schema lands but lights up the moment codegen runs. See `apps/web/gql/hooks/useConsoleUser.ts` for the pattern.
+- Don't put a value in the import path of `useXxxQuery` directly — wrap it. The wrap layer is the place that handles loading/error/refetch and produces a stable reference for memoization.
+- Generated files are **read-only** — never edit `gql/generated/*`. Re-run codegen after a schema change.
+
+### 13.3 Seed data / demo data — the PII contract
+
+The web app **must never display hard-coded PII** (names, phone numbers, emails, account balances) as if it were real. The recently-fixed anti-pattern: console sections read `SEED_USER` and showed demo data even when authenticated.
+
+**Rule:** A hook/component that returns "the current user" / "current account" / "current positions" must:
+1. Return an **empty default shape** when the backend is silent (no token, query loading, query error). Not a hard-coded demo.
+2. Only fill fields from the **real backend response**. Never merge with a SEED / FIXTURE / DEMO constant.
+3. Mark the seed/fixture as `__dangerouslyForStorybookOnly` or move it under `__fixtures__/` if it must exist for Storybook / tests.
+
+If you find a `SEED_*` constant being used in a production render path, that's a bug. Strip it.
+
+---
+
 ---
 
 ## 14 · Quality gates (before every PR)
@@ -477,6 +569,9 @@ Implementation: `libs/obsidian-ui/src/styles/tokens.css` · `libs/obsidian-ui/sr
 | Light-mode variant added speculatively | Obsidian is dark-first | Wait for explicit product ask + token updates |
 | Sentence-case panel titles | Brand violation | ALL CAPS in `font-display` |
 | Hardcoded secrets / DB URLs | Security | `env.example` + runbook + secrets manager |
+| Production hook reading `SEED_USER` / `MOCK_*` / hard-coded demo | PII leak — user thinks it's real | Empty default shape; merge only from real backend response |
+| `setInterval` in a render path (chart/DOM) mocking price ticks | Race conditions, state desync | Subscribe via `useXxxUpdates()` from PranaStream |
+| Live price / order update via Apollo `pollInterval` / REST polling | Wastes round-trips, stale data | PranaStream WebSocket subscription |
 
 ---
 
@@ -579,7 +674,7 @@ Need to do X?
 
 ---
 
-*Last updated: 2026-05-30 — fix GraphQL codegen pipeline: hooks.ts imports patched post-gen; operation .ts files import from graphql.ts; deprecated gql-service.ts; update codegen:web script with post-patch step*
+*Last updated: 2026-06-13 — added §4.9 (PranaStream full architecture), §4.10 (Kite data-only / B-book discipline), §13.1–13.3 (web route groups, codegen pre/post states, PII seed contract); expanded anti-patterns with seed-data-bleed rule*
 
 
 <!-- BEGIN BEADS INTEGRATION v:1 profile:minimal hash:ca08a54f -->
