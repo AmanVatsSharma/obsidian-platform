@@ -52,7 +52,7 @@ import {
 } from 'lucide-react';
 import type { Instrument, OpenPosition, ToastItem, AccountSnapshot, QuoteDto, PendingOrder } from '@/features/trading-terminal/lib/types';
 import { useSymbolSearch } from '@/lib/prana-stream/hooks/use-symbol-search';
-import { TIMEFRAMES } from '@/features/trading-terminal/lib/mock-data';
+import { TIMEFRAMES } from '@/features/trading-terminal/lib/chart-timeframes';
 
 // ─── Prop Contract ─────────────────────────────────────────────────────────────
 
