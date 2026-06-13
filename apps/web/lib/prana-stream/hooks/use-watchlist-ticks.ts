@@ -20,6 +20,7 @@
 import { useEffect, useState } from 'react';
 import { usePranaStream } from '../prana-provider';
 import type { RealtimeEvent, Tick } from '../types';
+import { pushWatchlistTicks } from '../stores/watchlist-ticks-store';
 
 const tickKey = (t: { exchange: string; symbol: string }) =>
   `${t.exchange}:${t.symbol}`;
@@ -38,6 +39,8 @@ export function useWatchlistTicks(
     client.subscribe({ watchlist: symbols });
 
     const unsub = client.on<RealtimeEvent<Tick[]>>('watchlist.ticks', (event) => {
+      // Push to the shared store so non-subscribers can read latest prices.
+      pushWatchlistTicks(event.data);
       setTicks((prev) => {
         const next = new Map(prev);
         for (const tick of event.data) {
