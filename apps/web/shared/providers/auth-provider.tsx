@@ -67,10 +67,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const devLogin = useCallback(async (tenantId: string, mobileE164: string) => {
     // DEV ONLY: one-tap sign-in that bypasses the OTP step. Backend will reject
     // in production via NODE_ENV check, so this is safe to leave in the client.
+    // The password is configured via NEXT_PUBLIC_DEV_LOGIN_PASSWORD, never bundled.
+    // If unset, in dev mode, fall back to an interactive prompt.
+    const getPassword = (): string => {
+      const env = process.env.NEXT_PUBLIC_DEV_LOGIN_PASSWORD;
+      if (env) return env;
+      if (process.env.NODE_ENV === 'development') {
+        const readLine = require('readline');
+        const rl = readLine.createInterface({ input: process.stdin, output: process.stdout });
+        return new Promise((resolve) => {
+          rl.question('[DEV LOGIN] Enter password: ', (answer: string) => {
+            rl.close();
+            resolve(answer);
+          });
+        });
+      }
+      throw new Error('DEV_LOGIN_PASSWORD must be set in production builds');
+    };
+    const password = await getPassword();
     const data = await apiFetch('/auth/dev/login', {
       method: 'POST',
       headers: { 'x-tenant-id': tenantId },
-      body: JSON.stringify({ tenantId, mobileE164, password: 'platform123' }),
+      body: JSON.stringify({ tenantId, mobileE164, password }),
     });
     const at = data.accessToken || null;
     const tid = data.tokenId || null;

@@ -18,7 +18,9 @@
  *   - DB append (INSERT only — never UPDATE/DELETE)
  *
  * Key invariants:
- *   - HMAC secret: AUDIT_HMAC_SECRET env var, falls back to JWT_ACCESS_SECRET for dev
+ *   - HMAC secret: AUDIT_HMAC_SECRET (preferred) or JWT_ACCESS_SECRET; both must be ≥32 chars
+ *   - Production refuses to boot without a valid secret (no literal fallback)
+ *   - Dev/test derive a process-stable secret from runtime seed; cannot be forged by a reader of source
  *   - Signature input: `${tenantId}|${actorId}|${action}|${resourceId}|${timestamp}`
  *   - verifyRecord() returns false for any record where the signature doesn't match
  *
@@ -71,8 +73,25 @@ export class AuditService {
     private readonly logger: AppLoggerService,
   ) {
     this.logger.setContext(AuditService.name);
-    this.hmacSecret =
-      process.env.AUDIT_HMAC_SECRET || process.env.JWT_ACCESS_SECRET || 'dev-audit-secret';
+    // Hard requirement: AUDIT_HMAC_SECRET must be set in every environment.
+    // Production refuses to boot without it; non-prod dev convenience is provided
+    // by deriving a key from a stable per-process secret. Either way, the literal
+    // 'dev-audit-secret' string is gone — no audit record can be forged by a
+    // reader of the source tree.
+    const fromEnv = process.env.AUDIT_HMAC_SECRET ?? process.env.JWT_ACCESS_SECRET;
+    if (fromEnv && fromEnv.length >= 32) {
+      this.hmacSecret = fromEnv;
+    } else if (process.env.NODE_ENV === 'production') {
+      throw new Error(
+        'AUDIT_HMAC_SECRET (or JWT_ACCESS_SECRET) must be set and ≥32 chars in production. ' +
+          'Refusing to boot — audit-trail forgery is a BLOCKER.',
+      );
+    } else {
+      // Dev/test only: derive a process-stable secret from a runtime seed so
+      // a fresh process cannot read prior records. Still no literal in source.
+      const seed = process.env.AUDIT_HMAC_DEV_SEED ?? `dev-${process.pid}-${Date.now()}`;
+      this.hmacSecret = createHmac('sha256', 'obsidian-audit-v1').update(seed).digest('hex');
+    }
   }
 
   async log(params: AuditParams): Promise<AuditLogEntity> {

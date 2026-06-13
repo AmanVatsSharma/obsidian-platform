@@ -21,6 +21,7 @@ import { RequestOtpDto } from './dto/request-otp.dto';
 import { VerifyOtpDto } from './dto/verify-otp.dto';
 import { RefreshDto } from './dto/refresh.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
+import { DevOnlyGuard } from './guards/dev-only.guard';
 import { TotpEnableDto, TotpVerifyDto } from './dto/totp.dto';
 import { HistorySessionsDto } from './dto/list-sessions.dto';
 import { AppError } from '../../common/errors/app-error';
@@ -43,18 +44,39 @@ export class AuthController {
     return this.moduleRef.get(TenancyService, { strict: false });
   }
 
-  // DEV ONLY: Direct login bypass for platform owner or broker admin
-  // TODO: Remove this before production!
+  // DEV ONLY: Direct login bypass for platform owner or broker admin.
+  // Gated by DevOnlyGuard which is fail-closed in production. The
+  // ENABLE_DEV_LOGIN_IN_PROD env var is the only way to enable it in prod
+  // (intended for incident response only).
+  @UseGuards(DevOnlyGuard)
   @Post('dev/login')
   async devLogin(
     @Body() dto: { tenantId: string; mobileE164: string; password?: string; role?: 'platform_owner' | 'admin' },
   ) {
-    if (process.env.NODE_ENV === 'production') {
-      throw new AppError('FORBIDDEN', 'Dev login disabled in production');
+    // No hard-coded password. The dev password, when set, must be supplied
+    // via DEV_LOGIN_PASSWORD env var so it never appears in the source tree.
+    const expectedPassword = process.env['DEV_LOGIN_PASSWORD'];
+    if (expectedPassword) {
+      // constant-time compare to avoid timing oracles
+      const provided = dto.password ?? '';
+      if (provided.length !== expectedPassword.length) {
+        throw new AppError('UNAUTHORIZED', 'Invalid dev login password');
+      }
+      let mismatch = 0;
+      for (let i = 0; i < provided.length; i++) {
+        mismatch |= provided.charCodeAt(i) ^ expectedPassword.charCodeAt(i);
+      }
+      if (mismatch !== 0) {
+        throw new AppError('UNAUTHORIZED', 'Invalid dev login password');
+      }
     }
-    // Accept any password in dev, or use default dev password
-    if (dto.password && dto.password !== 'platform123') {
-      throw new AppError('UNAUTHORIZED', 'Invalid password');
+    // No password env var set → reject. The endpoint requires explicit
+    // configuration rather than accepting a literal from source.
+    if (!expectedPassword) {
+      throw new AppError(
+        'FORBIDDEN',
+        'Dev login disabled: set DEV_LOGIN_PASSWORD env var to enable',
+      );
     }
     // Default role
     const role = dto.role || 'platform_owner';

@@ -29,16 +29,46 @@ async function bootstrap() {
       whitelist: true,
       forbidNonWhitelisted: true,
       transform: true,
+      transformOptions: {
+        enableImplicitConversion: true,
+        // promoteEvery: true — better for OpenAPI / Swagger-derived DTOs that
+        // have @Type(() => Number) decorators anyway. (Promotes plain JS
+        // primitives to their DTO types rather than just converting once.)
+        promoteImplicitConversion: true,
+      },
     }),
   );
   app.useGlobalFilters(new GlobalHttpExceptionFilter(logger));
   app.useGlobalInterceptors(new LoggingInterceptor(logger));
   app.use(helmet());
-  app.enableCors({ origin: true, credentials: true });
+  // Explicit CORS allowlist: production requires a list of verified origins.
+  // Dev uses http://localhost:4200 by default. Origin matching is strict —
+  // case-sensitive exact-match. Misconfiguration (e.g. missing scheme) will
+  // result in browser preflight errors.
+  const allowedOrigins = (process.env.CORS_ORIGINS ?? 'http://localhost:4200')
+    .split(',')
+    .map(origin => origin.trim())
+    .filter(Boolean);
+  app.enableCors({
+    origin: (origin, callback) => {
+      // HTTP/1.0 doesn't send origin header; allow for backwards compatibility
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+      logger.warn(`CORS blocked: ${origin} not in allowlist [${allowedOrigins.join(', ')}]`);
+      return callback(new Error('Not allowed by CORS policy'), false);
+    },
+    credentials: true,
+    optionsSuccessStatus: 200,
+  });
   app.use(cookieParser());
 
-  // Swagger API docs
-  const swaggerEnabled = (process.env.SWAGGER_ENABLED || 'true') === 'true';
+  // Swagger API docs - opt-in only. SWAGGER_ENABLED must be 'true' to expose
+  // /docs. In production this is a security BLOCKER (exposes full surface area
+  // to anyone with a browser), so we default to off. Dev/CI can set
+  // SWAGGER_ENABLED=true or run with the existing env var convention.
+  const swaggerEnabled = process.env.SWAGGER_ENABLED === 'true';
   if (swaggerEnabled) {
     const config = new DocumentBuilder()
       .setTitle('Obsidian API')

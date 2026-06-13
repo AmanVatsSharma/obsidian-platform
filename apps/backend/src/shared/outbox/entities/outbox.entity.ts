@@ -17,12 +17,16 @@ import {
 @Entity('outbox')
 @Index('idx_outbox_status_created', ['status', 'createdAt'])
 @Index('idx_outbox_tenant_status', ['tenantId', 'status'])
+@Index('idx_outbox_app_status', ['appName', 'status'])
 export class OutboxEntity {
   @PrimaryGeneratedColumn('uuid')
   id!: string;
 
   @Column({ type: 'uuid', nullable: true })
   tenantId!: string | null;
+
+  @Column({ type: 'varchar', length: 64, default: 'obsidian-backend' })
+  appName!: string;
 
   @Column({ type: 'varchar', length: 128 })
   topic!: string;

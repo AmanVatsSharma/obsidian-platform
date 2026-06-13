@@ -110,9 +110,13 @@ export class AuthService {
   ): Promise<TokenPair & { csrfToken: string; tokenId: string }> {
     this.logger.debug('verifyOtp() called');
     const otpKey = `otp:code:${dto.tenantId}:${dto.mobileE164}`;
-    const devSkip =
-      (process.env.NODE_ENV || 'development') !== 'production' &&
-      (process.env.OTP_DEV_MODE === 'true' || !process.env.REDIS_URL);
+    // OTP is bypassed ONLY in development AND only when the operator has
+    // explicitly opted in via OTP_DEV_MODE=true (or when Redis is absent,
+    // which is only the case in CI/local dev). Production always verifies
+    // against the Redis-stored code, even if OTP_DEV_MODE is mis-set.
+    const isDev = process.env.NODE_ENV === 'development';
+    const devOptIn = process.env.OTP_DEV_MODE === 'true' || !process.env.REDIS_URL;
+    const devSkip = isDev && devOptIn;
     if (!devSkip) {
       let expected: string | null = null;
       try {
