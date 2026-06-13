@@ -3,9 +3,14 @@
  * Module:      trading-ui · Workstation
  * Purpose:     Full trading workstation shell — platform-agnostic orchestrator for all trading panels.
  *              NO MOCK DATA - all data must be passed via props. Empty states shown when data is empty.
+ *              Accepts optional PranaStream-sourced data (ticks, candles, dom, ping) — when the
+ *              caller supplies them, the internal simulators are disabled. The lib itself does
+ *              NOT import from apps/web/lib/prana-stream — it stays layer-agnostic so Electron,
+ *              mobile, and other wrappers can wire their own data sources.
  *
  * Exports:
- *   - TradingWorkstation({ fetchJson, mobileHref?, forceMobileLayout?, omsConfig?, onTradeSubmit?, balance?, positions?, pendingOrders? }) → ReactNode
+ *   - TradingWorkstation({ fetchJson, mobileHref?, forceMobileLayout?, omsConfig?, onTradeSubmit?,
+ *                          balance?, positions?, pendingOrders?, ticks?, candles?, domFrame?, ping? }) → ReactNode
  *
  * Depends on:
  *   - ../lib/workstation-api — FetchJsonFn, OmsConfig, PlaceUiOrder, mergeApiWatchlistInstruments, submitOrderToOms
@@ -14,7 +19,7 @@
  *   - ../panels/* — all nine trading panel components
  *
  * Side-effects:
- *   - setInterval for price tick simulation (only when no live prices and instruments provided)
+ *   - setInterval for price tick simulation (only when no live `ticks` prop is provided AND no `prices` seed)
  *   - setInterval for P&L recalculation (only when no live positions provided)
  *   - Network call via fetchJson (watchlist merge)
  *
@@ -25,6 +30,11 @@
  *   - omsConfig absent → submitOrderToOms returns { ok: false } and falls back to simulated fill toast
  *   - instruments/positions/orders MUST be passed via props - NO automatic mock data fallback
  *   - Empty arrays shown as "no data" UI, not fallback to mock data
+ *   - When `ticks` is provided, the price simulator is disabled; bids/asks are derived from ticks
+ *   - When `candles` is provided, the chart uses them; otherwise the chart panel may fall back
+ *     to its own seeded generator (still random; flagged by the panel as such)
+ *   - When `domFrame` is provided, the DOM panel uses it; otherwise the DOM panel may fall back
+ *   - When `ping` is provided, no internal ping simulator runs
  *
  * Read order:
  *   1. TradingWorkstation — component entry, state declarations
@@ -32,7 +42,7 @@
  *   3. price/position simulation effects (only when no live data)
  *
  * Author:      BharatERP
- * Last-updated: 2026-06-09
+ * Last-updated: 2026-06-12
  */
 
 'use client';
@@ -70,6 +80,14 @@ export function TradingWorkstation({
   /** Seed positions from GraphQL instead of the mock OPEN_POSITIONS. */
   positions: seededPositions,
   pendingOrders,
+  /** Optional PranaStream-sourced live price ticks. When provided, the internal price simulator is disabled and bid/ask derive from ticks. */
+  ticks,
+  /** Optional pre-built candle series for the chart. When provided, the ChartPanel uses it instead of its own generator. */
+  candles,
+  /** Optional live DOM snapshot from PranaStream. When provided, the DepthOfMarket panel uses it. */
+  domFrame,
+  /** Optional server ping value. When provided, the random ping simulator is disabled. */
+  ping,
 }: {
   fetchJson: FetchJsonFn;
   mobileHref?: string;
@@ -98,6 +116,20 @@ export function TradingWorkstation({
     accountType: string;
     leverage: string;
   };
+  /** Live tick stream keyed by "EXCHANGE:SYMBOL". When supplied, the price simulator is disabled. */
+  ticks?: { exchange: string; symbol: string; price: number; ts: number }[];
+  /** Live OHLCV series for the active instrument. When supplied, the chart panel uses it. */
+  candles?: { time: number; open: number; high: number; low: number; close: number; volume: number }[];
+  /** Live order book depth frame from PranaStream. When supplied, the DOM panel uses it. */
+  domFrame?: {
+    exchange: string;
+    symbol: string;
+    bids: { price: number; size: number }[];
+    asks: { price: number; size: number }[];
+    ts: number;
+  } | null;
+  /** Live ping value (ms). When supplied, the ping simulator is disabled. */
+  ping?: number;
 }) {
   const [instruments, setInstruments] = useState<Instrument[]>([]);
   const [activeInstrument, setActiveInstrument] = useState<Instrument | null>(
@@ -106,7 +138,9 @@ export function TradingWorkstation({
   const [prices, setPrices] = useState<Record<string, Instrument>>({});
   const [positions, setPositions] = useState<OpenPosition[]>(seededPositions ?? []);
   const [toasts, setToasts] = useState<ToastItem[]>([]);
-  const [ping, setPing] = useState(12);
+  // External ping (e.g. live from PranaStream) wins; otherwise seed 12, otherwise simulator updates it.
+  const [internalPing, setInternalPing] = useState(12);
+  const effectivePing = ping ?? internalPing;
 
   useEffect(() => {
     let cancelled = false;
@@ -142,6 +176,7 @@ export function TradingWorkstation({
   }, [seededPositions]);
 
   useEffect(() => {
+    if (ticks) return; // live data wins; skip the simulator
     const iv = setInterval(() => {
       setPrices((prev) => {
         const next = { ...prev };
@@ -155,10 +190,36 @@ export function TradingWorkstation({
         }
         return next;
       });
-      setPing(Math.floor(Math.random() * 8 + 8));
+      if (ping === undefined) setInternalPing(Math.floor(Math.random() * 8 + 8));
     }, 700);
     return () => clearInterval(iv);
-  }, [instruments]);
+  }, [instruments, ticks, ping]);
+
+  // Synthesize bid/ask from live ticks when the caller supplies them.
+  // (Replaces the simulator's bid/ask derivation with the same formula, but driven by real data.)
+  const lastTickPriceBySymbol = useMemo(() => {
+    if (!ticks) return null;
+    const m = new Map<string, number>();
+    for (const t of ticks) m.set(`${t.exchange}:${t.symbol}`, t.price);
+    return m;
+  }, [ticks]);
+
+  useEffect(() => {
+    if (!lastTickPriceBySymbol) return;
+    setPrices((prev) => {
+      const next = { ...prev };
+      for (const [key, price] of lastTickPriceBySymbol) {
+        const symbol = key.split(':')[1];
+        const inst = next[symbol];
+        if (!inst) continue;
+        const halfSpread = (inst.spread * inst.pip) / 2;
+        const bid = parseFloat((price - halfSpread).toFixed(inst.digits));
+        const ask = parseFloat((price + halfSpread).toFixed(inst.digits));
+        next[symbol] = { ...inst, bid, ask, change: bid - inst.bid };
+      }
+      return next;
+    });
+  }, [lastTickPriceBySymbol]);
 
   useEffect(() => {
     const iv = setInterval(() => {
@@ -255,10 +316,17 @@ export function TradingWorkstation({
           <div className="main-area">
             <div className="chart-dom-row">
               <div className="chart-section">
-                <ChartPanel instrument={activeInstrument} prices={prices} />
+                <ChartPanel
+                  instrument={activeInstrument}
+                  prices={prices}
+                  // Optional: Pass real candles when available (skips lib's simulated candles)
+                  candles={candles}
+                />
               </div>
               <DepthOfMarket
                 instrument={activeInstrument ? prices[activeInstrument.symbol] ?? activeInstrument : null}
+                // Optional: Pass live DOM when available (skips lib's simulated DOM)
+                domFrame={domFrame}
               />
             </div>
 
@@ -283,12 +351,12 @@ export function TradingWorkstation({
               realizedPnlToday: balance.realizedPnlToday,
               drawdownPct: 0,
               server: 'OB-LIVE-01',
-              ping: 12,
+              ping: effectivePing,
             } : undefined} />
           </div>
         </div>
 
-        <StatusBarTrading ping={ping} account={balance ?? null} mobileHref={mobileHref} />
+        <StatusBarTrading ping={effectivePing} account={balance ?? null} mobileHref={mobileHref} />
         <ToastContainer toasts={toasts} />
       </div>
     </div>

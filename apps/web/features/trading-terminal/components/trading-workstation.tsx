@@ -50,7 +50,7 @@
 
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { TradingWorkstation as TradingWorkstationLib } from '@obsidian/trading-ui';
 import { fetchWithAuth } from '@/shared/fetch-with-auth';
 import { useGetInstrumentsQuery } from '@/gql/hooks';
@@ -61,10 +61,14 @@ import { useGetPositionsQuery } from '@/gql/hooks';
 import { useGetQuoteQuery } from '@/gql/hooks';
 import { nanoid } from 'nanoid';
 import { submitAlgoOrderToOms, resolveApiType } from '@/features/trading-terminal/lib/workstation-api';
+import { useCandles } from '@/lib/prana-stream/hooks/use-candles';
+import { useOrderBookDepth } from '@/lib/prana-stream/hooks/use-orderbook-depth';
 import type { PlaceUiOrder } from '@/features/trading-terminal/lib/workstation-api';
 import type { Instrument } from '@obsidian/trading-ui';
 import type { OpenPosition } from '@obsidian/trading-ui';
 import type { PendingOrder } from '@obsidian/trading-ui';
+import type { Candle } from '@/lib/prana-stream/hooks/use-candles';
+import type { OrderBookFrame } from '@/lib/prana-stream/types';
 
 export function TradingWorkstation({
   mobileHref = '/m/workstation',
@@ -290,13 +294,54 @@ export function TradingWorkstation({
   // signature, no adapter wrapper needed. Powers the lib's mergeApiWatchlistInstruments
   // (/market/watchlists) and submitOrderToOms (/api/orders) REST paths.
 
-  // Track the active instrument selected in the lib so QuoteUpdater can poll live prices.
+  // Track the active instrument selected in the lib so live data can be wired.
   const [activeInstrument, setActiveInstrument] = useState<Instrument | null>(null);
+  const [activeTimeframe, setActiveTimeframe] = useState<string>('5m');
+
+  // ---------------------------------------------------------------------------
+  // LiveDataBridge — pulls candles + DOM from PranaStream for the active
+  // instrument and feeds them into the lib via the new `candles` and
+  // `domFrame` props. Disables the lib's local simulators.
+  // ---------------------------------------------------------------------------
+  function LiveDataBridge({
+    instrument,
+    timeframe,
+    onCandles,
+    onDomFrame,
+  }: {
+    instrument: Instrument | null;
+    timeframe: string;
+    onCandles: (candles: Candle[]) => void;
+    onDomFrame: (frame: OrderBookFrame | null) => void;
+  }) {
+    const exchange = (instrument as { exchangeCode?: string })?.exchangeCode ?? 'forex';
+    const symbol = instrument?.symbol ?? '';
+
+    // 1) PranaStream candles — falls back to a random seed inside the hook itself.
+    const { series: candleSeries } = useCandles({
+      exchange,
+      symbol,
+      tf: timeframe,
+      basePrice: instrument?.bid ?? 1.08452,
+    });
+
+    useEffect(() => {
+      onCandles(candleSeries);
+    }, [candleSeries, onCandles]);
+
+    // 2) PranaStream order book depth (real DOM from execution-gateway)
+    const domFrame = useOrderBookDepth(exchange, symbol);
+
+    useEffect(() => {
+      onDomFrame(domFrame);
+    }, [domFrame, onDomFrame]);
+
+    return null;
+  }
 
   // ---------------------------------------------------------------------------
   // QuoteUpdater — polls the active instrument every 2 s via Apollo pollInterval.
-  // This is architecturally ready for live prices; once the lib accepts an
-  // onPricesUpdate callback (P4 item) we can replace the lib's tick simulation.
+  // This is the legacy hook; the new PranaStream flow is LiveDataBridge above.
   // ---------------------------------------------------------------------------
   function QuoteUpdater({ instrument }: { instrument: Instrument | null }) {
     const exchange = (instrument as { exchangeCode?: string })?.exchangeCode ?? 'forex';
@@ -311,10 +356,23 @@ export function TradingWorkstation({
     return null;
   }
 
+  // Lift the live candles + DOM into state so they can be passed to the lib.
+  const [candles, setCandles] = useState<Candle[]>([]);
+  const [domFrame, setDomFrame] = useState<OrderBookFrame | null>(null);
+
+  // Stable callbacks to prevent LiveDataBridge's useEffect from re-firing on every render.
+  const handleCandles = useMemo(() => (c: Candle[]) => setCandles(c), []);
+  const handleDomFrame = useMemo(() => (f: OrderBookFrame | null) => setDomFrame(f), []);
+
   return (
     <>
-      {/* QuoteUpdater polls the active instrument every 2 s — lives outside the lib
-          so we can later inject live prices via onPricesUpdate when the lib exposes it. */}
+      {/* LiveDataBridge streams live candles + DOM from PranaStream into the lib. */}
+      <LiveDataBridge
+        instrument={activeInstrument}
+        timeframe={activeTimeframe}
+        onCandles={handleCandles}
+        onDomFrame={handleDomFrame}
+      />
       <QuoteUpdater instrument={activeInstrument} />
       <TradingWorkstationLib
         fetchJson={fetchWithAuth}
@@ -325,6 +383,9 @@ export function TradingWorkstation({
         positions={openPositions}
         pendingOrders={pendingOrders}
         onInstrumentChange={setActiveInstrument}
+        onTimeframeChange={setActiveTimeframe}
+        candles={candles}
+        domFrame={domFrame}
       />
     </>
   );

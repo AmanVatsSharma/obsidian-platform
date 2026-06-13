@@ -55,12 +55,33 @@ function domForInstrument(inst: Instrument | null): DomLevel[] {
   return levels;
 }
 
-export function DepthOfMarket({ instrument }: { instrument: Instrument | null }) {
-  const [dom, setDom] = useState(() => domForInstrument(instrument));
+export function DepthOfMarket({
+  instrument,
+  /** Optional live DOM snapshot from PranaStream. When provided, the panel uses it instead of the random simulator. */
+  domFrame,
+}: {
+  instrument: Instrument | null;
+  domFrame?: {
+    exchange: string;
+    symbol: string;
+    bids: { price: number; size: number }[];
+    asks: { price: number; size: number }[];
+    ts: number;
+  } | null;
+}) {
+  // If live DOM is provided, use it and disable the simulator.
+  // Otherwise use the simulator to keep the panel working in the lib.
+  const [dom, setDom] = useState(() => domFrame ?? domForInstrument(instrument));
   useEffect(() => {
+    if (domFrame) return; // Skip simulator if live DOM is provided
     const iv = setInterval(() => setDom(domForInstrument(instrument)), 800);
     return () => clearInterval(iv);
-  }, [instrument?.symbol, instrument?.bid]);
+  }, [instrument?.symbol, instrument?.bid, domFrame]);
+
+  // When live DOM updates, push them into state
+  useEffect(() => {
+    if (domFrame) setDom(domFrame);
+  }, [domFrame]);
 
   const asks = dom.filter((d) => d.type === 'ask').reverse();
   const bids = dom.filter((d) => d.type === 'bid').reverse();

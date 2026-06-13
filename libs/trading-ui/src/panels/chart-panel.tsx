@@ -39,11 +39,21 @@ import type { CandlestickData, HistogramData, ISeriesApi, UTCTimestamp } from 'l
 import { Activity, CandlestickChart, LineChart, Maximize2, RefreshCw, SlidersHorizontal } from 'lucide-react';
 import type { Instrument } from '../types/instrument';
 import { fmtPrice, pnlSign } from '../lib/format-utils';
-import { TIMEFRAMES, generateOHLCV } from '../lib/mock-data';
+import { generateOHLCV } from '../lib/mock-data';
+import { TIMEFRAMES } from '../lib/mock-data';
 
 type PriceMap = Record<string, Instrument>;
 
-export function ChartPanel({ instrument, prices }: { instrument: Instrument | null; prices: PriceMap }) {
+export function ChartPanel({
+  instrument,
+  prices,
+  /** Optional pre-built OHLCV series. When supplied, the panel uses these instead of the random `generateOHLCV` simulator. */
+  candles,
+}: {
+  instrument: Instrument | null;
+  prices: PriceMap;
+  candles?: { time: number; open: number; high: number; low: number; close: number; volume: number }[];
+}) {
   const containerRef = useRef<HTMLDivElement>(null);
   const candleRef = useRef<ISeriesApi<'Candlestick'> | null>(null);
   const volRef = useRef<ISeriesApi<'Histogram'> | null>(null);
@@ -108,8 +118,9 @@ export function ChartPanel({ instrument, prices }: { instrument: Instrument | nu
       volRef.current = volSeries;
 
       const basePrice = instrument?.bid ?? 1.08452;
-      const candles = generateOHLCV(basePrice, 300);
-      const candleRows: CandlestickData<UTCTimestamp>[] = candles.map((c) => ({
+      // Prefer caller-supplied candles (e.g. PranaStream-sourced); fall back to the random simulator.
+      const candleSource = candles && candles.length > 0 ? candles : generateOHLCV(basePrice, 300);
+      const candleRows: CandlestickData<UTCTimestamp>[] = candleSource.map((c) => ({
         time: c.time as UTCTimestamp,
         open: c.open,
         high: c.high,
@@ -117,7 +128,7 @@ export function ChartPanel({ instrument, prices }: { instrument: Instrument | nu
         close: c.close,
       }));
       series.setData(candleRows);
-      const histRows: HistogramData<UTCTimestamp>[] = candles.map((c) => ({
+      const histRows: HistogramData<UTCTimestamp>[] = candleSource.map((c) => ({
         time: c.time as UTCTimestamp,
         value: c.volume,
         color: c.close >= c.open ? 'rgba(16,217,150,0.35)' : 'rgba(255,59,92,0.35)',
