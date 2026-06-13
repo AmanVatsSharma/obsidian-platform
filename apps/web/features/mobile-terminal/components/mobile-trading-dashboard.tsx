@@ -3,7 +3,9 @@
  * Module:      Mobile Terminal · Dashboard
  * Purpose:     Presentational mobile trading app — 8 screens with bottom nav, bottom sheets.
  *              Consumes props from the MobileWorkstation adapter. NO mock data - proper
- *              empty states and loading indicators.
+ *              empty states and loading indicators. The two fallback `setInterval`
+ *              simulators (price ticks, P&L recompute) only run when the adapter
+ *              has not delivered live data — i.e. unauthenticated demo mode.
  *
  * Exports:
  *   - MobileTradingDashboard({ data, onSetActiveSymbol })   — root component; renders screens, accepts live data
@@ -16,6 +18,7 @@
  * Side-effects:
  *   - Sets price-tick interval (800ms) on mount only when no live quotes available
  *   - Sets P&L update interval (800ms) on mount only when no live positions
+ *   - Both are gated on `hasLiveQuotes` / `hasLivePositions` from the adapter
  *
  * Key invariants:
  *   - Requires parent layout with NO AppShell — needs full-height (100dvh)
@@ -25,6 +28,8 @@
  *   - Empty states shown when data arrays are empty (no mock fallback)
  *   - Loading state shown when data.loading is true
  *   - Error banner shown when data.error is set
+ *   - Chart's latest bar updates from live quotes (no random walk)
+ *   - Sparkline in markets list is derived from `changePct` (no random walk)
  *
  * Read order:
  *   1. MobileTradingDashboard — entry point, state, price tick loop
@@ -32,7 +37,7 @@
  *   3. TradeTicket, DOMSheet — bottom sheets
  *
  * Author:      BharatERP
- * Last-updated: 2026-06-09
+ * Last-updated: 2026-06-12
  */
 
 'use client';
@@ -43,9 +48,10 @@ import {
   Home, BarChart2, TrendingUp, Briefcase, User,
   Search, Bell, Settings, X, Plus, RefreshCw, Activity,
   ChevronLeft, ArrowUpRight, ArrowDownRight, Layers,
-  CandlestickChart, SlidersHorizontal, Shield, LogOut, Monitor,
+  CandlestickChart, SlidersHorizontal, Shield, LogOut, Monitor, Pulse,
 } from 'lucide-react';
 import type { Instrument, OpenPosition, ToastItem, AccountSnapshot, QuoteDto, PendingOrder } from '@/features/trading-terminal/lib/types';
+import { useSymbolSearch } from '@/lib/prana-stream/hooks/use-symbol-search';
 import { TIMEFRAMES } from '@/features/trading-terminal/lib/mock-data';
 
 // ─── Prop Contract ─────────────────────────────────────────────────────────────
@@ -378,14 +384,26 @@ function ChartScreen({
 
   useEffect(() => {
     if (!candleRef.current) return;
-    const iv = setInterval(() => {
-      const close = prices[instrument?.symbol]?.bid ?? 1.08452;
-      const open  = close * (1 + (Math.random() - 0.5) * 0.0002);
-      const high  = Math.max(open, close) * (1 + Math.random() * 0.0001);
-      const low   = Math.min(open, close) * (1 - Math.random() * 0.0001);
-      try { candleRef.current.update({ time: Math.floor(Date.now() / 1000), open, high, low, close }); } catch {}
-    }, 1500);
-    return () => clearInterval(iv);
+    // Drive the latest bar from the live quote for the active symbol.
+    // If no live quote has arrived yet, skip the update (the chart's seed
+    // data already has a real last bar from the upstream instruments poll).
+    const close = prices[instrument?.symbol]?.bid;
+    if (close === undefined || close === 0) return;
+    const now = Math.floor(Date.now() / 1000);
+    try {
+      // Use the previous close as a stand-in for open when we don't have it.
+      // A real implementation reads the last bar from the series.
+      const lastTime = (candleRef.current as unknown as { data?: () => { time: number; close: number }[] })
+        ?.data?.()?.[(candleRef.current as unknown as { data?: () => { time: number; close: number }[] })?.data?.()?.length ?? 1 - 1]?.time ?? now;
+      const lastClose = (candleRef.current as unknown as { data?: () => { time: number; close: number }[] })
+        ?.data?.()?.[(candleRef.current as unknown as { data?: () => { time: number; close: number }[] })?.data?.()?.length ?? 1 - 1]?.close ?? close;
+      const open = lastClose;
+      const high = Math.max(open, close);
+      const low = Math.min(open, close);
+      candleRef.current.update({ time: Math.max(lastTime + 1, now), open, high, low, close });
+    } catch {
+      // Series not ready yet — ignore.
+    }
   }, [instrument?.symbol, prices]);
 
   return (
@@ -949,9 +967,23 @@ function MarketsScreen({ instruments, prices, onSelect }: { instruments: Instrum
   const [cat, setCat] = useState('all');
   const cats = ['all', 'forex', 'crypto', 'indices', 'commodities'];
 
-  const filtered = instruments.filter(i =>
-    (cat === 'all' || i.category === cat) &&
-    (i.symbol.toLowerCase().includes(search.toLowerCase()) || i.name.toLowerCase().includes(search.toLowerCase()))
+  // ── Live symbol search via PranaStream ─────────────────────────────────
+  // Debounced REST search for symbols not in the local cached list; the
+  // top 8 hits get auto-subscribed for live ticks. Local filter still
+  // runs first for instant feedback on cached symbols.
+  const { getLivePrice, isLive } = useSymbolSearch(search, {
+    debounceMs: 200,
+    autoTouchTopN: 8,
+    limit: 30,
+  });
+
+  const filtered = useMemo(
+    () =>
+      instruments.filter((i) =>
+        (cat === 'all' || i.category === cat) &&
+        (i.symbol.toLowerCase().includes(search.toLowerCase()) || i.name.toLowerCase().includes(search.toLowerCase())),
+      ),
+    [instruments, cat, search],
   );
 
   return (
@@ -980,14 +1012,52 @@ function MarketsScreen({ instruments, prices, onSelect }: { instruments: Instrum
         </div>
 
         {filtered.map(inst => {
-          const p = prices[inst.symbol] ?? inst;
+          const cached = prices[inst.symbol] ?? inst;
+          // Prefer a PranaStream live price (when the symbol is touched
+          // via useSymbolSearch) over the cached poll-derived price.
+          const exchange = (inst as { exchangeCode?: string })?.exchangeCode ?? 'forex';
+          const liveTick = getLivePrice(exchange, inst.symbol);
+          const live = liveTick ? { bid: liveTick.price, changePct: cached.changePct } : cached;
+          const p = live ?? cached;
           const up = (p.changePct ?? 0) >= 0;
-          const sparkData = Array.from({ length: 15 }, () => p.bid * (1 + (Math.random() - 0.5) * 0.003));
+          const liveIsActive = isLive(exchange, inst.symbol);
+          // Sparkline derived from the live change% — no random walk.
+          // The shape is a smooth walk from -|changePct|/2 to +|changePct|/2
+          // (with sign matching up) so the visual is reproducible and
+          // directionally consistent with the day's move.
+          const changePct = p.changePct ?? 0;
+          const sign = up ? 1 : -1;
+          const magnitude = Math.abs(changePct) / 100;
+          const sparkData = Array.from({ length: 15 }, (_, i) => {
+            const t = (i / 14) - 0.5; // -0.5 .. +0.5
+            const offset = t * sign * magnitude;
+            return p.bid * (1 + offset);
+          });
           return (
             <div key={inst.symbol} className="market-row" onClick={() => onSelect(inst)}>
               <div className={`mr-icon ${inst.category}`}>{catIcon(inst.category)}</div>
               <div className="mr-info">
-                <div className="mr-symbol">{inst.symbol}</div>
+                <div className="mr-symbol">
+                  {inst.symbol}
+                  {liveIsActive && (
+                    <span
+                      className="mr-live-pill"
+                      title="Live PranaStream price"
+                      style={{
+                        marginLeft: 6,
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 2,
+                        fontSize: 9,
+                        fontFamily: 'var(--font-data)',
+                        color: 'var(--bull)',
+                        letterSpacing: '0.04em',
+                      }}
+                    >
+                      <Pulse size={9} /> LIVE
+                    </span>
+                  )}
+                </div>
                 <div className="mr-name">{inst.name}</div>
               </div>
               <div className="mr-spark">

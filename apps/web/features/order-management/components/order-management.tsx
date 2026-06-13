@@ -4,6 +4,9 @@
  * @description Tabbed order management view with pending orders and history.
  *              Pending orders are sourced live from PranaStream via useOpenOrders.
  *              Order history comes from the same order stream, filtered to terminal statuses.
+ *              Cancellation goes through useCancelOrder (GraphQL) — the row drops out
+ *              of the pending tab when the server pushes the `order.updated` event
+ *              with status=CANCELLED.
  * @author BharatERP
  * @created 2026-04-16
  * @last-updated 2026-06-12
@@ -14,6 +17,7 @@
 import { useCallback, useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@obsidian/obsidian-ui';
 import { useOpenOrders, useOrderUpdates } from '@/lib/prana-stream';
+import { useCancelOrder } from '@/gql/hooks/useCancelOrder';
 import type { PendingOrder } from '../../trading-terminal/lib/types';
 import { OrderHistoryTable } from './order-history-table';
 import { PendingOrdersTable } from './pending-orders-table';
@@ -89,14 +93,27 @@ export function OrderManagement() {
     [allOrders],
   );
 
-  const handleCancel = useCallback((id: string) => {
-    // Cancellation is server-driven: send a cancelOrder mutation here.
-    // For now this is a no-op (no mock) — the order will disappear from the
-    // table when the server's `order.updated` event with status=CANCELLED
-    // arrives (since CANCELLED is in TERMINAL_STATUSES, useOpenOrders drops it).
-    // TODO: wire to useCancelOrderMutation once the cancel hook lands.
-    void id;
-  }, []);
+  // ── Cancel mutation ──────────────────────────────────────────────────
+  // The GraphQL mutation triggers a server-side cancel; the order will
+  // then drop out of the PranaStream `useOpenOrders` slice on the next
+  // `order.updated` event with status=CANCELLED (terminal status).
+  const { cancelOrder, loading: cancelLoading, error: cancelError } = useCancelOrder();
+
+  const handleCancel = useCallback(
+    async (id: string) => {
+      try {
+        const result = await cancelOrder({ variables: { orderId: id } });
+        if (result.errors?.length) {
+          // eslint-disable-next-line no-console
+          console.error('Cancel order failed:', result.errors[0]?.message);
+        }
+      } catch (e) {
+        // eslint-disable-next-line no-console
+        console.error('Cancel order threw:', e);
+      }
+    },
+    [cancelOrder],
+  );
 
   return (
     <div className="flex flex-col gap-6" data-testid="order-management">
@@ -135,10 +152,16 @@ export function OrderManagement() {
             <PendingOrdersTable
               accountId={accountId || undefined}
               orders={pendingOrders}
+              isLoading={cancelLoading}
               onCancel={handleCancel}
             />
           ) : (
             <OrderHistoryTable orders={orderHistory} />
+          )}
+          {cancelError && (
+            <p className="mt-2 text-xs text-[var(--bear)]" data-testid="cancel-error">
+              Cancel failed: {cancelError.message}
+            </p>
           )}
         </CardContent>
       </Card>

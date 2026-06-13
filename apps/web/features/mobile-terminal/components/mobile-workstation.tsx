@@ -3,36 +3,42 @@
  * Module:      Mobile Terminal · Data Adapter
  * Purpose:     Web platform adapter — wires auth, Apollo Client GraphQL hooks, and env vars
  *              into the mobile trading dashboard. NO mock data fallback — proper empty
- *              states and loading indicators instead.
+ *              states and loading indicators instead. Live data (positions, orders,
+ *              account balances) flows through PranaStream hooks; only the instrument
+ *              catalogue and the active-symbol quote use GraphQL polling (5s/2s).
  *
  * Exports:
  *   - MobileWorkstation({ onDemoToggle?, demoMode? }) → ReactNode
  *
  * Depends on:
  *   - @/shared/providers/auth-provider — useAuth
- *   - @/gql/hooks — Apollo hooks for GraphQL operations
+ *   - @/gql/hooks — Apollo hooks for GraphQL operations (instruments + quote)
+ *   - @/lib/prana-stream — useOpenOrders, usePositionPnL, usePortfolioEquity (live WS)
  *   - @/features/trading-terminal/lib/types — Instrument, OpenPosition, PendingOrder, AccountSnapshot
  *   - nanoid — clientOrderId generation
  *
  * Side-effects:
- *   - Network calls via Apollo Client (queries + mutations)
+ *   - Network calls via Apollo Client (instruments poll + quote poll + place/cancel mutations)
+ *   - WebSocket subscriptions via PranaStream (orders / positions / account updates)
  *   - NO mock data fallback — always shows loading/empty/error states
  *
  * Key invariants:
- *   - Always uses real data from backend (or shows loading/empty states)
- *   - loading=true when queries are loading
- *   - error set when any query fails
- *   - Empty arrays shown via proper empty states in UI, not fallback data
+ *   - Positions, orders, and account balance come from PranaStream; not from poll-based GraphQL
+ *   - Instrument catalogue + active-symbol quote are still GraphQL-polled (catalogue is large;
+ *     5s/2s is fine for a mobile network)
+ *   - loading=true only while the instrument catalogue is still loading
+ *   - Streams surface empty arrays on first frame; the UI must render proper empty states
  *
  * Author:      BharatERP
- * Last-updated: 2026-06-09
+ * Last-updated: 2026-06-12
  */
 
 'use client';
 
 import { useMemo, useState } from 'react';
 import { useAuth } from '@/shared/providers/auth-provider';
-import { useGetInstrumentsQuery, useGetAccountBalanceQuery, useGetOrdersQuery, useGetPositionsQuery, useGetQuoteQuery, usePlaceOrderMutation, useCancelOrderMutation } from '@/gql/hooks';
+import { useGetInstrumentsQuery, useGetQuoteQuery, usePlaceOrderMutation, useCancelOrderMutation } from '@/gql/hooks';
+import { useOpenOrders, usePositionPnL, usePortfolioEquity } from '@/lib/prana-stream';
 import { nanoid } from 'nanoid';
 import type { Instrument, OpenPosition, PendingOrder, AccountSnapshot, QuoteDto } from '@/features/trading-terminal/lib/types';
 import { MobileTradingDashboard } from './mobile-trading-dashboard';
@@ -81,14 +87,52 @@ export type MobileWorkstationProps = {
 const QUOTE_POLL_INTERVAL = 2000;
 const INSTRUMENT_POLL_INTERVAL = 5000;
 
-const mapPosition = (p: any, instruments: Instrument[]): OpenPosition => {
-  const inst = instruments.find(i => i.id === p.instrumentId);
-  return { id: p.id, symbol: inst?.symbol ?? p.instrumentId, type: p.netQty >= 0 ? 'BUY' : 'SELL', lots: Math.abs(p.netQty), openPrice: p.avgPrice, currentPrice: p.lastPrice, sl: '', tp: '', pnl: p.mtmPnl, pnlPct: 0, swap: 0, commission: 0, openTime: p.openTime ?? '', margin: 0 };
+const mapPositionPnL = (
+  p: { instrumentId: string; netQty: number; averagePrice: number; unrealizedPnl: number; markPrice: number | null },
+  instruments: Instrument[],
+): OpenPosition => {
+  const inst = instruments.find((i) => i.id === p.instrumentId);
+  const symbol = inst?.symbol ?? p.instrumentId;
+  return {
+    id: p.instrumentId,
+    symbol,
+    type: p.netQty >= 0 ? 'BUY' : 'SELL',
+    lots: Math.abs(p.netQty),
+    openPrice: p.averagePrice,
+    currentPrice: p.markPrice ?? p.averagePrice,
+    sl: '',
+    tp: '',
+    pnl: p.unrealizedPnl,
+    pnlPct: p.averagePrice > 0 ? (p.unrealizedPnl / (p.averagePrice * Math.abs(p.netQty))) * 100 : 0,
+    swap: 0,
+    commission: 0,
+    openTime: '',
+    margin: 0,
+  };
 };
 
-const mapOrder = (o: any, instruments: Instrument[]): PendingOrder => {
-  const inst = instruments.find(i => i.id === o.instrumentId);
-  return { id: o.id, symbol: inst?.symbol ?? o.instrumentId, type: o.type, orderRole: null, parentOrderId: null, side: o.side as 'BUY' | 'SELL', lots: o.quantity, price: o.price ?? 0, sl: o.slPrice ?? 0, tp: o.tpPrice ?? 0, distance: 0, status: o.status, created: o.createdAt, expiry: undefined, algoMeta: undefined };
+const mapStreamOrder = (
+  o: { id: string; instrumentId: string; side: string; type: string; quantity: string; price?: string; status: string; createdAt: string },
+  instruments: Instrument[],
+): PendingOrder => {
+  const inst = instruments.find((i) => i.id === o.instrumentId);
+  return {
+    id: o.id,
+    symbol: inst?.symbol ?? o.instrumentId,
+    type: o.type as PendingOrder['type'],
+    orderRole: null,
+    parentOrderId: null,
+    side: o.side === 'BUY' ? 'BUY' : 'SELL',
+    lots: parseFloat(o.quantity) || 0,
+    price: parseFloat(o.price ?? '0') || 0,
+    sl: 0,
+    tp: 0,
+    distance: 0,
+    status: o.status,
+    created: o.createdAt,
+    expiry: undefined,
+    algoMeta: undefined,
+  };
 };
 
 // ─── Component ─────────────────────────────────────────────────────────────────
@@ -103,24 +147,20 @@ export function MobileWorkstation({ }: MobileWorkstationProps) {
   const accountId = process.env.NEXT_PUBLIC_DEFAULT_TRADING_ACCOUNT_ID ?? '';
   const isAuthenticated = !!(accessToken && accountId);
 
-  // All queries always run (no skip) - let Apollo handle auth errors
-  // Loading state is determined by whether data has returned
+  // Instruments are still loaded via GraphQL poll (the market catalogue is
+  // large and rarely changes; 5s poll is fine). Everything else is streamed
+  // live from PranaStream below.
   const { data: instrumentsData, error: instrumentsError, loading: instrumentsLoading } = useGetInstrumentsQuery({
     variables: {},
     pollInterval: INSTRUMENT_POLL_INTERVAL,
   });
-  const { data: balanceData, error: balanceError, loading: balanceLoading } = useGetAccountBalanceQuery({
-    variables: { accountId },
-    skip: !accountId,
-  });
-  const { data: ordersData, error: ordersError, loading: ordersLoading } = useGetOrdersQuery({
-    variables: { accountId, status: 'PENDING', limit: 100 },
-    skip: !accountId,
-  });
-  const { data: positionsData, error: positionsError, loading: positionsLoading } = useGetPositionsQuery({
-    variables: { accountId, limit: 100 },
-    skip: !accountId,
-  });
+
+  // ── PranaStream-driven live data ─────────────────────────────────────
+  // No more poll-based GraphQL: positions, orders, and account balances
+  // all stream live from the WS gateway.
+  const positionPnLs = usePositionPnL(accountId ? { accountId } : {});
+  const streamOrders = useOpenOrders(accountId ? { accountId } : {});
+  const equity = usePortfolioEquity(accountId || undefined);
 
   const [activeSymbol, setActiveSymbol] = useState<string | null>(null);
   const { data: quoteData, error: quoteError } = useGetQuoteQuery({
@@ -134,9 +174,9 @@ export function MobileWorkstation({ }: MobileWorkstationProps) {
 
   // Combine all errors - show first error encountered
   const firstError = useMemo(() => {
-    const errs = [instrumentsError, balanceError, ordersError, positionsError, quoteError].filter(Boolean);
+    const errs = [instrumentsError, quoteError].filter(Boolean);
     return errs[0]?.message ?? null;
-  }, [instrumentsError, balanceError, ordersError, positionsError, quoteError]);
+  }, [instrumentsError, quoteError]);
 
   // Extract instruments - map from GraphQL shape to UI shape
   const instruments = useMemo(() => {
@@ -166,42 +206,39 @@ export function MobileWorkstation({ }: MobileWorkstationProps) {
     return q.symbol ? { [q.symbol]: { symbol: q.symbol, exchange: q.exchange, price: q.price, ts: q.ts } } : {};
   }, [quoteData]);
 
-  // Account balance - null if not available
-  const account = useMemo(() => {
-    if (!balanceData?.accountBalance) return null;
-    // The GraphQL AccountBalancePayload doesn't (yet) expose account metadata —
-    // cast to `any` for the optional fields so the AccountSnapshot shape compiles.
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const b: any = balanceData.accountBalance;
+  // Account snapshot — derived from the PranaStream account stream via
+  // usePortfolioEquity. Falls back to null until the first event arrives.
+  const account = useMemo<AccountSnapshot | null>(() => {
+    if (!equity) return null;
     return {
-      accountId: b.accountId ?? accountId,
-      name: b.accountHolderName ?? 'Trading Account',
-      server: b.server ?? 'Live',
-      accountType: b.accountType ?? 'Trading',
-      broker: b.broker ?? 'Obsidian',
-      leverage: b.leverage ?? '1:100',
-      balance: parseFloat(b.totalCash) || 0,
-      equity: parseFloat(b.equity) || 0,
-      margin: parseFloat(b.lockedCash) || 0,
-      freeMargin: parseFloat(b.buyingPower) || 0,
-      unrealizedPnl: parseFloat(b.unrealizedPnl) || 0,
+      accountId: equity.accountId,
+      name: 'Trading Account',
+      server: 'Live',
+      accountType: 'Trading',
+      broker: 'Obsidian',
+      leverage: '1:100',
+      balance: equity.totalCash,
+      equity: equity.totalEquity,
+      margin: equity.marginUsed,
+      freeMargin: equity.marginAvailable,
+      unrealizedPnl: equity.totalPnL,
       realizedPnlToday: 0,
-      marginLevel: 0,
+      marginLevel: equity.marginUsed > 0 ? (equity.totalEquity / equity.marginUsed) * 100 : 0,
       drawdownPct: 0,
       ping: 0,
-      currency: b.currency ?? 'USD',
-    } satisfies AccountSnapshot;
-  }, [balanceData, accountId]);
+      currency: 'USD',
+    };
+  }, [equity]);
 
   // Map orders from GraphQL
   const orders = useMemo(() => {
-    return (ordersData?.orders?.data ?? []).map((o: any) => mapOrder(o, instruments));
-  }, [ordersData, instruments]);
+    return streamOrders.map((o) => mapStreamOrder(o, instruments));
+  }, [streamOrders, instruments]);
 
-  // Map positions from GraphQL
+  // Map positions from the PranaStream PositionPnL stream
   const positions = useMemo(() => {
-    return (positionsData?.positions?.data ?? []).map((p: any) => mapPosition(p, instruments));
-  }, [positionsData, instruments]);
+    return positionPnLs.map((p) => mapPositionPnL(p, instruments));
+  }, [positionPnLs, instruments]);
 
   // Order placement - real mutation (Market/Limit/Stop/StopLimit/GTT/TrailingStop via GraphQL)
   const placeOrder = async (input: {
@@ -279,8 +316,10 @@ export function MobileWorkstation({ }: MobileWorkstationProps) {
     if (result.errors?.length) throw new Error(result.errors[0].message);
   };
 
-  // Loading - true when any critical query is still loading
-  const loading = instrumentsLoading || balanceLoading || ordersLoading || positionsLoading;
+  // Loading - true while we're still fetching the instrument catalogue.
+  // Positions / orders / account are streamed and arrive incrementally; the
+  // UI shows them as soon as each stream delivers its first event.
+  const loading = instrumentsLoading;
 
   const data: MobileWorkstationData = {
     instruments,
