@@ -1,7 +1,11 @@
 /**
  * File:        apps/web/jest.config.ts
  * Module:      web · Jest Configuration
- * Purpose:     Jest configuration using babel for JSX transformation
+ * Purpose:     Jest configuration using ts-jest for TypeScript and JSX
+ *              transformation. (Babel is intentionally not used here —
+ *              apps/web uses Next.js SWC for the dev/build pipeline, and
+ *              adding a babel.config.js would force Next to disable SWC
+ *              and break `next/font`.)
  *
  * Author:      BharatERP
  * Last-updated: 2026-06-07
@@ -25,7 +29,8 @@ const config: Config = {
     '<rootDir>/lib/**/*.spec.tsx',
   ],
   // Use ts-jest for TypeScript and JS transformation (includes JSX).
-  // It's more reliable than babel-jest for mixed TypeScript/JSX files.
+  // ts-jest handles mixed TypeScript/JSX files and keeps Jest independent
+  // of the Next.js SWC pipeline.
   transform: {
     '^.+\\.(ts|tsx)$': 'ts-jest',
   },

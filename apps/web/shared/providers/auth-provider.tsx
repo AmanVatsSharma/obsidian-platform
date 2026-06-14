@@ -68,19 +68,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     // DEV ONLY: one-tap sign-in that bypasses the OTP step. Backend will reject
     // in production via NODE_ENV check, so this is safe to leave in the client.
     // The password is configured via NEXT_PUBLIC_DEV_LOGIN_PASSWORD, never bundled.
-    // If unset, in dev mode, fall back to an interactive prompt.
-    const getPassword = (): string => {
+    // If unset, in dev mode, fall back to an interactive Node prompt.
+    const getPassword = async (): Promise<string> => {
       const env = process.env.NEXT_PUBLIC_DEV_LOGIN_PASSWORD;
       if (env) return env;
-      if (process.env.NODE_ENV === 'development') {
-        const readLine = require('readline');
-        const rl = readLine.createInterface({ input: process.stdin, output: process.stdout });
-        return new Promise((resolve) => {
-          rl.question('[DEV LOGIN] Enter password: ', (answer: string) => {
-            rl.close();
-            resolve(answer);
-          });
-        });
+      if (process.env.NODE_ENV === 'development' && typeof window === 'undefined') {
+        // Lazy import so the client bundle never pulls in Node built-ins
+        // (readline, fs). See apps/web/shared/providers/auth-dev-prompt.ts.
+        const { promptDevPassword } = await import('./auth-dev-prompt');
+        return promptDevPassword();
       }
       throw new Error('DEV_LOGIN_PASSWORD must be set in production builds');
     };
