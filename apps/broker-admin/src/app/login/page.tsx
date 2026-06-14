@@ -111,7 +111,15 @@ export default function LoginPage() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (isAuthenticated) router.replace('/dashboard');
+    if (isAuthenticated) {
+      // DIAG: tag with stack to confirm whether the login page redirect is
+      // the offender. Filter DevTools on "[OBSIDIAN][LOGIN-REDIRECT]".
+      // eslint-disable-next-line no-console
+      console.warn('[OBSIDIAN][LOGIN-REDIRECT] isAuthenticated -> /dashboard', {
+        stack: new Error().stack,
+      });
+      router.replace('/dashboard');
+    }
   }, [isAuthenticated, router]);
 
   // Fetch brand config once tenantCode resolves

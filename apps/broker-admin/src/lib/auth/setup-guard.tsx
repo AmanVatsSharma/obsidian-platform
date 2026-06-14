@@ -52,6 +52,14 @@ export function SetupGuard({ children }: { children: React.ReactNode }) {
     if (pathname === '/setup' || pathname === '/login') return;
 
     if (status && !status.setupComplete) {
+      // DIAG: tag with stack to confirm whether SetupGuard is the source.
+      // Filter DevTools on "[OBSIDIAN][SETUP-GUARD]".
+      // eslint-disable-next-line no-console
+      console.warn('[OBSIDIAN][SETUP-GUARD] redirecting to /setup', {
+        pathname,
+        status,
+        stack: new Error().stack,
+      });
       router.replace('/setup');
     } else if (status && status.status === 'ACTIVE') {
       // Already active — all good, render children normally

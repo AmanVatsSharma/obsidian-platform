@@ -41,6 +41,14 @@ export function AuthGuard({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     if (hydrated && !isAuthenticated && pathname !== '/login') {
+      // DIAG: tag this redirect with the stack so we can confirm whether the
+      // AuthGuard is the source of the "expected layout router to be mounted"
+      // invariant. Filter DevTools on "[OBSIDIAN][AUTH-GUARD]".
+      // eslint-disable-next-line no-console
+      console.warn('[OBSIDIAN][AUTH-GUARD] redirecting to /login', {
+        pathname,
+        stack: new Error().stack,
+      });
       router.replace('/login');
     }
   }, [hydrated, isAuthenticated, pathname, router]);

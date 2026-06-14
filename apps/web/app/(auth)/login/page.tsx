@@ -105,6 +105,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await verifyOtp({ tenantId: TENANT_ID, mobileE164: fullMobile, otp: otp.trim() });
+      // DIAG: tag with stack to confirm whether the login success redirect is
+      // the offender. Filter DevTools on "[OBSIDIAN][WEB-LOGIN-REDIRECT]".
+      // eslint-disable-next-line no-console
+      console.warn('[OBSIDIAN][WEB-LOGIN-REDIRECT] verifyOtp OK -> /dashboard', {
+        stack: new Error().stack,
+      });
       router.replace('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Verification failed');
@@ -118,6 +124,12 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await devLogin(TENANT_ID, fullMobile || '+919999999999');
+      // DIAG: tag with stack to confirm whether the dev-login redirect is
+      // the offender. Filter DevTools on "[OBSIDIAN][WEB-LOGIN-REDIRECT]".
+      // eslint-disable-next-line no-console
+      console.warn('[OBSIDIAN][WEB-LOGIN-REDIRECT] devLogin OK -> /dashboard', {
+        stack: new Error().stack,
+      });
       router.replace('/dashboard');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Dev login failed');

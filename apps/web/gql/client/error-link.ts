@@ -66,6 +66,15 @@ function createErrorLink(): ApolloLink {
           if (typeof window !== 'undefined') {
             const current = window.location.pathname + window.location.search;
             if (current !== '/login') {
+              // DIAG: log the stack of the caller so we can identify which
+              // query/component triggered the 401. Filter DevTools on
+              // "[OBSIDIAN][ERR-LINK-401]" to find the originating site.
+              // eslint-disable-next-line no-console
+              console.warn('[OBSIDIAN][ERR-LINK-401] 401 received — scheduling redirect to /login', {
+                pathname: current,
+                extensions,
+                stack: new Error().stack,
+              });
               setTimeout(() => {
                 if (window.location.pathname !== '/login') {
                   window.location.assign('/login');
