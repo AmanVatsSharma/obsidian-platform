@@ -1,6 +1,5 @@
 'use client';
 
-import { NextRouter, useRouter } from 'next/router';
 import { useEffect, useState } from 'react';
 
 /**
@@ -8,26 +7,26 @@ import { useEffect, useState } from 'react';
  * Module:      broker-admin · Global Error Boundary
  * Purpose:     Next.js App Router error boundary — catches unhandled React errors
  *              (render exceptions, uncaught promise rejections) at the root level.
- *              Renders a recovery UI with a "Try Again" button that calls router.push('/')
- *              to reinitialize the app shell. This prevents a blank/white screen on
- *              any unexpected crash.
+ *              Renders a recovery UI with a "Try Again" button that calls the
+ *              framework-provided `reset` to re-render the error boundary, and
+ *              a "Reload App" button that does a hard window.location navigation
+ *              to '/'. This prevents a blank/white screen on any unexpected crash.
  *
  * Exports:
  *   - default (GlobalError) — Next.js error boundary component
  *
- * Depends on:
- *   - next/router — useRouter for navigation recovery
- *
  * Side-effects:
- *   - none (read-only component)
+ *   - Logs the error to the console for dev visibility
  *
  * Key invariants:
- *   - 'use client' — uses router API and useState
- *   - Renders at the app root; does NOT wrap individual pages
- *   - Has its own "use client" boundary — separate from page-level 'use client'
+ *   - 'use client' — uses useState and a window.location navigation
+ *   - global-error.tsx is mounted OUTSIDE the App Router tree (it replaces
+ *     <html> and <body>), so useRouter() from next/navigation is NOT
+ *     available here. Use window.location for navigation.
+ *   - Does NOT wrap individual pages
  *
  * Author:      BharatERP
- * Last-updated: 2026-05-16
+ * Last-updated: 2026-06-07
  */
 
 export default function GlobalError({
@@ -37,7 +36,6 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
-  const router = useRouter();
   const [copied, setCopied] = useState(false);
 
   useEffect(() => {
@@ -91,7 +89,7 @@ export default function GlobalError({
             </button>
 
             <button
-              onClick={() => router.push('/')}
+              onClick={() => { window.location.href = '/'; }}
               style={{
                 padding: '8px 20px',
                 background: 'transparent',
