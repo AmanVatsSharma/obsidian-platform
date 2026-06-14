@@ -201,8 +201,11 @@ export default function SegmentAccessPage() {
   }, [filteredUsers, accessList]);
 
   const handleSaveAccess = (userId: string, data: any) => {
-    console.log('Saving access:', userId, data);
-    // API call to grant access
+    // Persistence is a v2 concern — see apps/broker-admin/docs/admin-v1-scope.md
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console -- dev-only debug
+      console.debug('[segment-access] save (no-op in v1):', userId, data);
+    }
     setModalOpen(false);
   };
 

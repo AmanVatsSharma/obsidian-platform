@@ -33,6 +33,7 @@ import { AlertTriangle, AlertCircle, Edit2, X, Plus, Zap } from 'lucide-react';
 import { useExposureLimits } from '@/lib/api/hooks/use-exposure-limits';
 import { useRiskExposure, useRiskThresholds, useCreateRiskThreshold } from '@/lib/api/hooks/use-risk';
 import { MarginLevelGauge } from '@/components/margin-level-gauge';
+import { useAuth } from '@/lib/auth/auth-context';
 import type { ExposureLimit, RiskThreshold, RiskThresholdMetric, RiskOperator, RiskAction } from '@/lib/types';
 
 const STATUS_COLOR: Record<ExposureLimit['status'], string> = {
@@ -402,10 +403,11 @@ function ThresholdModal({ onClose, onSave, saving, tenantId }: {
 
 export default function ExposureLimitsPage() {
   const { limits, isLoading, refetch, updateLimit } = useExposureLimits();
-  const brokerId = 'default'; // TODO: replace with actual brokerId from auth context
-  const tenantId = 'default'; // TODO(todo-fix): replace with actual tenantId from auth context
-  const { marginLevel } = useRiskExposure(brokerId);
-  const { thresholds } = useRiskThresholds(tenantId);
+  const { brokerId, tenantId } = useAuth();
+  // Skip the per-broker/tenant calls until we have real ids — avoids firing
+  // `?brokerId=` against the backend with an empty value (which would 400).
+  const { marginLevel } = useRiskExposure(brokerId || 'unknown');
+  const { thresholds } = useRiskThresholds(tenantId || 'unknown');
 
   const [editing, setEditing] = useState<ExposureLimit | null>(null);
   const [saving, setSaving] = useState(false);

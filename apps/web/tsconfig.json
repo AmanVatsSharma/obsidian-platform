@@ -19,6 +19,7 @@
     "paths": {
       "@/gql/*": ["gql/*"],
       "@/features/*": ["features/*"],
+      "@/lib/*": ["lib/*"],
       "@/shared/*": ["shared/*"],
       "@obsidian/backend/*": ["../../apps/backend/src/*"],
       "@obsidian/backend-auth": ["../../apps/backend/src/modules/auth/index.ts"],

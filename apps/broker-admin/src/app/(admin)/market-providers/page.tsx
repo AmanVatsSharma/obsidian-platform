@@ -247,7 +247,11 @@ export default function MarketProvidersPage() {
 
   const handleSave = useCallback((provider: DataProvider) => {
     setModal(null);
-    console.log('Saving provider:', provider);
+    // Persistence is a v2 concern — see apps/broker-admin/docs/admin-v1-scope.md
+    if (process.env.NODE_ENV !== 'production') {
+      // eslint-disable-next-line no-console -- dev-only debug
+      console.debug('[market-providers] save (no-op in v1):', provider.code);
+    }
   }, []);
 
   return (

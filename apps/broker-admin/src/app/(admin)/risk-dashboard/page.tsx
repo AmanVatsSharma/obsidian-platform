@@ -34,6 +34,7 @@
 import { useMemo, useState } from 'react';
 import { Shield, Download, TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react';
 import { MarginLevelGauge } from '@/components/margin-level-gauge';
+import { useAuth } from '@/lib/auth/auth-context';
 import {
   useRiskExposure,
   usePortfolioVar,
@@ -500,7 +501,7 @@ function TopStatsRow({ brokerId }: { brokerId: string }) {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function RiskDashboardPage() {
-  const brokerId = 'default'; // TODO: from auth context
+  const { brokerId } = useAuth();
 
   const now = new Date();
   const timeStr = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });

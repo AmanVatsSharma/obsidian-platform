@@ -50,9 +50,12 @@ const SAMPLE_RESULTS: SymbolSearchResult[] = [
   { exchange: 'NSE', symbol: 'HCL', name: 'HCL Tech' },
 ];
 
-const fetcher = jest.fn(async (q: string, _limit: number) =>
-  SAMPLE_RESULTS.filter((r) => r.symbol.toLowerCase().includes(q.toLowerCase())),
-);
+const fetcher = jest.fn(async (q: string, _limit: number) => {
+  // Return all results for an empty query, or a substring match otherwise.
+  // Empty-string check mirrors the production defaultSearch behavior.
+  if (!q) return SAMPLE_RESULTS;
+  return SAMPLE_RESULTS.filter((r) => r.symbol.toLowerCase().includes(q.toLowerCase()));
+});
 
 let mockClient: ReturnType<typeof makeMockClient>;
 
@@ -120,7 +123,7 @@ describe('useSymbolSearch', () => {
   it('auto-subscribes the top N results after search resolves', async () => {
     jest.useFakeTimers();
     const { result } = renderHook(() =>
-      useSymbolSearch('i', {
+      useSymbolSearch('', {
         debounceMs: 10,
         autoTouchTopN: 2,
         fetcher,
@@ -151,7 +154,7 @@ describe('useSymbolSearch', () => {
           autoTouchTopN: 1,
           fetcher,
         }),
-      { initialProps: { q: 'i' } },
+      { initialProps: { q: '' } },
     );
 
     await act(async () => {
@@ -184,7 +187,7 @@ describe('useSymbolSearch', () => {
           autoTouchTopN: 1,
           fetcher,
         }),
-      { initialProps: { q: 'i' } },
+      { initialProps: { q: '' } },
     );
 
     await act(async () => {
@@ -235,7 +238,7 @@ describe('useSymbolSearch', () => {
   it('maxActive cap evicts the oldest auto sub (manual is pinned)', async () => {
     jest.useFakeTimers();
     const { result } = renderHook(() =>
-      useSymbolSearch('i', {
+      useSymbolSearch('', {
         debounceMs: 10,
         maxActive: 2,
         autoTouchTopN: 4, // tries to open 4 — but cap is 2

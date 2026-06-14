@@ -48,7 +48,7 @@ import {
   Home, BarChart2, TrendingUp, Briefcase, User,
   Search, Bell, Settings, X, Plus, RefreshCw, Activity,
   ChevronLeft, ArrowUpRight, ArrowDownRight, Layers,
-  CandlestickChart, SlidersHorizontal, Shield, LogOut, Monitor, Pulse,
+  CandlestickChart, SlidersHorizontal, Shield, LogOut, Monitor,
 } from 'lucide-react';
 import type { Instrument, OpenPosition, ToastItem, AccountSnapshot, QuoteDto, PendingOrder } from '@/features/trading-terminal/lib/types';
 import { useSymbolSearch } from '@/lib/prana-stream/hooks/use-symbol-search';
@@ -1026,11 +1026,11 @@ function MarketsScreen({ instruments, prices, onSelect }: { instruments: Instrum
           // (with sign matching up) so the visual is reproducible and
           // directionally consistent with the day's move.
           const changePct = p.changePct ?? 0;
-          const sign = up ? 1 : -1;
+          const direction = up ? 1 : -1;
           const magnitude = Math.abs(changePct) / 100;
           const sparkData = Array.from({ length: 15 }, (_, i) => {
             const t = (i / 14) - 0.5; // -0.5 .. +0.5
-            const offset = t * sign * magnitude;
+            const offset = t * direction * magnitude;
             return p.bid * (1 + offset);
           });
           return (
@@ -1054,7 +1054,7 @@ function MarketsScreen({ instruments, prices, onSelect }: { instruments: Instrum
                         letterSpacing: '0.04em',
                       }}
                     >
-                      <Pulse size={9} /> LIVE
+                      <Activity size={9} /> LIVE
                     </span>
                   )}
                 </div>
