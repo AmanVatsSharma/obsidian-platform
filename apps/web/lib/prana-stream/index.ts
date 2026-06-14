@@ -52,7 +52,6 @@ export type {
   ConnectionStatus,
   PranaEventName,
   BackpressureEvent,
-  JwtClaims,
   MarginBreachPayload,
 } from './types';
 export type { JwtClaims as JwtClaimsType } from './jwt-decode';

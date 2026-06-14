@@ -44,20 +44,20 @@ const mockUsePortfolioEquity = jest.fn(() => ({
 }));
 
 jest.mock('@/shared/providers/auth-provider', () => ({
-  useAuth: (...args: any[]) => mockUseAuth(...args),
+  useAuth: (...args: unknown[]) => (mockUseAuth as (...a: unknown[]) => unknown)(...args),
 }));
 
 jest.mock('@/gql/hooks', () => ({
-  useGetInstrumentsQuery: (...args: any[]) => mockUseGetInstrumentsQuery(...args),
-  useGetQuoteQuery: (...args: any[]) => mockUseGetQuoteQuery(...args),
-  usePlaceOrderMutation: (...args: any[]) => mockUsePlaceOrderMutation(...args),
-  useCancelOrderMutation: (...args: any[]) => mockUseCancelOrderMutation(...args),
+  useGetInstrumentsQuery: (...args: unknown[]) => (mockUseGetInstrumentsQuery as (...a: unknown[]) => unknown)(...args),
+  useGetQuoteQuery: (...args: unknown[]) => (mockUseGetQuoteQuery as (...a: unknown[]) => unknown)(...args),
+  usePlaceOrderMutation: (...args: unknown[]) => (mockUsePlaceOrderMutation as (...a: unknown[]) => unknown)(...args),
+  useCancelOrderMutation: (...args: unknown[]) => (mockUseCancelOrderMutation as (...a: unknown[]) => unknown)(...args),
 }));
 
 jest.mock('@/lib/prana-stream', () => ({
-  useOpenOrders: (...args: any[]) => mockUseOpenOrders(...args),
-  usePositionPnL: (...args: any[]) => mockUsePositionPnL(...args),
-  usePortfolioEquity: (...args: any[]) => mockUsePortfolioEquity(...args),
+  useOpenOrders: (...args: unknown[]) => (mockUseOpenOrders as (...a: unknown[]) => unknown)(...args),
+  usePositionPnL: (...args: unknown[]) => (mockUsePositionPnL as (...a: unknown[]) => unknown)(...args),
+  usePortfolioEquity: (...args: unknown[]) => (mockUsePortfolioEquity as (...a: unknown[]) => unknown)(...args),
 }));
 
 // Mock nanoid for this file only

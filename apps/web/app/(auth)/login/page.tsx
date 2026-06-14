@@ -58,8 +58,8 @@ export default function LoginPage() {
     }
 
     // Try to detect from browser locale
-    const locale = (navigator.language || navigator.userLanguage).split('-')[0].toUpperCase();
-    const defaultCountry: Country | null = {
+    const locale = (navigator.language ?? '').split('-')[0].toUpperCase();
+    const SUPPORTED: Record<string, Country> = {
       'US': { code: 'US', name: 'United States', dialCode: '+1' },
       'GB': { code: 'GB', name: 'United Kingdom', dialCode: '+44' },
       'IN': { code: 'IN', name: 'India', dialCode: '+91' },
@@ -70,7 +70,8 @@ export default function LoginPage() {
       'FR': { code: 'FR', name: 'France', dialCode: '+33' },
       'JP': { code: 'JP', name: 'Japan', dialCode: '+81' },
       'AE': { code: 'AE', name: 'UAE', dialCode: '+971' },
-    }[locale] || defaultFallbackCountry();
+    };
+    const defaultCountry: Country = SUPPORTED[locale] ?? defaultFallbackCountry();
 
     return defaultCountry;
   };

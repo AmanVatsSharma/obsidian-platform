@@ -58,6 +58,8 @@ export type OptimisticOrder = OrderUpdatePayload & {
   errorMessage?: string;
   /** When the optimistic entry was added. */
   addedAt: number;
+  /** Client-generated ID used for reconciliation; the server's real id replaces this in `id`. */
+  clientOrderId?: string;
 };
 
 type State = {
@@ -204,6 +206,7 @@ export const useOptimisticOrdersStore = create<State & Actions>((set) => ({
         const entry: OptimisticOrder = {
           ...update,
           localStatus: 'confirmed',
+          addedAt: Date.now(),
         };
         next.set(update.id, entry);
       }

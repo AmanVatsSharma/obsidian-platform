@@ -7,8 +7,9 @@
  *              {EXCHANGE}:{SYMBOL} has changed since I last looked".
  *
  * Exports:
- *   - useTickChange(exchange, symbol) — boolean, true when latest tick
- *     differs from the previous one
+ *   - useTickChange(exchange, symbol) — { changed, tick, change } where
+ *     `change` is the percent change vs. the previous observed tick
+ *     (0 when no prior tick exists)
  *   - useLatestTickPrice(exchange, symbol) — number | null
  *
  * Depends on:
@@ -18,8 +19,8 @@
  *   - None beyond subscribing to the store's version counter
  *
  * Key invariants:
- *   - First render returns `false` for `useTickChange` (no prior tick
- *     to compare against)
+ *   - First render returns `change === 0` and `changed === false` (no
+ *     prior tick to compare against)
  *   - The hook DOES NOT push into the store; it only reads
  *   - useLatestTickPrice returns null when no tick has arrived
  *
@@ -52,7 +53,7 @@ function getPrice(version: number, exchange: string, symbol: string): number | n
 export function useTickChange(
   exchange: string,
   symbol: string,
-): { changed: boolean; tick: Tick | undefined } {
+): { changed: boolean; tick: Tick | undefined; change: number } {
   const version = useSyncExternalStore(
     watchlistTicksStore.subscribe,
     watchlistTicksStore.getSnapshotVersion,
@@ -67,6 +68,14 @@ export function useTickChange(
     (prevRef.current.price !== tick.price || prevRef.current.ts !== tick.ts)
   );
 
+  // Percent change vs. the previous observed tick. Returns 0 when there
+  // is no prior tick (first render) or the previous price was 0 (avoid
+  // divide-by-zero). Fractional; consumers multiply by 100 for display.
+  let change = 0;
+  if (prevRef.current && tick && prevRef.current.price !== 0) {
+    change = (tick.price - prevRef.current.price) / prevRef.current.price;
+  }
+
   useEffect(() => {
     // Defer to next tick so the consumer can read `changed === true`
     // once on the same render
@@ -76,5 +85,7 @@ export function useTickChange(
   return {
     changed,
     tick,
+    change,
   };
 }
+

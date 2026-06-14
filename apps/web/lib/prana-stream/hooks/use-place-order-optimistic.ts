@@ -119,6 +119,11 @@ export function usePlaceOrderOptimistic() {
               ...(input.tpPrice ? { tpPrice: input.tpPrice } : {}),
               timeInForce: input.timeInForce ?? 'DAY',
               clientOrderId,
+              // externalRefId is required by the schema but is not a
+              // client-side concern (it identifies the upstream adapter
+              // reference). Reuse the clientOrderId until the OMS allows
+              // it to be omitted.
+              externalRefId: clientOrderId,
             },
           },
         });
@@ -145,7 +150,6 @@ export function usePlaceOrderOptimistic() {
           clientOrderId,
           id: orderData.id,
           status: orderData.status,
-          ...(orderData.message ? { message: orderData.message } : {}),
         });
         setIsPlacing(false);
         return { ok: true, clientOrderId };

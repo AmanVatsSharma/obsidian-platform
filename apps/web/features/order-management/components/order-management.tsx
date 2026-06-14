@@ -19,6 +19,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@obsidian/obsidian-ui'
 import { useOpenOrders, useOrderUpdates } from '@/lib/prana-stream';
 import { useCancelOrder } from '@/gql/hooks/useCancelOrder';
 import type { PendingOrder } from '../../trading-terminal/lib/types';
+import type { ExtendedHistoryRow } from '../lib/types';
 import { OrderHistoryTable } from './order-history-table';
 import { PendingOrdersTable } from './pending-orders-table';
 
@@ -82,14 +83,30 @@ export function OrderManagement() {
 
   // History = all orders whose status is terminal (FILLED / CANCELED / REJECTED / EXPIRED).
   // Sorted newest first; the table itself only needs the basic order fields.
-  const orderHistory = useMemo(
+  // NOTE: PranaStream's order events do not currently ship PnL / close price /
+  // fill price. We map what we have and leave the analytics fields at
+  // neutral defaults (0 / ''). The OMS enrichment pipeline will populate
+  // these once the order fills server-side.
+  const orderHistory: ExtendedHistoryRow[] = useMemo(
     () =>
       Array.from(allOrders.values())
         .filter((o) => TERMINAL_STATUSES.has(o.status))
         .sort((a, b) =>
           b.createdAt > a.createdAt ? 1 : b.createdAt < a.createdAt ? -1 : 0,
         )
-        .map(toPendingOrder),
+        .map((o): ExtendedHistoryRow => ({
+          id: o.id,
+          symbol: o.instrumentId,
+          type: o.type,
+          lots: parseFloat(o.quantity) || 0,
+          openPrice: parseFloat(o.price ?? '0') || 0,
+          closePrice: 0,
+          pnl: 0,
+          openTime: o.createdAt,
+          closeTime: '',
+          duration: '',
+          status: o.status as ExtendedHistoryRow['status'],
+        })),
     [allOrders],
   );
 

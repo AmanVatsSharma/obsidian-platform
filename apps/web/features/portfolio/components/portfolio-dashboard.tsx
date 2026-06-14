@@ -13,6 +13,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@obsidian/obsidian-ui';
 import { usePositionPnL, usePortfolioEquity } from '@/lib/prana-stream';
+import type { OpenPosition } from '../../trading-terminal/lib/types';
 import type { PortfolioSummary } from '../lib/types';
 import { PnlSummaryCards } from './pnl-summary-cards';
 import { PositionsTable } from './positions-table';
@@ -53,7 +54,7 @@ export function PortfolioDashboard() {
   // The table expects the trading-ui OpenPosition type with lots, openPrice,
   // currentPrice, pnl, etc. We pass through what the live data provides and
   // backfill zeros where PranaStream hasn't sent an event yet.
-  const openPositions = useMemo(
+  const openPositions: OpenPosition[] = useMemo(
     () =>
       positions.map((p) => ({
         id: p.instrumentId,
@@ -61,13 +62,12 @@ export function PortfolioDashboard() {
         type: p.side === 'SHORT' ? 'SELL' : 'BUY',
         lots: Math.abs(p.netQty),
         openPrice: p.averagePrice,
-        // markPrice is null until a tick arrives; fall back to averagePrice
-        // for the table's display. The cell shows the mark when live.
         currentPrice: p.markPrice ?? p.averagePrice,
         pnl: p.unrealizedPnl,
         pnlPct:
-          p.averagePrice > 0 ? (p.unrealizedPnl / (p.averagePrice * Math.abs(p.netQty))) * 100 : 0,
-        // Map sl/tp to empty (not tracked in position data yet)
+          p.averagePrice > 0
+            ? (p.unrealizedPnl / (p.averagePrice * Math.abs(p.netQty))) * 100
+            : 0,
         sl: '',
         tp: '',
         swap: 0,

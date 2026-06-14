@@ -136,8 +136,8 @@ export function ChartPanel({
       volSeries.setData(histRows);
       chart.timeScale().fitContent();
 
-      if (candles.length) {
-        const last = candles[candles.length - 1];
+      if (candleSource.length) {
+        const last = candleSource[candleSource.length - 1];
         setOhlc({ o: last.open, h: last.high, l: last.low, c: last.close, v: last.volume });
       }
 

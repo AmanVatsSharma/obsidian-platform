@@ -64,23 +64,46 @@ export function DepthOfMarket({
   domFrame?: {
     exchange: string;
     symbol: string;
-    bids: { price: number; size: number }[];
-    asks: { price: number; size: number }[];
+    bids: { price: number; quantity: number; orders?: number }[];
+    asks: { price: number; quantity: number; orders?: number }[];
     ts: number;
   } | null;
 }) {
-  // If live DOM is provided, use it and disable the simulator.
-  // Otherwise use the simulator to keep the panel working in the lib.
-  const [dom, setDom] = useState(() => domFrame ?? domForInstrument(instrument));
+  // If live DOM is provided, map it into DomLevel[] (merge bids/asks into a single
+  // ranked list with type/depth). Otherwise use the simulator to keep the panel working.
+  const defaultDom = domForInstrument(instrument);
+  const [dom, setDom] = useState<DomLevel[]>(() => {
+    if (domFrame) {
+      const rows: DomLevel[] = [];
+      domFrame.bids.forEach((b, i) => {
+        rows.push({ price: b.price, volume: b.quantity, type: 'bid', depth: i * 100 + 500 });
+      });
+      domFrame.asks.forEach((a, i) => {
+        rows.push({ price: a.price, volume: a.quantity, type: 'ask', depth: i * 100 + 500 });
+      });
+      return rows;
+    }
+    return defaultDom;
+  });
+
   useEffect(() => {
-    if (domFrame) return; // Skip simulator if live DOM is provided
+    if (domFrame) return;
     const iv = setInterval(() => setDom(domForInstrument(instrument)), 800);
     return () => clearInterval(iv);
   }, [instrument?.symbol, instrument?.bid, domFrame]);
 
-  // When live DOM updates, push them into state
+  // When live DOM updates, re-map into DomLevel[]
   useEffect(() => {
-    if (domFrame) setDom(domFrame);
+    if (domFrame) {
+      const rows: DomLevel[] = [];
+      domFrame.bids.forEach((b, i) => {
+        rows.push({ price: b.price, volume: b.quantity, type: 'bid', depth: i * 100 + 500 });
+      });
+      domFrame.asks.forEach((a, i) => {
+        rows.push({ price: a.price, volume: a.quantity, type: 'ask', depth: i * 100 + 500 });
+      });
+      setDom(rows);
+    }
   }, [domFrame]);
 
   const asks = dom.filter((d) => d.type === 'ask').reverse();

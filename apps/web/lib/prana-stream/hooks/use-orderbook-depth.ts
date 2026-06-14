@@ -21,7 +21,7 @@ export function useOrderBookDepth(
   const [frame, setFrame] = useState<OrderBookFrame | null>(null);
 
   useEffect(() => {
-    if (!isReady || !exchange || !symbol) return null;
+    if (!isReady || !exchange || !symbol) return;
     client.subscribeOrderBook(exchange, symbol);
 
     const unsub = client.on<OrderBookFrame>('orderbook.depth', (f) => {

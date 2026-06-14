@@ -48,7 +48,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { Instrument, OpenPosition, PendingOrder, ToastItem } from '../types/instrument';
+import type { AccountSnapshot, Instrument, OpenPosition, PendingOrder, ToastItem } from '../types/instrument';
 import { fmt, fmtPrice, pnlSign } from '../lib/format-utils';
 // NO MOCK DATA - all data must come from props
 import {
@@ -104,18 +104,7 @@ export function TradingWorkstation({
   /** Seed pending orders from GraphQL instead of the mock PENDING_ORDERS. */
   pendingOrders?: PendingOrder[];
   /** Live account balance snapshot — passed to AccountSummaryPanel; absent = ACCOUNT mock. */
-  balance?: {
-    equity: number;
-    freeMargin: number;
-    margin: number;
-    unrealizedPnl: number;
-    realizedPnlToday: number;
-    balance: number;
-    currency: string;
-    accountId: string;
-    accountType: string;
-    leverage: string;
-  };
+  balance?: Partial<AccountSnapshot>;
   /** Live tick stream keyed by "EXCHANGE:SYMBOL". When supplied, the price simulator is disabled. */
   ticks?: { exchange: string; symbol: string; price: number; ts: number }[];
   /** Live OHLCV series for the active instrument. When supplied, the chart panel uses it. */
@@ -124,8 +113,8 @@ export function TradingWorkstation({
   domFrame?: {
     exchange: string;
     symbol: string;
-    bids: { price: number; size: number }[];
-    asks: { price: number; size: number }[];
+    bids: { price: number; quantity: number; orders?: number }[];
+    asks: { price: number; quantity: number; orders?: number }[];
     ts: number;
   } | null;
   /** Live ping value (ms). When supplied, the ping simulator is disabled. */
@@ -294,6 +283,29 @@ export function TradingWorkstation({
 
   const shellClass = forceMobileLayout ? 'nt-workstation-shell nt-mobile-layout' : 'nt-workstation-shell';
 
+  // Derive a full AccountSnapshot from the slim balance prop so child panels
+  // (TopBar, AccountSummary, StatusBar) all share the same canonical shape.
+  const accountSnapshot: AccountSnapshot | null = balance
+    ? {
+        name: balance.name ?? 'Trading Account',
+        accountId: balance.accountId ?? '',
+        accountType: balance.accountType ?? 'Trading',
+        broker: balance.broker ?? 'Obsidian Markets',
+        currency: balance.currency ?? 'USD',
+        leverage: balance.leverage ?? '1:100',
+        balance: balance.balance ?? 0,
+        equity: balance.equity ?? 0,
+        margin: balance.margin ?? 0,
+        freeMargin: balance.freeMargin ?? 0,
+        marginLevel: balance.marginLevel ?? (balance.margin && balance.margin > 0 ? (balance.equity ?? 0) / balance.margin * 100 : 0),
+        unrealizedPnl: balance.unrealizedPnl ?? 0,
+        realizedPnlToday: balance.realizedPnlToday ?? 0,
+        drawdownPct: balance.drawdownPct ?? 0,
+        server: balance.server ?? 'OB-LIVE-01',
+        ping: balance.ping ?? 0,
+      }
+    : null;
+
   return (
     <div className={shellClass}>
       <div className="dashboard-root">
@@ -301,7 +313,7 @@ export function TradingWorkstation({
           activeInstrument={activeInstrument}
           prices={prices}
           onSymbolClick={setActiveInstrument}
-          account={balance ?? null}
+          account={accountSnapshot}
           pinned={pinned}
         />
 
@@ -335,28 +347,13 @@ export function TradingWorkstation({
 
           <div className="right-sidebar">
             <OrderEntry instrument={activeInstrument} prices={prices} onTrade={(p) => void handleTrade(p)} />
-            <AccountSummaryPanel snapshot={balance ? {
-              name: 'Trading Account',
-              accountId: balance.accountId,
-              accountType: balance.accountType,
-              broker: 'Obsidian Markets',
-              currency: balance.currency,
-              leverage: balance.leverage,
-              balance: balance.balance,
-              equity: balance.equity,
-              margin: balance.margin,
-              freeMargin: balance.freeMargin,
-              marginLevel: balance.margin > 0 ? (balance.equity / balance.margin) * 100 : 0,
-              unrealizedPnl: balance.unrealizedPnl,
-              realizedPnlToday: balance.realizedPnlToday,
-              drawdownPct: 0,
-              server: 'OB-LIVE-01',
-              ping: effectivePing,
-            } : undefined} />
+            <AccountSummaryPanel
+              snapshot={accountSnapshot ? { ...accountSnapshot, ping: effectivePing } : undefined}
+            />
           </div>
         </div>
 
-        <StatusBarTrading ping={effectivePing} account={balance ?? null} mobileHref={mobileHref} />
+        <StatusBarTrading ping={effectivePing} account={accountSnapshot} mobileHref={mobileHref} />
         <ToastContainer toasts={toasts} />
       </div>
     </div>

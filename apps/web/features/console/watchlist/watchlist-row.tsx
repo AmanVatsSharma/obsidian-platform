@@ -22,14 +22,14 @@ type WatchlistRowProps = {
 
 export function WatchlistRow({ exchange, symbol, onChange }: WatchlistRowProps) {
   const price = useLatestTickPrice(exchange, symbol);
-  const { changed, tick } = useTickChange(exchange, symbol);
+  const { changed, tick, change } = useTickChange(exchange, symbol);
 
   React.useEffect(() => {
     if (onChange && tick) {
       // Forward price changes to parent (e.g., update chart marker)
-      onChange({ price: tick.price, change: tick.change });
+      onChange({ price: tick.price, change });
     }
-  }, [tick, onChange]);
+  }, [tick, change, onChange]);
 
   return (
     <tr className={changed ? 'animate-pulse bg-obs-amber/10' : ''}>
@@ -38,13 +38,13 @@ export function WatchlistRow({ exchange, symbol, onChange }: WatchlistRowProps) 
         {price != null ? `$${price.toFixed(2)}` : '—'}
       </td>
       <td className="py-2 text-right">
-        {tick?.change != null ? (
+        {tick != null ? (
           <span
             className={
-              tick.change >= 0 ? 'text-obs-green' : 'text-obs-red'
+              change >= 0 ? 'text-obs-green' : 'text-obs-red'
             }
           >
-            {tick.change >= 0 ? '+' : ''}{(tick.change * 100).toFixed(2)}%
+            {change >= 0 ? '+' : ''}{(change * 100).toFixed(2)}%
           </span>
         ) : (
           <span className="text-obs-text-2">—</span>

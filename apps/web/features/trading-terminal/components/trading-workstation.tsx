@@ -383,7 +383,6 @@ export function TradingWorkstation({
         positions={openPositions}
         pendingOrders={pendingOrders}
         onInstrumentChange={setActiveInstrument}
-        onTimeframeChange={setActiveTimeframe}
         candles={candles}
         domFrame={domFrame}
       />

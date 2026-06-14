@@ -103,8 +103,6 @@ class PranaStreamClient {
       reconnectionDelayMax: MAX_RECONNECT_DELAY_MS,
       reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
       randomizationFactor: 0.5, // jitter
-      pingInterval: PING_INTERVAL_MS,
-      pingTimeout: PING_TIMEOUT_MS,
       timeout: 10_000,
     });
 
