@@ -12,7 +12,9 @@
  *
  * Depends on:
  *   - @apollo/client     — ApolloLink, onError, FetchResult
- *   - next/navigation    — redirect utility (client-side navigation)
+ *   - window.location    — full-page redirect (used because Apollo error links
+ *                          run BEFORE the App Router layout mounts, so
+ *                          `next/navigation#redirect` is unsafe here)
  *
  * Side-effects:
  *   - HTTP 401: navigates to /login
@@ -31,7 +33,6 @@
 
 import { ApolloLink } from '@apollo/client';
 import { onError } from '@apollo/client/link/error';
-import { redirect } from 'next/navigation';
 
 /**
  * Lightweight console-based toast fallback. The design system exposes a real toast
@@ -54,7 +55,24 @@ function createErrorLink(): ApolloLink {
         const statusCode = extensions?.['statusCode'] as number | undefined;
 
         if (statusCode === 401) {
-          redirect('/login');
+          // Apollo error links run during request time, BEFORE the App Router
+          // layout has mounted. Calling `redirect` from `next/navigation` here
+          // throws "expected layout router to be mounted". A full-page
+          // `window.location.assign` is the safe escape hatch — but it must
+          // be deferred past the current React commit, otherwise the in-flight
+          // render throws the same invariant. We schedule it for the next
+          // macrotask so the error link returns cleanly and React can finish
+          // committing the (unauthorized) tree before we navigate away.
+          if (typeof window !== 'undefined') {
+            const current = window.location.pathname + window.location.search;
+            if (current !== '/login') {
+              setTimeout(() => {
+                if (window.location.pathname !== '/login') {
+                  window.location.assign('/login');
+                }
+              }, 0);
+            }
+          }
           return;
         }
 
