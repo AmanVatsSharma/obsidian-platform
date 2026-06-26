@@ -1,14 +1,18 @@
 # Migrations runner - runs TypeORM migrations
-FROM node:22-alpine AS migrations
+FROM node:22-alpine
+
+# Install pnpm globally
+RUN npm install -g pnpm
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --ignore-scripts
-
+# Copy source
 COPY . .
+
+# Install dependencies with pnpm
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 WORKDIR /app/apps/backend
 
 # Run migrations
-CMD ["sh", "-c", "npx typeorm migration:run -d src/config/typeorm.config.js"]
+CMD ["pnpm", "exec", "typeorm", "migration:run", "-d", "src/config/typeorm.config.js"]
