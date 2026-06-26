@@ -12,15 +12,15 @@ COPY . .
 # Install dependencies with pnpm
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Build Next.js broker-admin using Nx
-WORKDIR /app
-RUN pnpm nx run broker-admin:build
+# Build Next.js broker-admin directly
+WORKDIR /app/apps/broker-admin
+RUN pnpm exec next build
 
 # Stage 2: Production
 FROM node:22-alpine AS runner
 
-# Install pnpm and serve globally
-RUN npm install -g pnpm serve
+# Install serve globally
+RUN npm install -g serve
 
 WORKDIR /app
 
@@ -28,10 +28,10 @@ ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
 # Copy built artifacts
-COPY --from=builder /app/dist/apps/broker-admin ./.next
+COPY --from=builder /app/apps/broker-admin/.next ./.next
 COPY --from=builder /app/apps/broker-admin/public ./public
 
-# Copy node_modules needed
+# Copy minimal node_modules
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/broker-admin/node_modules ./apps/broker-admin/node_modules
 
@@ -43,5 +43,4 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
 # Start with serve for static export
-WORKDIR /app
 CMD ["serve", "-s", ".", "-l", "3000"]

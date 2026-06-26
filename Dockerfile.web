@@ -12,27 +12,26 @@ COPY . .
 # Install dependencies with pnpm
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Build Next.js web app using Nx
-WORKDIR /app
-RUN pnpm nx run web:build
+# Build Next.js web app directly
+WORKDIR /app/apps/web
+RUN pnpm exec next build
 
 # Stage 2: Production
 FROM node:22-alpine AS runner
 
-# Install pnpm globally
-RUN npm install -g pnpm
+# Install serve globally
+RUN npm install -g serve
 
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy built artifacts
-# Nx outputs to dist/apps/web for Next.js
-COPY --from=builder /app/dist/apps/web ./.next
+# Copy built artifacts - standalone mode creates .next/standalone
+COPY --from=builder /app/apps/web/.next ./.next
 COPY --from=builder /app/apps/web/public ./public
 
-# Copy node_modules needed
+# Copy minimal node_modules for standalone mode
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/web/node_modules ./apps/web/node_modules
 
@@ -43,6 +42,5 @@ EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
   CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
 
-# Start Next.js in standalone mode
-WORKDIR /app
-CMD ["node_modules/.bin/next", "start", "-p", "3000"]
+# Start with serve for static export
+CMD ["serve", "-s", ".", "-l", "3000"]
