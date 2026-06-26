@@ -49,7 +49,7 @@ services:
   backend:
     build:
       context: .
-      dockerfile: deploy/docker/Dockerfile.backend
+      dockerfile: Dockerfile.backend
     container_name: obsidian-backend
     environment:
       NODE_ENV: production
@@ -80,7 +80,7 @@ services:
   web:
     build:
       context: .
-      dockerfile: deploy/docker/Dockerfile.web
+      dockerfile: Dockerfile.web
     container_name: obsidian-web
     environment:
       NODE_ENV: production
@@ -104,7 +104,7 @@ services:
   broker-admin:
     build:
       context: .
-      dockerfile: deploy/docker/Dockerfile.broker-admin
+      dockerfile: Dockerfile.broker-admin
     container_name: obsidian-broker-admin
     environment:
       NODE_ENV: production
@@ -128,7 +128,7 @@ services:
     image: nginx:alpine
     container_name: obsidian-nginx
     volumes:
-      - ./deploy/docker/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
       - "80:80"
       - "443:443"
@@ -149,7 +149,7 @@ services:
   migrations:
     build:
       context: .
-      dockerfile: deploy/docker/Dockerfile.migrations
+      dockerfile: Dockerfile.migrations
     container_name: obsidian-migrations
     environment:
       DATABASE_URL: postgres://obsidian:${DB_PASSWORD:-changeme}@postgres:5432/obsidian
