@@ -12,9 +12,9 @@ COPY . .
 # Install dependencies with pnpm
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
-# Build the backend
-WORKDIR /app/apps/backend
-RUN pnpm run build
+# Build the backend using Nx
+WORKDIR /app
+RUN pnpm nx build backend
 
 # Stage 2: Production
 FROM node:22-alpine AS production
@@ -28,7 +28,7 @@ WORKDIR /app
 COPY package.json pnpm-lock.yaml ./
 
 # Copy built artifacts from builder
-COPY --from=builder /app/apps/backend/dist ./apps/backend/dist
+COPY --from=builder /app/dist/apps/backend ./apps/backend/dist
 
 # Install production dependencies only
 RUN pnpm install --frozen-lockfile --ignore-scripts --prod
