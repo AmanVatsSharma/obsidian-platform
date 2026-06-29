@@ -8,7 +8,6 @@ RUN npm ci --ignore-scripts
 
 COPY . .
 
+# Run migrations using the actual TypeORM config location
 WORKDIR /app/apps/backend
-
-# Run migrations
-CMD ["sh", "-c", "npx typeorm migration:run -d src/config/typeorm.config.js"]
+CMD ["sh", "-c", "npx ts-node --transpile-only -r tsconfig-paths/register src/shared/database/typeorm.config.ts && npx typeorm migration:run -d src/shared/database/typeorm.config.ts"]

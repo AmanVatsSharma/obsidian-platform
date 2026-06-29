@@ -1,50 +1,69 @@
-# Stage 1: Dependencies
+# Stage 1: Dependencies (cached layer)
 FROM node:22-alpine AS deps
+
+RUN apk add --no-cache libc6-compat
 
 WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --ignore-scripts
+# Copy lockfiles for dependency caching
+COPY package.json pnpm-lock.yaml ./
+RUN corepack enable && pnpm install --frozen-lockfile --ignore-scripts
 
 # Stage 2: Builder
 FROM node:22-alpine AS builder
 
 WORKDIR /app
 
+# Copy dependencies
 COPY --from=deps /app/node_modules ./node_modules
+
+# Copy source
 COPY . .
 
-# Build Next.js web app
+# Build Next.js web app (standalone output)
 WORKDIR /app/apps/web
-RUN npm run build
+RUN pnpm exec nx run web:build
 
-# Stage 3: Production
-FROM node:22-alpine AS runner
+# Stage 3: Production runtime
+FROM node:22-alpine AS production
+
+# Security: use non-root user
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001
+
+# Install dumb-init for proper signal handling
+RUN apk add --no-cache dumb-init
 
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    NEXT_PUBLIC_API_URL=http://backend:3000 \
+    NEXT_PUBLIC_PRANA_WS_URL=ws://backend:3000/ws/prana \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
 
-# Install serve for static files
-RUN npm install -g serve
-
-# Copy built artifacts
-COPY --from=builder /app/apps/web/.next ./.next
-COPY --from=builder /app/apps/web/public ./public
-COPY --from=builder /app/apps/web/package.json ./package.json
-
-# Copy node_modules needed for standalone
+# Copy production node_modules from builder (excludes devDeps)
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/apps/web/node_modules ./apps/web/node_modules
 
-# Expose port
-EXPOSE 3000
+# Copy Next.js standalone build
+COPY --from=builder /app/apps/web/.next/standalone ./
+COPY --from=builder /app/apps/web/.next/static ./.next/static
+COPY --from=builder /app/apps/web/public ./public
 
-# Health check
+# Security: chown to non-root user
+RUN chown -R nextjs:nodejs /app
+
+# Switch to non-root user
+USER nextjs
+
+# Healthcheck
 HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+  CMD wget --no-verbose --tries=1 --spider http://localhost:3000/ || exit 1
 
-# Start Next.js
-WORKDIR /app
-CMD ["node_modules/.bin/next", "start", "-p", "3000"]
+# Use dumb-init as entrypoint
+ENTRYPOINT ["dumb-init", "--"]
+
+# Start Next.js standalone server
+CMD ["node", "server.js"]
